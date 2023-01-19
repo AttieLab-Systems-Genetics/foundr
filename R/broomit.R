@@ -45,15 +45,15 @@ broomit <- function(object,
     purrr::map(
       split(object, object[[trait]]),
       function(traitdata) {
-        ov <- tryCatch(overallfit(traitdata, value, signal, design),
+        sig <- tryCatch(signalfit(traitdata, value, signal, design),
                        error = function(e) NULL)
-        if(is.null(ov))
+        if(is.null(sig))
           return(NULL)
         form <- stats::formula(paste(value, "~", signal))
         fit <- stats::lm(form, traitdata)
         tibble::as_tibble(data.frame(
           rawSD = stats::sd(traitdata[[value]], na.rm = TRUE),
-          overall = ov,
+          signal = sig,
           tidyr::pivot_wider(
             dplyr::select(
               myfun(fit),
@@ -64,7 +64,7 @@ broomit <- function(object,
     .id = trait)
 }
 
-overallfit <- function(traitdata, value, signal, design) {
+signalfit <- function(traitdata, value, signal, design) {
   formful <- stats::formula(paste(value, "~", signal))
   formred <- stats::formula(paste(value, "~", design))
   fitful <- stats::lm(formful, traitdata)
