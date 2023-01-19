@@ -37,7 +37,7 @@ broomit <- function(object,
       dplyr::filter(
         broom::tidy(
           stats::drop1(fit, fit, test = "F")),
-        grepl(paste0(interact, ":"), .data$term))
+        grepl(interact, .data$term))
     }
   }
   
