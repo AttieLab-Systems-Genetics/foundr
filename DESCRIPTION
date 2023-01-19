@@ -11,6 +11,7 @@ Depends:
 Imports:
     dplyr, tidyr, purrr, tibble, rlang, ggplot2, broom,
     stats, ordr
+LazyData: true
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.2.3

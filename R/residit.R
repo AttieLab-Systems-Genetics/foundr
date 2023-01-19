@@ -26,6 +26,9 @@ residit <- function(object,
                     value = "value",
                     signal = "strain * sex * diet",
                     design = "strain * sex + sex * diet") {
+  
+  # Somehow this give extra entries when there are missing values.
+  
   redfit <- function(object) {
     formred <- stats::formula(paste(value, "~", design))
     fitred <- stats::lm(formred, object)
