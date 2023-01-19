@@ -9,7 +9,7 @@ broomit(
   trait = "trait",
   value = "value",
   signal = "strain * sex * diet",
-  design = "strain * sex + sex * diet",
+  ancillary = "strain * sex + sex * diet",
   interact = stringr::str_remove(signal, " .*")
 )
 }
@@ -22,7 +22,7 @@ broomit(
 
 \item{signal}{signal factor combination as string for `formula`}
 
-\item{design}{design factor combination as string for `formula`}
+\item{ancillary}{ancillary factor combination as string for `formula`}
 
 \item{interact}{interacting factor to select for summary table}
 }
