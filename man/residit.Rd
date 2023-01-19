@@ -2,14 +2,14 @@
 % Please edit documentation in R/residit.R
 \name{residit}
 \alias{residit}
-\title{Partition Trait into Signal, Design and Noise}
+\title{Partition Trait into Signal, Ancillary and Noise}
 \usage{
 residit(
   object,
   trait = "trait",
   value = "value",
   signal = "strain * sex * diet",
-  design = "strain * sex + sex * diet"
+  ancillary = "strain * sex + sex * diet"
 )
 }
 \arguments{
@@ -21,12 +21,15 @@ residit(
 
 \item{signal}{signal factor combination as string for `formula`}
 
-\item{design}{design factor combination as string for `formula`}
+\item{ancillary}{ancillary factor combination as string for `formula`}
+}
+\value{
+data frame with added columns `ancillary`, `signal`, `noise`
 }
 \description{
-Partition a trait value into three parts based on design and signal factors.
-The signal is the main interest for comparison across traits, while the design
+Partition a trait value into three parts based on ancillary and signal factors.
+The signal is the main interest for comparison across traits, while the ancillary
 concerns aspects of the experiment that are controlled. Noise is unexplained variation.
 The three parts will be orthogonal to each other.
-The `signal` factors, entered as terms for `formula`, are conditioned by the `design` factors.
+The `signal` factors, entered as terms for `formula`, are conditioned by the `ancillary` factors.
 }
