@@ -21,7 +21,7 @@
 #' @export
 #'
 #' @examples
-residit <- function(object,
+partition <- function(object,
                     trait = "trait",
                     value = "value",
                     signal = "strain * sex * diet",
