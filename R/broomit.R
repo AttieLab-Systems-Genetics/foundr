@@ -4,7 +4,7 @@
 #' @param trait name of column with trait names
 #' @param value name column with trait values
 #' @param signal signal factor combination as string for `formula`
-#' @param design design factor combination as string for `formula`
+#' @param ancillary ancillary factor combination as string for `formula`
 #' @param interact interacting factor to select for summary table
 #'
 #' @return data frame with summaries by trait
@@ -25,7 +25,7 @@ broomit <- function(object,
                     trait = "trait",
                     value = "value",
                     signal = "strain * sex * diet",
-                    design = "strain * sex + sex * diet",
+                    ancillary = "strain * sex + sex * diet",
                     interact = stringr::str_remove(signal, " .*")) {
   if(is.null(interact)) {
     myfun <- function(fit) {
@@ -45,7 +45,7 @@ broomit <- function(object,
     purrr::map(
       split(object, object[[trait]]),
       function(traitdata) {
-        sig <- tryCatch(signalfit(traitdata, value, signal, design),
+        sig <- tryCatch(signalfit(traitdata, value, signal, ancillary),
                        error = function(e) NULL)
         if(is.null(sig))
           return(NULL)
@@ -64,9 +64,9 @@ broomit <- function(object,
     .id = trait)
 }
 
-signalfit <- function(traitdata, value, signal, design) {
+signalfit <- function(traitdata, value, signal, ancillary) {
   formful <- stats::formula(paste(value, "~", signal))
-  formred <- stats::formula(paste(value, "~", design))
+  formred <- stats::formula(paste(value, "~", ancillary))
   fitful <- stats::lm(formful, traitdata)
   fitred <- stats::lm(formred, traitdata)
   dplyr::select(
