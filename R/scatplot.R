@@ -23,7 +23,7 @@ scatplot <- function(data, x, y) {
     ggplot2::scale_x_log10() +
     ggplot2::scale_y_log10()
   
-  if(condition %in% names(data)) {
+  if("condition" %in% names(data)) {
     p <- p + ggplot::aes(col = condition) +
       ggplot2::ggtitle(paste(x, "vs", y, "by condition"))
   } else {
