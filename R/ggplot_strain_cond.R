@@ -15,17 +15,19 @@
 ggplot_strain_cond <- function(datatraits,
                                facet_strain = FALSE,
                                condition = "sex_diet") {
+  
+  # Allow for datatype grouping for traits
   if("datatype" %in% names(datatraits)) {
     tmp <- dplyr::distinct(datatraits, datatype, trait)
     datatype <- tmp$datatype
     trait <- tmp$trait
     ltrait <- length(trait)
     form <- "datatype + trait ~"
-    title <- paste0(paste(datatype, collapse = ","),
-                    " data for trait",
+    title <- paste0("data for trait",
                     ifelse(ltrait > 1, "s ", " "),
-                    paste(abbreviate(trait, ceiling(60 / ltrait)),
-                          collapse = ", "))
+                    paste(datatype,
+                          abbreviate(trait, ceiling(60 / ltrait)),
+                          sep = ":", collapse = ", "))
     
   } else {
     trait <- unique(datatraits$trait)
@@ -35,7 +37,12 @@ ggplot_strain_cond <- function(datatraits,
                     ifelse(ltrait > 1, "s ", " "),
                     paste(abbreviate(trait, ceiling(60 / ltrait)),
                           collapse = ", "))
-  } 
+  }
+  
+  # Could have no condition.
+  if(nocond <- !(condition %in% names(datatraits))) {
+    facet_strain <- FALSE
+  }
 
   p <- ggplot2::ggplot(datatraits)
   
@@ -51,13 +58,16 @@ ggplot_strain_cond <- function(datatraits,
       ggplot2::facet_grid(form, scales = "free_y") +
       ggplot2::scale_fill_manual(values = cond_colors)
   } else {
-    form <- stats::formula(paste(form, condition))
-    
+      
     p <- p +
       ggplot2::aes(strain, value, fill = strain) +
       ggplot2::geom_jitter(size = 3, shape = 21, color = "black", alpha = 0.65) +
-      ggplot2::facet_grid(form, scales = "free_y") +
       ggplot2::scale_fill_manual(values = CCcolors)
+
+    if(!nocond) {
+      form <- stats::formula(paste(form, condition))
+      p <- p + ggplot2::facet_grid(form, scales = "free_y")
+    }
   }
   
   p +
