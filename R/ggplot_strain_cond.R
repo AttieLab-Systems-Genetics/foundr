@@ -20,7 +20,7 @@ ggplot_strain_cond <- function(datatraits,
     datatype <- tmp$datatype
     trait <- tmp$trait
     ltrait <- length(trait)
-    form <- ".data$datatype + .data$trait ~"
+    form <- "datatype + trait ~"
     title <- paste0(paste(datatype, collapse = ","),
                     " data for trait",
                     ifelse(ltrait > 1, "s ", " "),
@@ -30,7 +30,7 @@ ggplot_strain_cond <- function(datatraits,
   } else {
     trait <- unique(datatraits$trait)
     ltrait <- length(trait)
-    form <- ".data$trait ~"
+    form <- "trait ~"
     title <- paste0("data for trait",
                     ifelse(ltrait > 1, "s ", " "),
                     paste(abbreviate(trait, ceiling(60 / ltrait)),
@@ -43,7 +43,7 @@ ggplot_strain_cond <- function(datatraits,
     ncond <- sort(unique(datatraits[[condition]]))
     cond_colors <- RColorBrewer::brewer.pal(n = length(ncond), name = "Dark2")
     names(cond_colors) <- ncond
-    form <- stats::formula(paste(form, ".data$strain"))
+    form <- stats::formula(paste(form, "strain"))
     
     p <- p +
       ggplot2::aes(.data[[condition]], value, fill = .data[[condition]]) +
@@ -51,7 +51,7 @@ ggplot_strain_cond <- function(datatraits,
       ggplot2::facet_grid(form, scales = "free_y") +
       ggplot2::scale_fill_manual(values = cond_colors)
   } else {
-    form <- stats::formula(paste(form, ".data[[condition]]"))
+    form <- stats::formula(paste(form, condition))
     
     p <- p +
       ggplot2::aes(strain, value, fill = strain) +
