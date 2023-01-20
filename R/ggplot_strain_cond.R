@@ -42,7 +42,7 @@ ggplot_strain_cond <- function(datatraits,
   if(facet_strain) {
     ncond <- sort(unique(datatraits[[condition]]))
     cond_colors <- RColorBrewer::brewer.pal(n = length(ncond), name = "Dark2")
-    names(sex_diet_colors) <- ncond
+    names(cond_colors) <- ncond
     form <- stats::formula(paste(form, ".data$strain"))
     
     p <- p +
