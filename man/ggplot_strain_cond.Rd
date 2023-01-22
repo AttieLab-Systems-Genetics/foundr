@@ -4,7 +4,12 @@
 \alias{ggplot_strain_cond}
 \title{GGplot by strain and condition}
 \usage{
-ggplot_strain_cond(datatraits, facet_strain = FALSE, condition = "sex_diet")
+ggplot_strain_cond(
+  datatraits,
+  facet_strain = FALSE,
+  condition = "sex_diet",
+  boxplot = FALSE
+)
 }
 \arguments{
 \item{datatraits}{data frame to be plotted}
@@ -12,6 +17,8 @@ ggplot_strain_cond(datatraits, facet_strain = FALSE, condition = "sex_diet")
 \item{facet_strain}{facet by strain if `TRUE`}
 
 \item{condition}{name of column with condition}
+
+\item{boxplot}{overlay boxplot if `TRUE`}
 }
 \value{
 object of class ggplot

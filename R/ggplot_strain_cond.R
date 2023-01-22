@@ -3,6 +3,7 @@
 #' @param datatraits data frame to be plotted
 #' @param facet_strain facet by strain if `TRUE` 
 #' @param condition name of column with condition
+#' @param boxplot overlay boxplot if `TRUE`
 #'
 #' @return object of class ggplot
 #' @importFrom RColorBrewer brewer.pal
@@ -14,7 +15,8 @@
 #' @examples
 ggplot_strain_cond <- function(datatraits,
                                facet_strain = FALSE,
-                               condition = "sex_diet") {
+                               condition = "sex_diet",
+                               boxplot = FALSE) {
   
   # Allow for datatype grouping for traits
   if("datatype" %in% names(datatraits)) {
@@ -45,6 +47,10 @@ ggplot_strain_cond <- function(datatraits,
   }
 
   p <- ggplot2::ggplot(datatraits)
+  
+  if(boxplot) {
+    p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA)
+  }
   
   if(facet_strain) {
     ncond <- sort(unique(datatraits[[condition]]))
