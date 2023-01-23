@@ -1,6 +1,6 @@
 #' Calculate Absolute Correlations
 #'
-#' @param object
+#' @param object data frame
 #' @param design names of design columns
 #' @param method method for correlation
 #'

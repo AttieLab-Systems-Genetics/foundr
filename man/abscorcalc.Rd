@@ -11,6 +11,8 @@ abscorcalc(
 )
 }
 \arguments{
+\item{object}{data frame}
+
 \item{design}{names of design columns}
 
 \item{method}{method for correlation}

@@ -9,8 +9,8 @@ Authors@R: c(person("Brian S Yandell",
 Depends:
     R (>= 3.1.0)
 Imports:
-    dplyr, tidyr, purrr, tibble, rlang, ggplot2, broom,
-    stats, ordr
+    dplyr, tidyr, purrr, tibble, tidyselect, rlang, ggplot2, broom,
+    stats, ordr, RColorBrewer, shiny, utils, DT, grDevices, stringr
 LazyData: true
 License: GPL-3
 Encoding: UTF-8
