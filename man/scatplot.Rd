@@ -4,14 +4,18 @@
 \alias{scatplot}
 \title{Scatter plot by trait values}
 \usage{
-scatplot(data, x, y)
+scatplot(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y))
 }
 \arguments{
 \item{data}{data frame}
 
-\item{x}{first trait}
+\item{x}{name of first trait}
 
-\item{y}{second trait}
+\item{y}{name of second trait}
+
+\item{shape_sex}{use different shape by sex if `TRUE`}
+
+\item{title}{title for plot}
 }
 \description{
 Scatter plot by trait values

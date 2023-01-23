@@ -1,33 +1,41 @@
 #' Scatter plot by trait values
 #'
 #' @param data data frame
-#' @param x first trait
-#' @param y second trait
+#' @param x name of first trait
+#' @param y name of second trait
+#' @param shape_sex use different shape by sex if `TRUE`
+#' @param title title for plot
 #'
 #' @return
 #' @importFrom tidyr pivot_wider
 #' @importFrom ggplot2 aes facet_grid geom_point geom_smooth ggplot
-#'                     ggtitle scale_x_log10 scale_y_log10
+#'                     ggtitle scale_fill_manual scale_shape_manual
 #' @export
 #'
 #' @examples
-scatplot <- function(data, x, y) {
+scatplot <- function(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y)) {
   data <- 
-    tidyr::pivot_wider(data, names_from = "trait", values_from = "value")
+    tidyr::pivot_wider(
+      dplyr::filter(data, trait %in% c(x,y)),
+      names_from = "trait", values_from = "value")
   
   p <- ggplot2::ggplot(data) +
-    ggplot2::aes(.data[[x]], .data[[y]]) +
-    ggplot2::geom_point() +
-    ggplot2::geom_smooth(method = "lm", se = FALSE, formula = y ~ x) +
-    ggplot2::facet_grid(sex ~ strain) +
-    ggplot2::scale_x_log10() +
-    ggplot2::scale_y_log10()
+    ggplot2::aes(.data[[x]], .data[[y]], fill = strain) +
+    geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
+                aes(group = strain, col = strain)) +
+    ggplot2::scale_fill_manual(values = CCcolors) +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::ggtitle(title)
   
-  if("condition" %in% names(data)) {
-    p <- p + ggplot::aes(col = condition) +
-      ggplot2::ggtitle(paste(x, "vs", y, "by condition"))
+  if(shape_sex) {
+    p <- p +
+      ggplot2::geom_point(
+        ggplot2::aes(shape = sex), size = 3, color = "black", alpha = 0.65) +
+      ggplot2::scale_shape_manual(values = c(23, 22))
   } else {
-    p <- p + ggplot2::ggtitle(paste(x, "vs", y))
+    p <- p +
+      ggplot2::geom_point(size = 3, shape = 21, color = "black", alpha = 0.65)
   }
+  
   p
 }
