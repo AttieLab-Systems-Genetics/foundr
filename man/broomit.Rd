@@ -10,7 +10,7 @@ broomit(
   value = "value",
   signal = "strain * sex * diet",
   ancillary = "strain * sex + sex * diet",
-  interact = stringr::str_remove(signal, " .*")
+  interact = stringr::str_remove(signal, " *[\\\\*\\\\+:].*")
 )
 }
 \arguments{

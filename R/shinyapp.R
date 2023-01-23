@@ -77,6 +77,12 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
     shiny::req(input$datatype)
     dplyr::filter(traitdata(), datatype %in% input$datatype)
   })
+  pval_names <- shiny::reactive({
+    # goal is to get rid of foundrArrange
+    nt <- names(traitsumdata())
+    nst <- grepl("^strain", nt)
+    stringr::str_replace_all(stringr::str_remove(nt[nst], "^strain\\."), "\\.", "_")
+  })
   traitarrange <- shiny::reactive({
     shiny::req(input$order, input$datatype)
     foundrArrange(traitsumdata(), input$order, input$datatype)
@@ -232,6 +238,32 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
     
     foundrScatplot(req(input$trait), datatraitslong(), req(input$pair))
   })
+}
+
+#' Arrange Founder Traits in Order
+#'
+#' @param traitsumdata data frame with summary
+#' @param order name to use to order traits
+#' @param datatypes type to subset `traitsumdata`
+#'
+#' @return data frame reordered
+#' @export
+#' @importFrom dplyr arrange desc filter
+#'
+#' @examples
+foundrArrange <- function(traitsumdata, order, datatypes = "") {
+  out <- dplyr::filter(traitsumdata, datatype %in% datatypes)
+  # Can automate this by pulling names from traitsumdata.
+  if(order == "variability") {
+    out <- dplyr::arrange(out, dplyr::desc(rawSD))
+  } else if(order == "alphabetical") {
+    out <- dplyr::arrange(out, trait)
+  } else {
+    if(order != "original") {
+      out <- dplyr::arrange(out, order)
+    }
+  }
+  out
 }
 
 #' Downloads for Founder App

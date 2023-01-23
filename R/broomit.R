@@ -26,18 +26,39 @@ broomit <- function(object,
                     value = "value",
                     signal = "strain * sex * diet",
                     ancillary = "strain * sex + sex * diet",
-                    interact = stringr::str_remove(signal, " .*")) {
+                    interact = stringr::str_remove(signal, " *[\\*\\+:].*")) {
   if(is.null(interact)) {
     myfun <- function(fit) {
-      broom::tidy(
-        stats::drop1(fit, fit, test = "F"))
+      tidyr::pivot_wider(
+        dplyr::select(
+          dplyr::mutate(
+            broom::tidy(
+              stats::drop1(fit, fit, test = "F")),
+            term = stringr::str_replace_all(
+              paste0("p_", term),
+              ":", "_")),
+          term, p.value),
+        names_from = "term",
+        values_from = "p.value")
     }
   } else {
     myfun <- function(fit) {
-      dplyr::filter(
-        broom::tidy(
-          stats::drop1(fit, fit, test = "F")),
-        grepl(interact, .data$term))
+      tidyr::pivot_wider(
+        dplyr::select(
+          dplyr::mutate(
+            dplyr::filter(
+              broom::tidy(
+                stats::drop1(fit, fit, test = "F")),
+              grepl(paste0(interact, ":"), .data$term)),
+            # change term from a.b to p_a_b
+            term = stringr::str_replace_all(
+              paste0(
+                "p_",
+                stringr::str_remove(term, paste0(interact, ":"))),
+              ":", "_")),
+          term, p.value),
+        names_from = "term",
+        values_from = "p.value")
     }
   }
   
@@ -53,13 +74,8 @@ broomit <- function(object,
         fit <- stats::lm(form, traitdata)
         tibble::as_tibble(data.frame(
           rawSD = stats::sd(traitdata[[value]], na.rm = TRUE),
-          signal = sig,
-          tidyr::pivot_wider(
-            dplyr::select(
-              myfun(fit),
-              term, p.value),
-            names_from = "term",
-            values_from = "p.value")))
+          p_signal = sig,
+          myfun(fit)))
         }),
     .id = trait)
 }
