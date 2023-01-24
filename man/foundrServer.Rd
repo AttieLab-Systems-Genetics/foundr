@@ -20,7 +20,6 @@ A Server definition that can be passed to the `shinyServer` function.
 User needs to supply the following routines:
   foundrIntro() # introductory remarks about study
   foundrSettings() # settings to be used in later parts
-  foundrArrange() # routine to arrange summary data
   foundrScatplot() # wrapper for foundr::scatplot
   foundrData() # routine to subset data
   foundrMean() # routine to subset mean summaries

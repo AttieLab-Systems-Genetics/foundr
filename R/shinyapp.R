@@ -36,7 +36,6 @@ foundrUI <- function(title) {
 #' User needs to supply the following routines:
 #'   foundrIntro() # introductory remarks about study
 #'   foundrSettings() # settings to be used in later parts
-#'   foundrArrange() # routine to arrange summary data
 #'   foundrScatplot() # wrapper for foundr::scatplot
 #'   foundrData() # routine to subset data
 #'   foundrMean() # routine to subset mean summaries
@@ -76,12 +75,6 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
   dataset <- shiny::reactive({
     shiny::req(input$datatype)
     dplyr::filter(traitdata(), datatype %in% input$datatype)
-  })
-  pval_names <- shiny::reactive({
-    # goal is to get rid of foundrArrange
-    nt <- names(traitsumdata())
-    nst <- grepl("^strain", nt)
-    stringr::str_replace_all(stringr::str_remove(nt[nst], "^strain\\."), "\\.", "_")
   })
   traitarrange <- shiny::reactive({
     shiny::req(input$order, input$datatype)
@@ -249,6 +242,7 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
 #' @return data frame reordered
 #' @export
 #' @importFrom dplyr arrange desc filter
+#' @importFrom rlang .data
 #'
 #' @examples
 foundrArrange <- function(traitsumdata, order, datatypes = "") {
@@ -260,7 +254,7 @@ foundrArrange <- function(traitsumdata, order, datatypes = "") {
     out <- dplyr::arrange(out, trait)
   } else {
     if(order != "original") {
-      out <- dplyr::arrange(out, order)
+      out <- dplyr::arrange(out, .data[[order]])
     }
   }
   out
