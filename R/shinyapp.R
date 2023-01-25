@@ -175,7 +175,6 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
       return(ggplot2::ggplot())
     }
     
-    shiny::req(input$facet)
     foundr::strainplot(datatraits(), facet_strain = input$facet)
   })
   output$distPlot <- shiny::renderPlot({
