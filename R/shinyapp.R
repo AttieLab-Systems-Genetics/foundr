@@ -64,7 +64,30 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
   traitsumdata <- shiny::reactive({traitsumdat})
   
   output$intro <- foundrIntro()
-  output$settings <- foundrSettings(traitsumdata())
+  output$settings <- 
+  datatypes <- unique(traitsumdata)
+  p_types <- names(traitsumdata)
+  p_types <- p_types[stringr::str_detect(p_types, "^p_")]
+  shiny::renderUI({
+    shiny::fluidRow(
+      shiny::column(
+        4,
+        shiny::selectInput(
+          "datatype", "Measurement set",
+          datatypes, datatypes[1],
+          multiple = TRUE)),
+      shiny::column(
+        4,
+        shiny::selectInput(
+          "order", "Order traits by",
+          c(p_types, "variability", "alphabetical", "original"),
+          p_types[1])),
+      shiny::column(
+        4,
+        shiny::checkboxInput(
+          "facet", "Facet by strain?", FALSE)))
+  })
+  
   output$strains <- shiny::renderUI({
     choices <- names(CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
@@ -78,7 +101,19 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
   })
   traitarrange <- shiny::reactive({
     shiny::req(input$order, input$datatype)
-    foundrArrange(traitsumdata(), input$order, input$datatype)
+    out <- dplyr::filter(traitsumdata(), datatype %in% input$datatype)
+
+    if(input$order == "variability") {
+      out <- dplyr::arrange(out, dplyr::desc(rawSD))
+    } else if(input$order == "alphabetical") {
+      out <- dplyr::arrange(out, trait)
+    } else {
+      if(input$order != "original") {
+        out <- dplyr::arrange(out, .data[[input$order]])
+      }
+    }
+    out
+    
   })
   traitorder <- shiny::reactive({
     traitarrange()$trait
@@ -232,68 +267,6 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
     foundrScatplot(req(input$trait), datatraitslong(), req(input$pair))
   })
 }
-
-#' Arrange Founder Traits in Order
-#'
-#' @param traitsumdata data frame with summary
-#' @param order name to use to order traits
-#' @param datatypes type to subset `traitsumdata`
-#'
-#' @return data frame reordered
-#' @export
-#' @importFrom dplyr arrange desc filter
-#' @importFrom rlang .data
-#'
-#' @examples
-foundrArrange <- function(traitsumdata, order, datatypes = "") {
-  out <- dplyr::filter(traitsumdata, datatype %in% datatypes)
-  # Can automate this by pulling names from traitsumdata.
-  if(order == "variability") {
-    out <- dplyr::arrange(out, dplyr::desc(rawSD))
-  } else if(order == "alphabetical") {
-    out <- dplyr::arrange(out, trait)
-  } else {
-    if(order != "original") {
-      out <- dplyr::arrange(out, .data[[order]])
-    }
-  }
-  out
-}
-
-#' Settings for Founder Traits
-#'
-#' @param traitsumdata data frame with summary 
-#'
-#' @return `renderUI` object
-#' @export
-#' @importFrom shiny checkboxInput column fluidRow renderUI selectInput
-#'
-#' @examples
-foundrSettings <- function(traitsumdata) {
-  datatypes <- unique(traitsumdata)
-  p_types <- names(traitsumdata)
-  p_types <- p_types[stringr::str_detect(p_types, "^p_")]
-  shiny::renderUI({
-    shiny::fluidRow(
-      shiny::column(
-        4,
-        shiny::selectInput(
-          "datatype", "Measurement set",
-          datatypes, datatypes[1],
-          multiple = TRUE)),
-      shiny::column(
-        4,
-        shiny::selectInput(
-          "order", "Order traits by",
-          c(p_types, "variability", "alphabetical", "original"),
-          p_types[1])),
-      shiny::column(
-        4,
-        shiny::checkboxInput(
-          "facet", "Facet by strain?", FALSE)))
-  })
-}
-
 
 #' Downloads for Founder App
 #'
