@@ -10,17 +10,20 @@
 #' @importFrom tidyr pivot_wider
 #' @importFrom ggplot2 aes facet_grid geom_point geom_smooth ggplot
 #'                     ggtitle scale_fill_manual scale_shape_manual
+#' @importFrom rlang .data
 #' @export
 #'
 #' @examples
 scatplot <- function(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y)) {
   data <- 
-    tidyr::pivot_wider(
-      dplyr::filter(
-        data,
-        trait %in% c(x,y),
-        !is.na(value)),
-      names_from = "trait", values_from = "value")
+    dplyr::filter(
+      tidyr::pivot_wider(
+        dplyr::filter(
+          data,
+          trait %in% c(x,y)),
+        names_from = "trait", values_from = "value"),
+      # Make sure x and y columns have no missing data.
+      !(is.na(.data[[x]]) | is.na(.data[[y]])))
   
   p <- ggplot2::ggplot(data) +
     ggplot2::aes(.data[[x]], .data[[y]], fill = strain) +
