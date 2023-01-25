@@ -64,7 +64,7 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
   traitsumdata <- shiny::reactive({traitsumdat})
   
   output$intro <- foundrIntro()
-  output$settings <- foundrSettings()
+  output$settings <- foundrSettings(traitsumdata())
   output$strains <- shiny::renderUI({
     choices <- names(CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
