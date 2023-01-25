@@ -8,6 +8,7 @@
 #'
 #' @return
 #' @importFrom tidyr pivot_wider
+#' @importFrom dplyr filter
 #' @importFrom ggplot2 aes facet_grid geom_point geom_smooth ggplot
 #'                     ggtitle scale_fill_manual scale_shape_manual
 #' @importFrom rlang .data
