@@ -67,6 +67,7 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
   
   output$intro <- foundrIntro()
   output$settings <- shiny::renderUI({
+    shiny::req(traitsumdata())
     datatypes <- unique(traitsumdata())
     p_types <- names(traitsumdata())
     p_types <- p_types[stringr::str_detect(p_types, "^p_")]
