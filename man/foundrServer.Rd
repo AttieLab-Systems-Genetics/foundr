@@ -4,7 +4,7 @@
 \alias{foundrServer}
 \title{Server for Founder Shiny App}
 \usage{
-foundrServer(input, output, session, traitdat, traitsumdat)
+foundrServer(input, output, session, traitdat, traitsumdat, condition)
 }
 \arguments{
 \item{input, output, session}{shiny parameters}
@@ -12,6 +12,8 @@ foundrServer(input, output, session, traitdat, traitsumdat)
 \item{traitdat}{data frame with trait data}
 
 \item{traitsumdat}{data frame with summary data}
+
+\item{condition}{column(s) identifying condition for plotting}
 }
 \value{
 A Server definition that can be passed to the `shinyServer` function.

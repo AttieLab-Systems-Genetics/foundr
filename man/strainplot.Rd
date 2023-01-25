@@ -7,7 +7,7 @@
 strainplot(
   datatraits,
   facet_strain = FALSE,
-  condition = "sex_diet",
+  condition = "",
   shape_sex = FALSE,
   boxplot = FALSE,
   horizontal = FALSE

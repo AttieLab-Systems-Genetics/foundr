@@ -43,6 +43,7 @@ foundrUI <- function(title) {
 #' @param input,output,session shiny parameters
 #' @param traitdat data frame with trait data
 #' @param traitsumdat data frame with summary data
+#' @param condition column(s) identifying condition for plotting
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
@@ -60,10 +61,11 @@ foundrUI <- function(title) {
 #' @importFrom rlang .data
 #'
 #' @examples
-foundrServer <- function(input, output, session, traitdat, traitsumdat) {
+foundrServer <- function(input, output, session, traitdat, traitsumdat, condition) {
 
   traitdata <- shiny::reactive({traitdat})
   traitsumdata <- shiny::reactive({traitsumdat})
+  cond <- shiny::reactive({condition})
   
   output$intro <- foundrIntro()
   output$settings <- shiny::renderUI({
@@ -175,7 +177,10 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
       return(ggplot2::ggplot())
     }
     
-    foundr::strainplot(datatraits(), facet_strain = input$facet)
+    foundr::strainplot(
+      datatraits(),
+      facet_strain = input$facet,
+      condition = cond())
   })
   output$distPlot <- shiny::renderPlot({
     distplot()
