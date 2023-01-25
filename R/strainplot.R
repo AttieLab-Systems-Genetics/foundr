@@ -47,7 +47,7 @@ strainplot <- function(datatraits,
   }
   
   # Could have no condition.
-  if(nocond <- !(condition %in% names(datatraits))) {
+  if(nocond <- !all(condition %in% names(datatraits))) {
     facet_strain <- FALSE
   }
 
@@ -58,6 +58,16 @@ strainplot <- function(datatraits,
   }
   
   if(facet_strain) {
+    # The condition could be multiple columns; unite as one.
+    if(length(condition) > 1) {
+      tmp <- paste(condition, sep = "_")
+      datatraits <- tidyr::unite(
+        datatraits,
+        tmp,
+        tidyr::all_of(condition),
+        na.rm = TRUE)
+      condition <- tmp
+    }
     ncond <- sort(unique(datatraits[[condition]]))
     cond_colors <- RColorBrewer::brewer.pal(n = length(ncond), name = "Dark2")
     names(cond_colors) <- ncond
