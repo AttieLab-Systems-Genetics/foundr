@@ -16,6 +16,9 @@
 #'
 #' @examples
 scatplot <- function(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y)) {
+  # This is somewhat fragile. If there are extra columns besides
+  # strain, sex, trait, value, they must agree with strain and sex.
+  # For instance, datatype cannot be there if there are multiple datatypes.
   data <- 
     dplyr::filter(
       tidyr::pivot_wider(
