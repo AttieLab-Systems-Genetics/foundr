@@ -16,7 +16,10 @@
 scatplot <- function(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y)) {
   data <- 
     tidyr::pivot_wider(
-      dplyr::filter(data, trait %in% c(x,y)),
+      dplyr::filter(
+        data,
+        trait %in% c(x,y),
+        !is.na(value)),
       names_from = "trait", values_from = "value")
   
   p <- ggplot2::ggplot(data) +
