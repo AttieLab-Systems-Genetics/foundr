@@ -46,16 +46,18 @@ foundrUI <- function(title) {
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
-#' @importFrom shiny checkboxGroupInput column conditionalPanel
+#' @importFrom shiny checkboxGroupInput checkboxInput column conditionalPanel
 #'             downloadButton downloadHandler fluidRow isTruthy observeEvent
 #'             plotOutput radioButtons reactive renderPlot renderUI req
-#'             selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
-#' @importFrom dplyr across everything filter mutate
+#'             selectInput selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
+#' @importFrom dplyr across arrange everything filter mutate
 #' @importFrom tidyselect where
 #' @importFrom DT dataTableOutput renderDataTable
 #' @importFrom ggplot2 ggplot
 #' @importFrom grDevices pdf dev.off
 #' @importFrom utils combn write.csv
+#' @importFrom stringr str_detect
+#' @importFrom rlang .data
 #'
 #' @examples
 foundrServer <- function(input, output, session, traitdat, traitsumdat) {
@@ -64,11 +66,11 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
   traitsumdata <- shiny::reactive({traitsumdat})
   
   output$intro <- foundrIntro()
-  output$settings <- 
-  datatypes <- unique(traitsumdata)
-  p_types <- names(traitsumdata)
-  p_types <- p_types[stringr::str_detect(p_types, "^p_")]
-  shiny::renderUI({
+  output$settings <- shiny::renderUI({
+    datatypes <- unique(traitsumdata())
+    p_types <- names(traitsumdata())
+    p_types <- p_types[stringr::str_detect(p_types, "^p_")]
+    
     shiny::fluidRow(
       shiny::column(
         4,
