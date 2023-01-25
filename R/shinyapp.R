@@ -138,7 +138,7 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat) {
     }
     
     shiny::req(input$facet)
-    foundr::strainplot(datatraits(), facet_strain = (input$facet == "strain"))
+    foundr::strainplot(datatraits(), facet_strain = input$facet)
   })
   output$distPlot <- shiny::renderPlot({
     distplot()
@@ -259,6 +259,41 @@ foundrArrange <- function(traitsumdata, order, datatypes = "") {
   }
   out
 }
+
+#' Settings for Founder Traits
+#'
+#' @param traitsumdata data frame with summary 
+#'
+#' @return `renderUI` object
+#' @export
+#' @importFrom shiny checkboxInput column fluidRow renderUI selectInput
+#'
+#' @examples
+foundrSettings <- function(traitsumdata) {
+  datatypes <- unique(traitsumdata)
+  p_types <- names(traitsumdata)
+  p_types <- p_types[stringr::str_detect(p_types, "^p_")]
+  shiny::renderUI({
+    shiny::fluidRow(
+      shiny::column(
+        4,
+        shiny::selectInput(
+          "datatype", "Measurement set",
+          datatypes, datatypes[1],
+          multiple = TRUE)),
+      shiny::column(
+        4,
+        shiny::selectInput(
+          "order", "Order traits by",
+          c(p_types, "variability", "alphabetical", "original"),
+          p_types[1])),
+      shiny::column(
+        4,
+        shiny::checkboxInput(
+          "facet", "Facet by strain?", FALSE)))
+  })
+}
+
 
 #' Downloads for Founder App
 #'
