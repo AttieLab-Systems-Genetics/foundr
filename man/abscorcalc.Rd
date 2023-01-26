@@ -4,18 +4,14 @@
 \alias{abscorcalc}
 \title{Calculate Absolute Correlations}
 \usage{
-abscorcalc(
-  object,
-  design = c("strain", "number", "sex", "diet"),
-  method = "spearman"
-)
+abscorcalc(object, method = "spearman", abs = TRUE)
 }
 \arguments{
 \item{object}{data frame}
 
-\item{design}{names of design columns}
-
 \item{method}{method for correlation}
+
+\item{abs}{absolute correlation if `TRUE`}
 }
 \value{
 data frame with design columns, `trait` names and `value` of absolute correlations

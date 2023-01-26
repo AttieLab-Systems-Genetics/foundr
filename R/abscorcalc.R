@@ -1,8 +1,8 @@
 #' Calculate Absolute Correlations
 #'
 #' @param object data frame
-#' @param design names of design columns
 #' @param method method for correlation
+#' @param abs absolute correlation if `TRUE`
 #'
 #' @return data frame with design columns, `trait` names and `value` of absolute correlations
 #' @importFrom dplyr select
@@ -12,16 +12,17 @@
 #'
 #' @examples
 abscorcalc <- function(object,
-                       design = c("strain", "number", "sex", "diet"),
-                       method = "spearman") {
-  abs(
+                       method = "spearman",
+                       abs = TRUE) {
+  out <- 
     cor(
-      dplyr::select(
-        tidyr::pivot_wider(
-          object,
-          names_from = "trait",
-          values_from = "value"),
-        -design),
+      tidyr::pivot_wider(
+        object,
+        names_from = "trait",
+        values_from = "value"),
       use = "pairwise",
-      method = "spearman"))
+      method = "spearman")
+  if(abs)
+    out <- abs(out)
+  out
 }
