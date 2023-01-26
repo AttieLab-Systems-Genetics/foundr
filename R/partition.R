@@ -14,7 +14,7 @@
 #'
 #' @return data frame with added columns `ancillary`, `signal`, `noise`
 #' 
-#' @importFrom dplyr bind_rows mutate
+#' @importFrom dplyr bind_rows distinct filter mutate select
 #' @importFrom purrr map
 #' @importFrom stats formula lm
 #' 
@@ -53,12 +53,20 @@ partition <- function(object,
       noise = resids)
   }
   
-  dplyr::bind_rows(
-    purrr::map(
-      split(object, object[[trait]]),
-        function(object) {
-          # Use NULL if not enough data to fit.
-          tryCatch(redfit(object), error = function(e) NULL)
-        }),
-    .id = trait)
+  dplyr::select(
+    dplyr::mutate(
+      dplyr::distinct(
+        dplyr::filter(
+          dplyr::bind_rows(
+            purrr::map(
+              split(object, object[[trait]]),
+                function(object) {
+                  # Use NULL if not enough data to fit.
+                  tryCatch(redfit(object), error = function(e) NULL)
+                }),
+            .id = trait),
+          !is.na(.data[[value]])),
+        strain, sex, .data[[trait]], signal, ancillary),
+      mean = signal + ancillary),
+    -ancillary)
 }
