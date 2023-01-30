@@ -16,20 +16,7 @@
 #'
 #' @examples
 scatplot <- function(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y)) {
-  # This is somewhat fragile. If there are extra columns besides
-  # strain, sex, trait, value, they must agree with strain and sex.
-  # For instance, datatype cannot be there if there are multiple datatypes.
-  data <- 
-    dplyr::filter(
-      tidyr::pivot_wider(
-        dplyr::filter(
-          data,
-          trait %in% c(x,y)),
-        names_from = "trait", values_from = "value"),
-      # Make sure x and y columns have no missing data.
-      !(is.na(.data[[x]]) | is.na(.data[[y]])))
-  
-  p <- ggplot2::ggplot(data) +
+   p <- ggplot2::ggplot(data) +
     ggplot2::aes(.data[[x]], .data[[y]], fill = strain) +
     geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
                 aes(group = strain, col = strain)) +

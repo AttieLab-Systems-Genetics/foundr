@@ -14,12 +14,17 @@
 abscorcalc <- function(object,
                        method = "spearman",
                        abs = TRUE) {
+  colnames <- names(object)
+  colnames <- colnames[!(colnames %in% c("trait","value"))]
+  
   out <- 
     cor(
-      tidyr::pivot_wider(
-        object,
-        names_from = "trait",
-        values_from = "value"),
+      dplyr::select(
+        tidyr::pivot_wider(
+          object,
+          names_from = "trait",
+          values_from = "value"),
+        -colnames),
       use = "pairwise",
       method = "spearman")
   if(abs)

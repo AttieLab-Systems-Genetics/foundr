@@ -14,7 +14,7 @@
 #'
 #' @return data frame with added columns `ancillary`, `signal`, `noise`
 #' 
-#' @importFrom dplyr bind_rows distinct filter mutate select
+#' @importFrom dplyr across arrange bind_rows distinct filter mutate select
 #' @importFrom purrr map
 #' @importFrom stats formula lm
 #' 
@@ -53,7 +53,14 @@ partition <- function(object,
       noise = resids)
   }
   
-  dplyr::select(
+  signal_terms <- 
+    stringr::str_trim(
+      unlist(
+        stringr::str_split(signal, " *\\*|\\+|: *")))
+
+  traits <- unique(object$trait)
+  
+  out <- dplyr::select(
     dplyr::mutate(
       dplyr::distinct(
         dplyr::filter(
@@ -66,7 +73,13 @@ partition <- function(object,
                 }),
             .id = trait),
           !is.na(.data[[value]])),
-        strain, sex, .data[[trait]], signal, ancillary),
+        dplyr::across(c(signal_terms, "trait", "signal", "ancillary"))),
       mean = signal + ancillary),
     -ancillary)
+  
+  dplyr::arrange(
+    dplyr::mutate(
+      out,
+      trait = factor(trait, traits)),
+    trait)
 }
