@@ -3,7 +3,8 @@
 #' @param data data frame
 #' @param x name of first trait
 #' @param y name of second trait
-#' @param shape_sex use different shape by sex if `TRUE`
+#' @param shape_sex use different shape by `sex` if `TRUE`
+#' @param line_strain show separate lines by `strain` if `TRUE`
 #' @param title title for plot
 #'
 #' @return
@@ -15,11 +16,22 @@
 #' @export
 #'
 #' @examples
-scatplot <- function(data, x, y, shape_sex = TRUE, title = paste(x, "vs", y)) {
-   p <- ggplot2::ggplot(data) +
-    ggplot2::aes(.data[[x]], .data[[y]], fill = strain) +
-    geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
-                aes(group = strain, col = strain)) +
+scatplot <- function(data, x, y,
+                     shape_sex = TRUE,
+                     line_strain = TRUE,
+                     title = paste(x, "vs", y)) {
+  p <- ggplot2::ggplot(data) +
+    ggplot2::aes(.data[[x]], .data[[y]], fill = strain)
+  if(line_strain) {
+    p <- p +
+      geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
+                  aes(group = strain, col = strain))
+  } else {
+    p <- p +
+      geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
+                  col = "darkgrey")
+  }
+  p <- p +
     ggplot2::scale_fill_manual(values = CCcolors) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::ggtitle(title)
