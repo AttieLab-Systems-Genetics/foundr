@@ -24,12 +24,15 @@ scatplot <- function(data, x, y,
     ggplot2::aes(.data[[x]], .data[[y]], fill = strain)
   if(line_strain) {
     p <- p +
-      geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
-                  aes(group = strain, col = strain))
+      ggplot2::geom_smooth(
+        method = "lm", se = FALSE, formula = 'y ~ x',
+        aes(group = strain, col = strain))
   } else {
+    # Because we specify fill in aes, we need to include it here.
     p <- p +
-      geom_smooth(method = "lm", se = FALSE, formula = 'y ~ x',
-                  col = "darkgrey")
+      ggplot2::geom_smooth(
+        method = "lm", se = FALSE, formula = 'y ~ x',
+        fill = "darkgrey", col = "darkgrey")
   }
   p <- p +
     ggplot2::scale_fill_manual(values = CCcolors) +
