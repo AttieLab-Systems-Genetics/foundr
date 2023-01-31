@@ -11,7 +11,7 @@
 #' @export
 #'
 #' @examples
-biplot_data <- function(dat, traits, factors = c("strain", "number", "sex", "diet")) {
+biplot_data <- function(dat, traits, factors = c("strain", "animal", "sex", "condition")) {
   dplyr::mutate(
     tidyr::pivot_wider(
       dplyr::filter(
@@ -41,7 +41,7 @@ biplot_data <- function(dat, traits, factors = c("strain", "number", "sex", "die
 #'
 #' @examples
 biplot_pca <- function(bip,
-                       factors = c("strain", "number", "sex", "diet"),
+                       factors = c("strain", "animal", "sex", "condition"),
                        strain = "strain") {
   ordr::mutate_cols(
     ordr::mutate_rows(

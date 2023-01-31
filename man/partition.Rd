@@ -8,8 +8,8 @@ partition(
   object,
   trait = "trait",
   value = "value",
-  signal = "strain * sex * diet",
-  ancillary = "strain * sex + sex * diet"
+  signal = "strain * sex * condition",
+  ancillary = "strain * sex + sex * condition"
 )
 }
 \arguments{

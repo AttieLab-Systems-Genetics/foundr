@@ -6,7 +6,7 @@
 \usage{
 biplot_pca(
   bip,
-  factors = c("strain", "number", "sex", "diet"),
+  factors = c("strain", "animal", "sex", "condition"),
   strain = "strain"
 )
 }

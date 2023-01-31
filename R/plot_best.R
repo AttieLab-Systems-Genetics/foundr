@@ -16,7 +16,7 @@ plot_best <- function(out1, summary_type, datsub) {
       ggplot2::aes(shape = sex), size = 3, color = "black", alpha = 0.65) +
     ggplot2::scale_shape_manual(values = c(23, 22)) +
     ggplot2::scale_fill_manual(values = CCcolors) +
-    facet_wrap(~ sex + diet) +
+    facet_wrap(~ sex + condition) +
     xlab(datsub$traitc) +
     ylab(datsub$traitr) +
     ggtitle(paste(

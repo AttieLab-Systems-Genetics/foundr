@@ -24,8 +24,8 @@
 partition <- function(object,
                     trait = "trait",
                     value = "value",
-                    signal = "strain * sex * diet",
-                    ancillary = "strain * sex + sex * diet") {
+                    signal = "strain * sex * condition",
+                    ancillary = "strain * sex + sex * condition") {
   
   # Somehow this give extra entries when there are missing values.
   

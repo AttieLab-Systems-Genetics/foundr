@@ -4,7 +4,7 @@
 \alias{biplot_data}
 \title{Prepare biplot data}
 \usage{
-biplot_data(dat, traits, factors = c("strain", "number", "sex", "diet"))
+biplot_data(dat, traits, factors = c("strain", "animal", "sex", "condition"))
 }
 \arguments{
 \item{dat}{}

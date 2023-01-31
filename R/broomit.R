@@ -5,7 +5,6 @@
 #' @param value name column with trait values
 #' @param signal signal factor combination as string for `formula`
 #' @param ancillary ancillary factor combination as string for `formula`
-#' @param interact interacting factor to select for summary table
 #'
 #' @return data frame with summaries by trait
 #' 
@@ -24,53 +23,25 @@
 broomit <- function(object,
                     trait = "trait",
                     value = "value",
-                    signal = "strain * sex * diet",
-                    ancillary = "strain * sex + sex * diet",
-                    interact = stringr::str_remove(signal, " *[\\*\\+:].*")) {
-  if(interact == "") {
-    mygrep <- function(interact, term) {
-      !grepl("<none>", term)
-    }
-  } else {
-    mygrep <- function(interact, term) {
-      grepl(paste0(interact, ":"), term)
-    }
-  }
-  if(is.null(interact)) {
-    myfun <- function(fit) {
-      tidyr::pivot_wider(
-        dplyr::select(
-          dplyr::mutate(
+                    signal = "strain * sex * condition",
+                    ancillary = "strain * sex + sex * condition") {
+  myfun <- function(fit) {
+    tidyr::pivot_wider(
+      dplyr::select(
+        dplyr::mutate(
+          dplyr::filter(
             broom::tidy(
               stats::drop1(fit, fit, test = "F")),
-            term = stringr::str_replace_all(
-              paste0("p_", term),
-              ":", "_")),
-          term, p.value),
-        names_from = "term",
-        values_from = "p.value")
-    }
-  } else {
-    myfun <- function(fit) {
-      tidyr::pivot_wider(
-        dplyr::select(
-          dplyr::mutate(
-            dplyr::filter(
-              broom::tidy(
-                stats::drop1(fit, fit, test = "F")),
-              mygrep(interact, .data$term)),
-            # change term from a.b to p_a_b
-            term = stringr::str_replace_all(
-              paste0(
-                "p_",
-                stringr::str_remove(term, paste0(interact, ":"))),
-              ":", "_")),
-          term, p.value),
-        names_from = "term",
-        values_from = "p.value")
-    }
+            !grepl("<none>", .data$term)),
+          # change term from a.b to p_a_b
+          term = stringr::str_replace_all(
+            paste0("p_", term),
+            ":", "_")),
+        term, p.value),
+      names_from = "term",
+      values_from = "p.value")
   }
-  
+
   dplyr::bind_rows(
     purrr::map(
       split(object, object[[trait]]),

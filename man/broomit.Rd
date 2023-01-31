@@ -8,9 +8,8 @@ broomit(
   object,
   trait = "trait",
   value = "value",
-  signal = "strain * sex * diet",
-  ancillary = "strain * sex + sex * diet",
-  interact = stringr::str_remove(signal, " *[\\\\*\\\\+:].*")
+  signal = "strain * sex * condition",
+  ancillary = "strain * sex + sex * condition"
 )
 }
 \arguments{
@@ -23,8 +22,6 @@ broomit(
 \item{signal}{signal factor combination as string for `formula`}
 
 \item{ancillary}{ancillary factor combination as string for `formula`}
-
-\item{interact}{interacting factor to select for summary table}
 }
 \value{
 data frame with summaries by trait
