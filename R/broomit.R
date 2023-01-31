@@ -27,6 +27,15 @@ broomit <- function(object,
                     signal = "strain * sex * diet",
                     ancillary = "strain * sex + sex * diet",
                     interact = stringr::str_remove(signal, " *[\\*\\+:].*")) {
+  if(interact == "") {
+    mygrep <- function(interact, term) {
+      !grepl("<none>", term)
+    }
+  } else {
+    mygrep <- function(interact, term) {
+      grepl(paste0(interact, ":"), term)
+    }
+  }
   if(is.null(interact)) {
     myfun <- function(fit) {
       tidyr::pivot_wider(
@@ -49,7 +58,7 @@ broomit <- function(object,
             dplyr::filter(
               broom::tidy(
                 stats::drop1(fit, fit, test = "F")),
-              grepl(paste0(interact, ":"), .data$term)),
+              mygrep(interact, .data$term)),
             # change term from a.b to p_a_b
             term = stringr::str_replace_all(
               paste0(
