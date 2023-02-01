@@ -42,7 +42,7 @@ broomit <- function(object,
       values_from = "p.value")
   }
 
-  dplyr::bind_rows(
+  out <- dplyr::bind_rows(
     purrr::map(
       split(object, object[[trait]]),
       function(traitdata) {
@@ -58,6 +58,12 @@ broomit <- function(object,
           myfun(fit)))
         }),
     .id = trait)
+  
+  # Rorder to agree with data object
+  o <- dplyr::distinct(object, trait)$trait
+  
+  m <- match(o, out$trait)
+  out[m,]
 }
 
 signalfit <- function(traitdata, value, signal, ancillary) {
