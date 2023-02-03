@@ -22,7 +22,7 @@ foundrIntro <- function() {
       "two diets (HC_LF = high carb, low fat; HF_LC = high fat, low carb) and both sexes with three measurement sets collected on 192 mice:",
       datatags,
       "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
-      "Facet plots by strain or sex_condition and subset strains if desired.",
+      "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
       "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
       "See",
       shiny::a("Attie Lab Diabetes Database", href = "http://diabetes.wisc.edu/"),
@@ -42,14 +42,20 @@ foundrScatplot <- function(traitnames,
       function(x) {
         # Split trait pair by colon
         x <- stringr::str_split(x, sep)[[1]][2:1]
+        
         # create out with columns for each trait pair
-        out <- foundr::pivot_pair(
-          tidyr::unite(traitData, sex_condition, sex, condition),
-          x)
+        if("sex_condition" %in% names(traitData)) {
+          out <- tidyr::unite(traitData, sex_condition, sex, condition)
+        }
+        out <- foundr::pivot_pair(out, x)
 
         # create plot
-        foundr::scatplot(out, x[1], x[2], shape_sex = FALSE) +
-          ggplot2::facet_grid(. ~ sex_condition)
+        p <- foundr::scatplot(out, x[1], x[2], shape_sex = FALSE)
+        if("sex_condition" %in% names(traitData)) {
+          p <- p + ggplot2::facet_grid(. ~ sex_condition)
+        } else {
+          p <- p + ggplot2::facet_grid(. ~ sex)
+        }
       })
   
   # Patch plots together by rows
@@ -58,22 +64,33 @@ foundrScatplot <- function(traitnames,
 
 foundrData <- function(traitData, traitnames) {
   ltrait <- length(traitnames)
-  tidyr::unite(
-    dplyr::mutate(
-      traitData,
-      trait = abbreviate(traitnames, ceiling(60 / ltrait))),
-    sex_condition, sex, condition)
+  out <- dplyr::mutate(
+    traitData,
+    trait = abbreviate(traitnames, ceiling(60 / ltrait)))
+  
+  if("condition" %in% names(traitData)) {
+    out <- tidyr::unite(
+      out,
+      sex_condition, sex, condition,
+      na.rm = TRUE)
+  }
+  out
 }
 
 foundrMean <- function(traitData) {
+  if("sex_condition" %in% names(traitData)) {
+    groupsex <- "sex_condition"
+  } else {
+    groupsex <- "sex"
+  }
   dplyr::arrange(
     tidyr::pivot_wider(
       dplyr::mutate(
         dplyr::ungroup(
           dplyr::summarize(
-            dplyr::group_by(traitData, strain, sex_condition, trait),
+            dplyr::group_by(traitData, strain, .data[[groupsex]], trait),
             value = mean(value, na.rm = TRUE), .groups = "drop")),
         value = signif(value, 4)),
       names_from = "strain", values_from = "value"),
-    trait, sex_condition)
+    trait, .data[[groupsex]])
 }
