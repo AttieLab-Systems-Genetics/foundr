@@ -37,6 +37,7 @@ foundrScatplot <- function(traitnames,
                            pair = traitpairs(traitnames, sep),
                            shape_sex = TRUE,
                            response = c("value","mean","signal"),
+                           line_strain = TRUE,
                            sep = " ON ") {
   
   response <- match.arg(response)
@@ -61,6 +62,7 @@ foundrScatplot <- function(traitnames,
     }
     
     if(response != "value" | nrow(out) < 2) { # Reduce to mean.
+      line_strain <- FALSE
       # Problem of nrow<2 likely from traits having different subjects.
       out <- 
         dplyr::ungroup(
@@ -75,7 +77,8 @@ foundrScatplot <- function(traitnames,
     }
     
     # create plot
-    p <- scatplot(out, x[1], x[2], shape_sex = shape_sex)
+    p <- scatplot(out, x[1], x[2],
+                  shape_sex = shape_sex, line_strain = line_strain)
     
     # Facet if there are data
     if("sex_condition" %in% names(traitData)) {
