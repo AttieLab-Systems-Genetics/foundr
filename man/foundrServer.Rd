@@ -4,7 +4,14 @@
 \alias{foundrServer}
 \title{Server for Founder Shiny App}
 \usage{
-foundrServer(input, output, session, traitdat, traitsumdat, condition)
+foundrServer(
+  input,
+  output,
+  session,
+  traitdat = NULL,
+  traitsumdat = NULL,
+  condition = "sex_condition"
+)
 }
 \arguments{
 \item{input, output, session}{shiny parameters}

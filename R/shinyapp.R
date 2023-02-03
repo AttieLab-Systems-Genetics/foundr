@@ -60,7 +60,10 @@ foundrUI <- function(title) {
 #' @importFrom rlang .data
 #'
 #' @examples
-foundrServer <- function(input, output, session, traitdat, traitsumdat, condition) {
+foundrServer <- function(input, output, session,
+                         traitdat = NULL,
+                         traitsumdat = NULL,
+                         condition = "sex_condition") {
 
   traitdata <- shiny::reactive({traitdat})
   traitsumdata <- shiny::reactive({traitsumdat})
@@ -241,17 +244,7 @@ foundrServer <- function(input, output, session, traitdat, traitsumdat, conditio
     shiny::req(input$trait)
     if(length(input$trait) < 2)
       return(NULL)
-    choices <- 
-      as.vector(
-        unlist(
-          dplyr::mutate(
-            as.data.frame(utils::combn(input$trait, 2)),
-            dplyr::across(
-              dplyr::everything(), 
-              function(x) {
-                c(paste(x, collapse = " ON "),
-                  paste(rev(x), collapse = " ON "))
-              }))))
+    choices <- traitpairs(input$trait)
     
     shiny::selectInput(
       "pair", "Select pairs for scatterplots",
