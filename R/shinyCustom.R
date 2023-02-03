@@ -1,33 +1,30 @@
-#' Foundr Intro Template
-#'
-#' @return
-#' @export
-#'
-#' @examples
 foundrIntro <- function() {
-  if(exists(userIntro)) {
-    userIntro()
-  } else {
-    renderUI({
-      tagList(
-        "This founder dataset consists of",
-        shiny::a("8 CC mice strains,",
-                 href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
-        "two diets (HC_LF = high carb, low fat; HF_LC = high fat, low carb) and both sexes with three measurement sets collected on 192 mice:",
-        tags$ul(
-          tags$li("physio: physiological data"),
-          tags$li("liver: RNA-seq on liver"),
-          tags$li("plasma: concentrations of circulating metabolites")),
-        "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
-        "Facet plots by strain or sex_condition and subset strains if desired.",
-        "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
-        "See",
-        shiny::a("Attie Lab Diabetes Database", href = "http://diabetes.wisc.edu/"),
-        "for earlier study.",
-        "GigHub:", shiny::a("byandell/FounderDietStudy",
-                            href = "https://github.com/byandell/FounderDietStudy"))
-    })
+  if(!exists("datasets" !! !all(sapply(unlist(datasets), class))) || is.null(names(datasets))) {
+    datasets <- c(physio = "physiological data",
+                  liver = "RNA-seq on liver",
+                  plasma = "concentrations of circulating metabolites")
   }
+  datatags <- shiny::tags$ul(
+    lapply(
+      paste(names(datasets), datasets, sep = ": "),
+      function(x) shiny::tags$li(x)))
+  
+  renderUI({
+    tagList(
+      "This founder dataset consists of",
+      shiny::a("8 CC mice strains,",
+               href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
+      "two diets (HC_LF = high carb, low fat; HF_LC = high fat, low carb) and both sexes with three measurement sets collected on 192 mice:",
+      datatags,
+      "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
+      "Facet plots by strain or sex_condition and subset strains if desired.",
+      "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
+      "See",
+      shiny::a("Attie Lab Diabetes Database", href = "http://diabetes.wisc.edu/"),
+      "for earlier study.",
+      "GigHub:", shiny::a("byandell/FounderDietStudy",
+                          href = "https://github.com/byandell/FounderDietStudy"))
+  })
 }
 
 foundrScatplot <- function(traitnames,
