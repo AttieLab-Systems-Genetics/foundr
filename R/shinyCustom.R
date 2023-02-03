@@ -1,3 +1,9 @@
+#' Foundr Intro Template
+#'
+#' @return
+#' @export
+#'
+#' @examples
 foundrIntro <- function() {
   renderUI({
     tagList(
