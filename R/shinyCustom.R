@@ -46,52 +46,51 @@ foundrScatplot <- function(traitnames,
     return(NULL)
   }
   
-  dat <- 
-    purrr::map(
-      pair,
-      function(x) {
-        # Split trait pair by colon. Reduce to traits in x.
-        x <- stringr::str_split(x, sep)[[1]][2:1]
-        traitData <- dplyr::filter(traitData, trait %in% x)
-        
-        if("sex_condition" %in% names(traitData)) {
-          traitData <- tidyr::unite(traitData, sex_condition, sex, condition)
-        }
-        
-        if(response == "value") {
-          # Create columns for each trait pair with full data.
-          out <- pivot_pair(traitData, x)
-        }
-        
-        if(response != "value" | nrow(out < 2)) { # Reduce to mean.
-          # Problem of nrow<2 likely from traits having different subjects.
-          out <- 
-            dplyr::ungroup(
-              dplyr::summarize(
-                dplyr::group_by(
-                  traitData,
-                  trait, strain, sex),
-                value = mean(value, na.rm = TRUE)))
-          
-          # Create columns for each trait pair with trait means.
-          out <- pivot_pair(out, x)
-        }
-
-        # create plot
-        p <- scatplot(out, x[1], x[2], shape_sex = shape_sex)
-        
-        # Facet if there are data
-        if("sex_condition" %in% names(traitData)) {
-          ct <- dplyr::count(out, sex_condition)$n
-          if(length(ct) > 1)
-            p <- p + ggplot2::facet_grid(. ~ sex_condition)
-        } else {
-          ct <- dplyr::count(out, sex)$n
-          if(length(ct) > 1)
-            p <- p + ggplot2::facet_grid(. ~ sex)
-        }
-        p
-      })
+  scatplots <- function(x) {
+    # Split trait pair by colon. Reduce to traits in x.
+    x <- stringr::str_split(x, sep)[[1]][2:1]
+    traitData <- dplyr::filter(traitData, trait %in% x)
+    
+    if("sex_condition" %in% names(traitData)) {
+      traitData <- tidyr::unite(traitData, sex_condition, sex, condition)
+    }
+    
+    if(response == "value") {
+      # Create columns for each trait pair with full data.
+      out <- pivot_pair(traitData, x)
+    }
+    
+    if(response != "value" | nrow(out < 2)) { # Reduce to mean.
+      # Problem of nrow<2 likely from traits having different subjects.
+      out <- 
+        dplyr::ungroup(
+          dplyr::summarize(
+            dplyr::group_by(
+              traitData,
+              trait, strain, sex),
+            value = mean(value, na.rm = TRUE)))
+      
+      # Create columns for each trait pair with trait means.
+      out <- pivot_pair(out, x)
+    }
+    
+    # create plot
+    p <- scatplot(out, x[1], x[2], shape_sex = shape_sex)
+    
+    # Facet if there are data
+    if("sex_condition" %in% names(traitData)) {
+      ct <- dplyr::count(out, sex_condition)$n
+      if(length(ct) > 1)
+        p <- p + ggplot2::facet_grid(. ~ sex_condition)
+    } else {
+      ct <- dplyr::count(out, sex)$n
+      if(length(ct) > 1)
+        p <- p + ggplot2::facet_grid(. ~ sex)
+    }
+    p
+  }
+  
+  dat <- purrr::map(pair, scatplots)
   
   # Patch plots together by rows
   patchwork::wrap_plots(dat, nrow = length(dat))
