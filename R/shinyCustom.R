@@ -1,5 +1,5 @@
 foundrIntro <- function() {
-  if(!exists("datasets" || !all(sapply(unlist(datasets), class))) || is.null(names(datasets))) {
+  if(!exists("datasets") || !all(is.character(unlist(datasets))) || is.null(names(datasets))) {
     datasets <- c(physio = "physiological data",
                   liver = "RNA-seq on liver",
                   plasma = "concentrations of circulating metabolites")
