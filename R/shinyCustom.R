@@ -60,7 +60,7 @@ foundrScatplot <- function(traitnames,
       out <- pivot_pair(traitData, x)
     }
     
-    if(response != "value" | nrow(out < 2)) { # Reduce to mean.
+    if(response != "value" | nrow(out) < 2) { # Reduce to mean.
       # Problem of nrow<2 likely from traits having different subjects.
       out <- 
         dplyr::ungroup(
