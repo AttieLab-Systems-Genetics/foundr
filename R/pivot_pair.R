@@ -10,6 +10,10 @@
 #'
 #' @examples
 pivot_pair <- function(object, pair) {
+  if(!all(pair %in% object$trait)) {
+    return(NULL)
+  }
+  
   dplyr::filter(
     tidyr::pivot_wider(
       dplyr::filter(

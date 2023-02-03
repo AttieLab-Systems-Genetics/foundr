@@ -41,6 +41,11 @@ foundrScatplot <- function(traitnames,
   
   response <- match.arg(response)
   
+  traits <- unique(unlist(stringr::str_split(pair, sep)))
+  if(!all(traits %in% traitData$trait)) {
+    return(NULL)
+  }
+  
   dat <- 
     purrr::map(
       pair,
