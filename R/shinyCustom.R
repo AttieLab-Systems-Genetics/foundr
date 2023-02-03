@@ -1,7 +1,7 @@
 foundrIntro <- function() {
   if(exists("userDatasets") &&
      is.function(userDatasets) &&
-     all(is.character(unlist(userDatasets())))
+     all(is.character(unlist(userDatasets()))) &&
      !is.null(names(userDatasets()))) {
     datasets <- userDatasets()
   } else {
