@@ -66,7 +66,7 @@ foundrData <- function(traitData, traitnames) {
   ltrait <- length(traitnames)
   out <- dplyr::mutate(
     traitData,
-    trait = abbreviate(traitnames, ceiling(60 / ltrait)))
+    trait = abbreviate(trait, ceiling(60 / ltrait)))
   
   if("condition" %in% names(traitData)) {
     out <- tidyr::unite(
