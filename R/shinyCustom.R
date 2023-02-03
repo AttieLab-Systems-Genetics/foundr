@@ -70,7 +70,7 @@ foundrScatplot <- function(traitnames,
               dplyr::summarize(
                 dplyr::group_by(
                   traitData,
-                  datatype, trait, strain, sex),
+                  trait, strain, sex),
                 value = mean(value, na.rm = TRUE)))
           
           # Create columns for each trait pair with trait means.
