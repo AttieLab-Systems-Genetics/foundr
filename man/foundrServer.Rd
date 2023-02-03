@@ -8,17 +8,17 @@ foundrServer(
   input,
   output,
   session,
-  traitdat = NULL,
-  traitsumdat = NULL,
+  traitData = NULL,
+  traitPvalue = NULL,
   condition = "sex_condition"
 )
 }
 \arguments{
 \item{input, output, session}{shiny parameters}
 
-\item{traitdat}{data frame with trait data}
+\item{traitData}{data frame with trait data}
 
-\item{traitsumdat}{data frame with summary data}
+\item{traitPvalue}{data frame with summary data}
 
 \item{condition}{column(s) identifying condition for plotting}
 }

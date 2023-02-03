@@ -40,8 +40,8 @@ foundrUI <- function(title) {
 #'   foundrMean() # routine to subset mean summaries
 #'   
 #' @param input,output,session shiny parameters
-#' @param traitdat data frame with trait data
-#' @param traitsumdat data frame with summary data
+#' @param traitData data frame with trait data
+#' @param traitPvalue data frame with summary data
 #' @param condition column(s) identifying condition for plotting
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
@@ -61,19 +61,19 @@ foundrUI <- function(title) {
 #'
 #' @examples
 foundrServer <- function(input, output, session,
-                         traitdat = NULL,
-                         traitsumdat = NULL,
+                         traitData = NULL,
+                         traitPvalue = NULL,
                          condition = "sex_condition") {
 
-  traitdata <- shiny::reactive({traitdat})
-  traitsumdata <- shiny::reactive({traitsumdat})
+  traitData <- shiny::reactive({traitData})
+  traitPvalue <- shiny::reactive({traitPvalue})
   cond <- shiny::reactive({condition})
   
   output$intro <- foundrIntro()
   output$settings <- shiny::renderUI({
-    shiny::req(traitsumdata())
-    datatypes <- unique(traitsumdata()$datatype)
-    p_types <- names(traitsumdata())
+    shiny::req(traitPvalue())
+    datatypes <- unique(traitPvalue()$datatype)
+    p_types <- names(traitPvalue())
     p_types <- p_types[stringr::str_detect(p_types, "^p_")]
     
     shiny::fluidRow(
@@ -104,11 +104,11 @@ foundrServer <- function(input, output, session,
   # Trait summaries (for ordering traits, and summary table)
   dataset <- shiny::reactive({
     shiny::req(input$datatype)
-    dplyr::filter(traitdata(), datatype %in% input$datatype)
+    dplyr::filter(traitData(), datatype %in% input$datatype)
   })
   traitarrange <- shiny::reactive({
     shiny::req(input$order, input$datatype)
-    out <- dplyr::filter(traitsumdata(), datatype %in% input$datatype)
+    out <- dplyr::filter(traitPvalue(), datatype %in% input$datatype)
 
     if(input$order == "variability") {
       out <- dplyr::arrange(out, dplyr::desc(rawSD))
