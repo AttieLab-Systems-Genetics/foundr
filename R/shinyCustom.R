@@ -1,9 +1,14 @@
 foundrIntro <- function() {
-  if(!exists("datasets") || !all(is.character(unlist(datasets))) || is.null(names(datasets))) {
+  if(exists("userDatasets") &&
+     is.function(userDatasets) &&
+     all(is.character(unlist(userDatasets())))
+     !is.null(names(userDatasets()))) {
+    datasets <- userDatasets()
+  } else {
     datasets <- c(physio = "physiological data",
                   liver = "RNA-seq on liver",
                   plasma = "concentrations of circulating metabolites")
-  }
+  } 
   datatags <- shiny::tags$ul(
     lapply(
       paste(names(datasets), datasets, sep = ": "),
