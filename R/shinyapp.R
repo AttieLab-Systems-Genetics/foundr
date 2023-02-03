@@ -40,8 +40,8 @@ foundrUI <- function(title) {
 #'   foundrMean() # routine to subset mean summaries
 #'   
 #' @param input,output,session shiny parameters
-#' @param traitData data frame with trait data
-#' @param traitPvalue data frame with summary data
+#' @param traitdata data frame with trait data
+#' @param traitpvalue data frame with summary data
 #' @param condition column(s) identifying condition for plotting
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
@@ -61,12 +61,12 @@ foundrUI <- function(title) {
 #'
 #' @examples
 foundrServer <- function(input, output, session,
-                         traitData = NULL,
-                         traitPvalue = NULL,
+                         traitdata = NULL,
+                         traitpvalue = NULL,
                          condition = "sex_condition") {
 
-  traitData <- shiny::reactive({traitData})
-  traitPvalue <- shiny::reactive({traitPvalue})
+  traitData <- shiny::reactive({traitdata})
+  traitPvalue <- shiny::reactive({traitpvalue})
   cond <- shiny::reactive({condition})
   
   output$intro <- foundrIntro()
