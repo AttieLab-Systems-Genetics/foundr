@@ -43,14 +43,15 @@ foundrScatplot <- function(traitnames,
         # Split trait pair by colon
         x <- stringr::str_split(x, sep)[[1]][2:1]
         
-        # create out with columns for each trait pair
         if("sex_condition" %in% names(traitData)) {
-          out <- tidyr::unite(traitData, sex_condition, sex, condition)
+          traitData <- tidyr::unite(traitData, sex_condition, sex, condition)
         }
-        out <- foundr::pivot_pair(out, x)
+        
+        # creat columns for each trait pair
+        traitData <- foundr::pivot_pair(traitData, x)
 
         # create plot
-        p <- foundr::scatplot(out, x[1], x[2], shape_sex = FALSE)
+        p <- foundr::scatplot(traitData, x[1], x[2], shape_sex = FALSE)
         if("sex_condition" %in% names(traitData)) {
           p <- p + ggplot2::facet_grid(. ~ sex_condition)
         } else {
@@ -64,17 +65,17 @@ foundrScatplot <- function(traitnames,
 
 foundrData <- function(traitData, traitnames) {
   ltrait <- length(traitnames)
-  out <- dplyr::mutate(
+  traitData <- dplyr::mutate(
     traitData,
     trait = abbreviate(trait, ceiling(60 / ltrait)))
   
   if("condition" %in% names(traitData)) {
-    out <- tidyr::unite(
-      out,
+    traitData <- tidyr::unite(
+      traitData,
       sex_condition, sex, condition,
       na.rm = TRUE)
   }
-  out
+  traitData
 }
 
 foundrMean <- function(traitData) {
