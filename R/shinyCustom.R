@@ -34,28 +34,56 @@ foundrIntro <- function() {
 
 foundrScatplot <- function(traitnames,
                            traitData,
-                           pair = foundr::traitpairs(traitnames, sep),
+                           pair = traitpairs(traitnames, sep),
+                           shape_sex = TRUE,
+                           response = c("value","mean","signal"),
                            sep = " ON ") {
+  
+  response <- match.arg(response)
+  
   dat <- 
     purrr::map(
       pair,
       function(x) {
-        # Split trait pair by colon
+        # Split trait pair by colon. Reduce to traits in x.
         x <- stringr::str_split(x, sep)[[1]][2:1]
+        traitData <- dplyr::filter(traitData, trait %in% x)
         
         if("sex_condition" %in% names(traitData)) {
           traitData <- tidyr::unite(traitData, sex_condition, sex, condition)
         }
         
-        # creat columns for each trait pair
-        traitData <- foundr::pivot_pair(traitData, x)
+        if(response == "value") {
+          # Create columns for each trait pair with full data.
+          out <- pivot_pair(traitData, x)
+        }
+        
+        if(response != "value" | nrow(out < 2)) { # Reduce to mean.
+          # Problem of nrow<2 likely from traits having different subjects.
+          out <- 
+            dplyr::ungroup(
+              dplyr::summarize(
+                dplyr::group_by(
+                  traitData,
+                  datatype, trait, strain, sex),
+                value = mean(value, na.rm = TRUE)))
+          
+          # Create columns for each trait pair with trait means.
+          out <- pivot_pair(out, x)
+        }
 
         # create plot
-        p <- foundr::scatplot(traitData, x[1], x[2], shape_sex = FALSE)
+        p <- scatplot(out, x[1], x[2], shape_sex = shape_sex)
+        
+        # Facet if there are data
         if("sex_condition" %in% names(traitData)) {
-          p <- p + ggplot2::facet_grid(. ~ sex_condition)
+          ct <- dplyr::count(out, sex_condition)$n
+          if(length(ct) > 1)
+            p <- p + ggplot2::facet_grid(. ~ sex_condition)
         } else {
-          p <- p + ggplot2::facet_grid(. ~ sex)
+          ct <- dplyr::count(out, sex)$n
+          if(length(ct) > 1)
+            p <- p + ggplot2::facet_grid(. ~ sex)
         }
       })
   
