@@ -85,6 +85,7 @@ foundrScatplot <- function(traitnames,
           if(length(ct) > 1)
             p <- p + ggplot2::facet_grid(. ~ sex)
         }
+        p
       })
   
   # Patch plots together by rows
