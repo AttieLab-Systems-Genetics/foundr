@@ -17,6 +17,7 @@ foundrUI <- function(title) {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("intro"),
+        shiny::uiOutput("upload"),
         shiny::uiOutput("settings"),
         shiny::uiOutput("strains"),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
@@ -50,6 +51,7 @@ foundrUI <- function(title) {
 #'             downloadButton downloadHandler fluidRow isTruthy observeEvent
 #'             plotOutput radioButtons reactive renderPlot renderUI req
 #'             selectInput selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
+#'             setProgress withProgress
 #' @importFrom dplyr across arrange everything filter mutate
 #' @importFrom tidyselect where
 #' @importFrom DT dataTableOutput renderDataTable
@@ -57,6 +59,8 @@ foundrUI <- function(title) {
 #' @importFrom grDevices pdf dev.off
 #' @importFrom utils combn write.csv
 #' @importFrom stringr str_detect
+#' @importFrom tools file_ext
+#' @importFrom readxl read_excel
 #' @importFrom rlang .data
 #'
 #' @examples
@@ -65,14 +69,59 @@ foundrServer <- function(input, output, session,
                          traitpvalue = NULL,
                          condition = "sex_condition") {
 
-  traitData <- shiny::reactive({traitdata})
-  traitPvalue <- shiny::reactive({traitpvalue})
+  
+  traitData <- shiny::reactive({
+    if(shiny::isTruthy(input$upload)) {
+      file <- input$upload
+      datapath <- file$datapath
+      traitdata <- switch(
+        tools::file_ext(datapath),
+        csv = read.csv(datapath),
+        xls, xlsx = readxl::read_excel(datapath),
+        rds = readRDS(datapath))
+    }
+    if(!is.null(traitdata)) {
+      if(!"datatype" %in% names(traitdata))
+        traitdata$datatype <- "uploaded"
+    }
+    traitdata
+  })
+  datatypes <- shiny::reactive({
+    unique(shiny::req(traitData())$datatype)
+  })
+  
+  traitPvalue <- shiny::reactive({
+    shiny::req(traitData(), datatypes())
+    if(shiny::isTruthy(input$upload) | is.null(traitpvalue)) {
+      if(!is.null(traitData()))
+        shiny::withProgress(
+          message = 'P-value calculation in progress',
+          detail = 'This may take a while...',
+          value = 0.5,
+          { 
+            traitpvalue <- broomit(traitData())
+            shiny::setProgress(
+              message = "Done",
+              value = 1)
+          })
+      else
+        traitpvalue <- NULL
+    }
+    if(!is.null(traitpvalue)) {
+      if(!"datatype" %in% names(traitpvalue))
+        traitpvalue$datatype <- unique(traitData()$datatype)[1]
+    }
+    traitpvalue
+  })
   cond <- shiny::reactive({condition})
   
   output$intro <- foundrIntro()
+  output$upload <- shiny::renderUI({
+    shiny::fileInput("upload", "Upload CSV, XLS, XLSX or RDS:", accept = c(".csv",".xls",".xlsx",".rds"),
+                     width = "100%")
+  })
   output$settings <- shiny::renderUI({
-    shiny::req(traitPvalue())
-    datatypes <- unique(traitPvalue()$datatype)
+    shiny::req(traitPvalue(), datatypes())
     p_types <- names(traitPvalue())
     p_types <- p_types[stringr::str_detect(p_types, "^p_")]
     
@@ -81,7 +130,7 @@ foundrServer <- function(input, output, session,
         4,
         shiny::selectInput(
           "datatype", "Measurement set",
-          datatypes, datatypes[1],
+          datatypes(), datatypes()[1],
           multiple = TRUE)),
       shiny::column(
         4,
@@ -107,8 +156,13 @@ foundrServer <- function(input, output, session,
     dplyr::filter(traitData(), datatype %in% input$datatype)
   })
   traitarrange <- shiny::reactive({
-    shiny::req(input$order, input$datatype)
+    shiny::req(input$order, input$datatype, traitPvalue())
+    if(is.null(traitPvalue()))
+      return(NULL)
+    
     out <- dplyr::filter(traitPvalue(), datatype %in% input$datatype)
+    if(!nrow(out)) # Happens if traitPvalue changes
+      return(NULL)
 
     if(input$order == "variability") {
       out <- dplyr::arrange(out, dplyr::desc(rawSD))
@@ -132,7 +186,7 @@ foundrServer <- function(input, output, session,
     shiny::selectizeInput("trait", "Traits:", choices = NULL, multiple = TRUE)
   })
   shiny::observeEvent({
-    shiny::req(dataset(), input$order)
+    shiny::req(dataset(), traitData(), traitorder())
   },
   {
     shiny::updateSelectizeInput(session, "trait", choices = traitorder(),

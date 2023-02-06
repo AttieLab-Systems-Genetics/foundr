@@ -18,10 +18,8 @@ foundrIntro <- function() {
       "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
       "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
       "See",
-      shiny::a("Attie Lab Diabetes Database", href = "http://diabetes.wisc.edu/"),
-      "for earlier study.",
-      "GigHub:", shiny::a("byandell/FounderDietStudy",
-                          href = "https://github.com/byandell/FounderDietStudy"))
+      "GigHub:", shiny::a("byandell/foundr",
+                          href = "https://github.com/byandell/foundr"))
   })
 }
 

@@ -4,7 +4,7 @@ library(foundr)
 
 ################################################################
 
-ui <- foundr::foundrUI("Founder Diet Study")
+ui <- foundr::foundrUI("Founder Study")
 
 server <- function(input, output, session) {
     
