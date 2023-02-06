@@ -1,26 +1,19 @@
 foundrIntro <- function() {
   if(exists("userDatasets") &&
      is.function(userDatasets) &&
-     all(is.character(unlist(userDatasets()))) &&
-     !is.null(names(userDatasets()))) {
-    datasets <- userDatasets()
+     all(is.list(userDatasets()))) {
+    datainfor <- userDatasets()
   } else {
-    datasets <- c(physio = "physiological data",
-                  liver = "RNA-seq on liver",
-                  plasma = "concentrations of circulating metabolites")
+    datainfo <- ""
   } 
-  datatags <- shiny::tags$ul(
-    lapply(
-      paste(names(datasets), datasets, sep = ": "),
-      function(x) shiny::tags$li(x)))
-  
+
   renderUI({
     tagList(
-      "This founder dataset consists of",
+      "Founder dataset consists of",
       shiny::a("8 CC mice strains,",
                href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
-      "two diets (HC_LF = high carb, low fat; HF_LC = high fat, low carb) and both sexes with three measurement sets collected on 192 mice:",
-      datatags,
+      "and both sexes, possibly crossed with experimental conditions.",
+      datainfo,
       "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
       "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
       "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
