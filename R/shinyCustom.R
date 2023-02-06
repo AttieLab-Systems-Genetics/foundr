@@ -2,7 +2,7 @@ foundrIntro <- function() {
   if(exists("userDatasets") &&
      is.function(userDatasets) &&
      all(is.list(userDatasets()))) {
-    datainfor <- userDatasets()
+    datainfo <- userDatasets()
   } else {
     datainfo <- ""
   } 
