@@ -88,7 +88,7 @@ foundrServer <- function(input, output, session,
         # Normal scores with jitter for new data
         traitdata <-
           dplyr::ungroup(
-            dplyr::summarize(
+            dplyr::mutate(
               dplyr::group_by(traitdata, datatype, trait),
               value = nqrank(value, jitter = TRUE)))
       }
