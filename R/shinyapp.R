@@ -245,7 +245,8 @@ foundrServer <- function(input, output, session,
     foundr::strainplot(
       datatraits(),
       facet_strain = input$facet,
-      condition = cond())
+      condition = cond(),
+      boxplot = TRUE)
   })
   output$distPlot <- shiny::renderPlot({
     distplot()
