@@ -84,12 +84,14 @@ foundrServer <- function(input, output, session,
       if(!"datatype" %in% names(traitdata))
         traitdata$datatype <- "uploaded"
       
-      # Normal scores with jitter
-      traitdata <-
-        dplyr::ungroup(
-          dplyr::summarize(
-            dplyr::group_by(traitdata, datatype, trait),
-            value = nqrank(value, jitter = TRUE)))
+      if(shiny::isTruthy(input$upload)) {
+        # Normal scores with jitter for new data
+        traitdata <-
+          dplyr::ungroup(
+            dplyr::summarize(
+              dplyr::group_by(traitdata, datatype, trait),
+              value = nqrank(value, jitter = TRUE)))
+      }
     }
     traitdata
   })
