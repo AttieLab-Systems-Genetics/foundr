@@ -88,7 +88,7 @@ foundrServer <- function(input, output, session,
       traitdata <-
         dplyr::ungroup(
           dplyr::summarize(
-            dplyr::group_by(datatype, trait),
+            dplyr::group_by(traitdata, datatype, trait),
             trait = nqrank(trait, jitter = TRUE)))
     }
     traitdata
