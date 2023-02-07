@@ -83,14 +83,14 @@ foundrServer <- function(input, output, session,
     if(!is.null(traitdata)) {
       if(!"datatype" %in% names(traitdata))
         traitdata$datatype <- "uploaded"
+      
+      # Normal scores with jitter
+      traitdata <-
+        dplyr::ungroup(
+          dplyr::summarize(
+            dplyr::group_by(datatype, trait),
+            trait = nqrank(trait, jitter = TRUE)))
     }
-    # Normal scores with jitter
-    traitdata <-
-      dplyr::ungroup(
-        dplyr::summarize(
-          dplyr::group_by(datatype, trait),
-          trait = nqrank(trait, jitter = TRUE)))
-    
     traitdata
   })
   datatypes <- shiny::reactive({
