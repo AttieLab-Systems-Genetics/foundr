@@ -43,13 +43,15 @@ foundrScatplot <- function(traitnames,
     x <- stringr::str_split(x, sep)[[1]][2:1]
     traitData <- dplyr::filter(traitData, trait %in% x)
     
-    if("sex_condition" %in% names(traitData)) {
-      traitData <- tidyr::unite(traitData, sex_condition, sex, condition)
-    }
-    
     if(response == "value") {
       # Create columns for each trait pair with full data.
       out <- pivot_pair(traitData, x)
+    }
+    
+    if("sex_condition" %in% names(traitData)) {
+      groupsex <- "sex_condition"
+    } else {
+      groupsex <- "sex"
     }
     
     if(response != "value" | nrow(out) < 2) { # Reduce to mean.
@@ -58,13 +60,28 @@ foundrScatplot <- function(traitnames,
       out <- 
         dplyr::ungroup(
           dplyr::summarize(
-            dplyr::group_by(
-              traitData,
-              trait, strain, sex),
+            if(groupsex == "sex") {
+              dplyr::group_by(
+                traitData,
+                datatype, trait, strain, sex)
+            } else {
+              dplyr::group_by(
+                traitData,
+                datatype, trait, strain, sex, condition)
+            },
             value = mean(value, na.rm = TRUE)))
+      
+      # pivot_pair not working when misaligned sex_condition
       
       # Create columns for each trait pair with trait means.
       out <- pivot_pair(out, x)
+      if(groupsex == "sex_condition") {
+        out <- tidyr::unite(
+          out,
+          sex_condition, sex, condition,
+          remove = FALSE,
+          na.rm = TRUE)
+      }
     }
     
     # create plot
@@ -95,11 +112,12 @@ foundrData <- function(traitData, traitnames) {
   traitData <- dplyr::mutate(
     traitData,
     trait = abbreviate(trait, ceiling(60 / ltrait)))
-  
+
   if("condition" %in% names(traitData)) {
     traitData <- tidyr::unite(
       traitData,
       sex_condition, sex, condition,
+      remove = FALSE,
       na.rm = TRUE)
   }
   traitData

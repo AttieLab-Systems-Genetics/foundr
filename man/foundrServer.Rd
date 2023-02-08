@@ -27,8 +27,5 @@ A Server definition that can be passed to the `shinyServer` function.
 }
 \description{
 User needs to supply the following routines:
-  foundrIntro() # introductory remarks about study
-  foundrScatplot() # wrapper for foundr::scatplot
-  foundrData() # routine to subset data
-  foundrMean() # routine to subset mean summaries
+  userDatasets() # function returning list of text for intro
 }

@@ -5,8 +5,8 @@
 #'
 #' @return data frame
 #' @export
-#' @importFrom dplyr filter
-#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr filter full_join mutate rename select
+#' @importFrom tidyr pivot_wider unite
 #'
 #' @examples
 pivot_pair <- function(object, pair) {
@@ -14,13 +14,33 @@ pivot_pair <- function(object, pair) {
     return(NULL)
   }
   
-  dplyr::filter(
-    tidyr::pivot_wider(
-      dplyr::filter(
-        object,
-        trait %in% c(pair[1],pair[2])),
-      names_from = "trait", values_from = "value"),
-    # Make sure x and y columns have no missing data.
-    !(is.na(.data[[pair[1]]]) | is.na(.data[[pair[2]]])))
+  # Reduce to pair of traits.
+  object <- dplyr::filter(object, trait %in% pair)
   
+  # Columns sex and condition present. Need to carefully address differences in condition.
+  
+  # split by trait
+  byvars <- names(object)
+  byvars <- byvars[!(byvars %in% c("datatype", "trait", "value"))]
+  object <- split(dplyr::select(object, -trait), object$trait)
+  nocond <- sapply(object, function(x) all(is.na(x$condition)))
+  if(any(nocond)) {
+    byvars <- byvars[byvars != "condition"]
+    for(i in names(nocond)) {
+      if(nocond[i])
+        object[[i]]$condition <- NULL
+    }
+  }
+  object <- dplyr::full_join(object[[1]], object[[2]],
+                             by = byvars)
+  if(!("condition" %in% names(object))) {
+    object$condition <- NA
+  }
+  
+  # Replace names of values with trait names
+  names(object)[match(c("value.x","value.y"), names(object))] <- names(nocond)
+  
+  dplyr::filter(
+    object,
+    !(is.na(.data[[pair[1]]]) | is.na(.data[[pair[2]]])))
 }

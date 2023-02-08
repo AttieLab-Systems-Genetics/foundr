@@ -35,10 +35,7 @@ foundrUI <- function(title) {
 #' Server for Founder Shiny App
 #'
 #' User needs to supply the following routines:
-#'   foundrIntro() # introductory remarks about study
-#'   foundrScatplot() # wrapper for foundr::scatplot
-#'   foundrData() # routine to subset data
-#'   foundrMean() # routine to subset mean summaries
+#'   userDatasets() # function returning list of text for intro
 #'   
 #' @param input,output,session shiny parameters
 #' @param traitdata data frame with trait data
@@ -236,10 +233,10 @@ foundrServer <- function(input, output, session,
   # Plots
   distplot <- shiny::reactive({
     if(!shiny::isTruthy(dataset()) | !shiny::isTruthy(input$trait)) {
-      return(ggplot2::ggplot())
+      return(print(ggplot2::ggplot()))
     }
     if(!all(input$trait %in% dataset()$trait)) {
-      return(ggplot2::ggplot())
+      return(print(ggplot2::ggplot()))
     }
     
     foundr::strainplot(
@@ -249,7 +246,7 @@ foundrServer <- function(input, output, session,
       boxplot = TRUE)
   })
   output$distPlot <- shiny::renderPlot({
-    distplot()
+    print(distplot())
   })
   output$plots <- shiny::renderUI({
     shiny::req(input$height)
@@ -324,10 +321,10 @@ foundrServer <- function(input, output, session,
   })
   output$scatplot <- shiny::renderPlot({
     if(!shiny::isTruthy(input$pair)) {
-      return(ggplot2::ggplot())
+      return(print(ggplot2::ggplot()))
     }
     
-    foundrScatplot(req(input$trait), datatraitslong(), req(input$pair))
+    print(foundrScatplot(req(input$trait), datatraits(), req(input$pair)))
   })
 }
 
