@@ -7,7 +7,7 @@
 termStats(object)
 }
 \arguments{
-\item{object}{object from `broomit`}
+\item{object}{object from `strainstats`}
 }
 \description{
 Terms in Stats Object
