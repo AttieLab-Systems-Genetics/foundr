@@ -1,4 +1,4 @@
-#' Use Broom to Find P-values for Model Summaries
+#' Use Broom to Find Stats for Model Summaries
 #'
 #' @param object data frame in long format with trait data
 #' @param trait name of column with trait names
@@ -21,7 +21,7 @@
 #' @export
 #'
 #' @examples
-broomit <- function(object,
+strainstats <- function(object,
                     trait = "trait",
                     value = "value",
                     signal = "strain * sex * condition",

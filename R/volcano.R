@@ -68,7 +68,7 @@ volcano <- function(object, term = p_terms,
 
 #' Terms in Stats Object
 #'
-#' @param object object from `broomit`
+#' @param object object from `strainstats`
 #'
 #' @return
 #' @export
@@ -78,6 +78,9 @@ volcano <- function(object, term = p_terms,
 termStats <- function(object) {
   # Return the strain terms with condition if present
   p_terms <- names(object)
+  # Drop in terms with all missing values
+  p_terms <- p_terms[sapply(object[p_terms], function(x) !all(is.na(x)))]
+  
   p_terms1 <- p_terms[grepl("p_", p_terms)]
   p_terms1 <- p_terms1[!grepl("p_signal", p_terms1)]
   p_terms1 <- stringr::str_remove(p_terms1, "p_")

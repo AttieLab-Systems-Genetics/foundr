@@ -105,7 +105,7 @@ foundrServer <- function(input, output, session,
           detail = 'This may take a while...',
           value = 0.5,
           { 
-            traitstats <- broomit(traitData())
+            traitstats <- strainstats(traitData())
             shiny::setProgress(
               message = "Done",
               value = 1)
