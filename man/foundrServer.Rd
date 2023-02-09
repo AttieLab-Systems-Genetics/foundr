@@ -9,7 +9,7 @@ foundrServer(
   output,
   session,
   traitdata = NULL,
-  traitpvalue = NULL,
+  traitstats = NULL,
   condition = "sex_condition"
 )
 }
@@ -18,7 +18,7 @@ foundrServer(
 
 \item{traitdata}{data frame with trait data}
 
-\item{traitpvalue}{data frame with summary data}
+\item{traitstats}{data frame with summary data}
 
 \item{condition}{column(s) identifying condition for plotting}
 }

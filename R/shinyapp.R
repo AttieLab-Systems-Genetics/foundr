@@ -39,7 +39,7 @@ foundrUI <- function(title) {
 #'   
 #' @param input,output,session shiny parameters
 #' @param traitdata data frame with trait data
-#' @param traitpvalue data frame with summary data
+#' @param traitstats data frame with summary data
 #' @param condition column(s) identifying condition for plotting
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
@@ -63,7 +63,7 @@ foundrUI <- function(title) {
 #' @examples
 foundrServer <- function(input, output, session,
                          traitdata = NULL,
-                         traitpvalue = NULL,
+                         traitstats = NULL,
                          condition = "sex_condition") {
 
   
@@ -96,28 +96,28 @@ foundrServer <- function(input, output, session,
     unique(shiny::req(traitData())$datatype)
   })
   
-  traitPvalue <- shiny::reactive({
+  traitStats <- shiny::reactive({
     shiny::req(traitData(), datatypes())
-    if(shiny::isTruthy(input$upload) | is.null(traitpvalue)) {
+    if(shiny::isTruthy(input$upload) | is.null(traitstats)) {
       if(!is.null(traitData()))
         shiny::withProgress(
-          message = 'P-value calculation in progress',
+          message = 'Stats calculations in progress',
           detail = 'This may take a while...',
           value = 0.5,
           { 
-            traitpvalue <- broomit(traitData())
+            traitstats <- broomit(traitData())
             shiny::setProgress(
               message = "Done",
               value = 1)
           })
       else
-        traitpvalue <- NULL
+        traitstats <- NULL
     }
-    if(!is.null(traitpvalue)) {
-      if(!"datatype" %in% names(traitpvalue))
-        traitpvalue$datatype <- unique(traitData()$datatype)[1]
+    if(!is.null(traitstats)) {
+      if(!"datatype" %in% names(traitstats))
+        traitstats$datatype <- unique(traitData()$datatype)[1]
     }
-    traitpvalue
+    traitstats
   })
   cond <- shiny::reactive({condition})
   
@@ -127,8 +127,8 @@ foundrServer <- function(input, output, session,
                      width = "100%")
   })
   output$settings <- shiny::renderUI({
-    shiny::req(traitPvalue(), datatypes())
-    p_types <- names(traitPvalue())
+    shiny::req(traitStats(), datatypes())
+    p_types <- names(traitStats())
     p_types <- p_types[stringr::str_detect(p_types, "^p_")]
     
     shiny::fluidRow(
@@ -162,12 +162,12 @@ foundrServer <- function(input, output, session,
     dplyr::filter(traitData(), datatype %in% input$datatype)
   })
   traitarrange <- shiny::reactive({
-    shiny::req(input$order, input$datatype, traitPvalue())
-    if(is.null(traitPvalue()))
+    shiny::req(input$order, input$datatype, traitStats())
+    if(is.null(traitStats()))
       return(NULL)
     
-    out <- dplyr::filter(traitPvalue(), datatype %in% input$datatype)
-    if(!nrow(out)) # Happens if traitPvalue changes
+    out <- dplyr::filter(traitStats(), datatype %in% input$datatype)
+    if(!nrow(out)) # Happens if traitStats changes
       return(NULL)
 
     if(input$order == "variability") {
@@ -215,13 +215,16 @@ foundrServer <- function(input, output, session,
   # Output: Plots or Data
   output$outs <- shiny::renderUI({
     shiny::tagList(
-      shiny::radioButtons("button", "", c("Plots", "Pair Plots", "Data Means", "Data Summary"), "Plots", inline = TRUE),
+      shiny::radioButtons("button", "", c("Plots", "Pair Plots", "Volcano", "Data Means", "Data Summary"), "Plots", inline = TRUE),
       shiny::conditionalPanel(
         condition = "input.button == 'Plots'",
         shiny::uiOutput("plots")),
       shiny::conditionalPanel(
         condition = "input.button == 'Pair Plots'",
         shiny::uiOutput("scatPlot")),
+      shiny::conditionalPanel(
+        condition = "input.button == 'Volcano'",
+        shiny::uiOutput("volcano")),
       shiny::conditionalPanel(
         condition = "input.button == 'Data Means'",
         DT::dataTableOutput("datatable")),
@@ -252,6 +255,44 @@ foundrServer <- function(input, output, session,
     shiny::req(input$height)
     shiny::plotOutput("distPlot", height = paste0(input$height, "in"))
   })
+  
+  termstats <- reactive({
+    shiny::req(traitarrange())
+    termStats(traitarrange())
+  }) 
+  volcanoplot <- reactive({
+    shiny::req(traitarrange(), input$interact, input$term, input$rescaleSD)
+    volcano(traitarrange(), input$term,
+            interact = (input$interact == "yes"),
+            rescaleSD = (input$rescaleSD == "yes"))
+  })
+  output$volcanoly <- plotly::renderPlotly(
+    plotly::ggplotly(volcanoplot())
+  )
+  output$volcanopr <- shiny::renderPlot(
+    print(volcanoplot())
+  )
+  output$volcano <- shiny::renderUI({
+    shiny::req(dataset())
+    shiny::tagList(
+      shiny::fluidRow(
+        shiny::column(
+          4,
+          shiny::selectInput("term", "Volcano term:", termstats(), termstats()[1])),
+        shiny::column(
+          4,
+          shiny::selectInput("rescaleSD", "Rescale SD?", c("no","yes"), "yes")),
+        shiny::column(
+          4,
+          shiny::selectInput("interact", "Interactive?", c("no","yes"), "no"))),
+      shiny::conditionalPanel(
+        condition = "input.interact == 'yes'",
+        plotly::plotlyOutput("volcanoly")),
+      shiny::conditionalPanel(
+        condition = "input.interact == 'no'",
+        shiny::plotOutput("volcanopr")))
+  })
+  
   output$downloads <- foundrDownloads(shiny::req(input$trait), shiny::req(input$datatype))
   
   output$downloadPlot <- shiny::downloadHandler(

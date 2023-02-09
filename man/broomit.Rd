@@ -9,7 +9,8 @@ broomit(
   trait = "trait",
   value = "value",
   signal = "strain * sex * condition",
-  ancillary = "strain * sex + sex * condition"
+  ancillary = "strain * sex + sex * condition",
+  calc_sd = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ broomit(
 \item{signal}{signal factor combination as string for `formula`}
 
 \item{ancillary}{ancillary factor combination as string for `formula`}
+
+\item{calc_sd}{calculate SDs by `term` if `TRUE` (default)}
 }
 \value{
 data frame with summaries by trait
