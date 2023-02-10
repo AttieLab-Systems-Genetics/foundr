@@ -20,7 +20,6 @@
 #' 
 #' @export
 #'
-#' @examples
 strainstats <- function(object,
                     trait = "trait",
                     value = "value",
@@ -38,18 +37,69 @@ strainstats <- function(object,
           return(NULL)
         form <- stats::formula(paste(value, "~", signal))
         fit <- stats::lm(form, traitdata)
-        tibble::as_tibble(data.frame(
-          rawSD = stats::sd(traitdata[[value]], na.rm = TRUE),
-          p_signal = sig,
-          strain_stats(fit, calc_sd)))
-        }),
+        rawSD <-  stats::sd(traitdata[[value]], na.rm = TRUE)
+        
+        dplyr::mutate(
+          dplyr::bind_rows(
+            sig,
+            strain_stats(stats::drop1(fit, fit, test = "F"))),
+          SD = SD / rawSD)
+      }),
     .id = trait)
   
-  # Rorder to agree with data object
+  # Reorder to agree with data object
   o <- dplyr::distinct(object, trait)$trait
-  
-  m <- match(o, out$trait)
-  out[m,]
+  dplyr::mutate(
+    dplyr::arrange(
+      dplyr::mutate(
+        out,
+        trait = factor(trait, o)),
+      trait),
+    trait = as.character(trait))
+}
+#' Order Stats by Selected term name
+#'
+#' @param object data frame from `strainstats`
+#' @param termname name of element in `term` column to order by
+#'
+#' @return
+#' @export
+#' @importFrom dplyr arrange filter mutate
+#'
+traitOrderStats <- function(object, termname) {
+  o <- dplyr::arrange(
+    dplyr::filter(
+      object,
+      term == termname),
+    p.value)$trait
+  # Arrange traits in this order
+  object <- dplyr::mutate(
+    dplyr::arrange(
+      dplyr::mutate(
+        object,
+        trait = factor(trait, o)),
+      trait),
+    trait = as.character(trait))
+}
+
+
+#' Terms in Stats Object
+#'
+#' @param object object from `strainstats`
+#'
+#' @return
+#' @export
+#' @importFrom stringr str_remove
+#'
+#' @examples
+termStats <- function(object) {
+  terms <- unique(object$term)
+
+  # Return the strain terms with condition if present
+  if(any(grepl("condition", terms)))
+    c("signal", terms[grepl(".*strain.*condition", terms)])
+  else
+    c("signal", terms[grepl(".*strain", terms)])
 }
 
 signalfit <- function(traitdata, value, signal, ancillary) {
@@ -57,46 +107,23 @@ signalfit <- function(traitdata, value, signal, ancillary) {
   formred <- stats::formula(paste(value, "~", ancillary))
   fitful <- stats::lm(formful, traitdata)
   fitred <- stats::lm(formred, traitdata)
-  dplyr::select(
-    broom::tidy(
-      stats::anova(fitred, fitful)),
-      p.value)[2,]$p.value
+  
+  strain_stats(stats::anova(fitred, fitful), "signal")
 }
 
-strain_stats <- function(fit, calc_sd = TRUE) {
-  drops <- dplyr::select(
-    dplyr::mutate(
-      dplyr::filter(
-        broom::tidy(stats::drop1(fit, fit, test = "F")),
-        !grepl("<none>", .data$term)),
-      # change term from a.b to p_a_b
-      term = stringr::str_replace_all(
-        paste0(term), ":", "_")),
-    term, df, sumsq, p.value)
+strain_stats <- function(fitsum, termname = "") {
+  if(all(termname == ""))
+    termfn <- function(term) stringr::str_replace_all(paste0(term), ":", "_")
+  else
+    termfn <- function(term) termname
   
-  pvals <- tidyr::pivot_wider(
-    dplyr::select(
+  dplyr::select(
+    dplyr::rename(
       dplyr::mutate(
-        drops,
-        term = paste0("p_", term)),
-      -df, -sumsq),
-    names_from = "term",
-    values_from = "p.value")
-  if(calc_sd) {
-    sds <- tidyr::pivot_wider(
-      dplyr::select(
-        dplyr::mutate(
-          drops,
-          sumsq = sqrt(sumsq / df),
-          term = paste0("sd_", term)),
-        -p.value, -df),
-      names_from = "term",
-      values_from = "sumsq")
-    
-    bind_cols(pvals, sds)
-  }
-  else {
-    pvals
-  }
+        broom::tidy(fitsum)[-1,],
+        sumsq = sqrt(sumsq / df),
+        term = termfn(term)),
+      SD = "sumsq"),
+    term, SD, p.value)
 }
 

@@ -10,7 +10,7 @@ foundrServer(
   session,
   traitdata = NULL,
   traitstats = NULL,
-  condition = "sex_condition"
+  traitsignal = NULL
 )
 }
 \arguments{
@@ -19,8 +19,6 @@ foundrServer(
 \item{traitdata}{data frame with trait data}
 
 \item{traitstats}{data frame with summary data}
-
-\item{condition}{column(s) identifying condition for plotting}
 }
 \value{
 A Server definition that can be passed to the `shinyServer` function.

@@ -6,22 +6,19 @@
 \usage{
 volcano(
   object,
-  term = p_terms,
-  threshold = c(sd = 0.6, p = 0.05),
-  interact = FALSE,
-  rescaleSD = TRUE
+  termname = terms[1],
+  threshold = c(SD = 1, p = 0.01),
+  interact = FALSE
 )
 }
 \arguments{
-\item{object}{data frame with trait names, p-value and sd terms}
+\item{object}{data frame with `trait` names, `term` names, `SD` and `p.value`}
 
-\item{term}{name of term to show}
+\item{termname}{name of `term` to show}
 
-\item{threshold}{named vector for `sd` and `p`}
+\item{threshold}{named vector for `SD` and `p.value`}
 
 \item{interact}{prepare for interactive if `TRUE`}
-
-\item{rescaleSD}{rescale SD by `rawSD` if `TRUE`}
 }
 \description{
 One-sided Volcano Plot

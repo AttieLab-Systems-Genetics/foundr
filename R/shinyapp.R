@@ -40,13 +40,12 @@ foundrUI <- function(title) {
 #' @param input,output,session shiny parameters
 #' @param traitdata data frame with trait data
 #' @param traitstats data frame with summary data
-#' @param condition column(s) identifying condition for plotting
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
 #' @importFrom shiny checkboxGroupInput checkboxInput column conditionalPanel
 #'             downloadButton downloadHandler fluidRow isTruthy observeEvent
-#'             plotOutput radioButtons reactive renderPlot renderUI req
+#'             plotOutput radioButtons reactive reactiveVal renderPlot renderUI req
 #'             selectInput selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
 #'             setProgress withProgress
 #' @importFrom dplyr across arrange everything filter mutate
@@ -64,10 +63,10 @@ foundrUI <- function(title) {
 foundrServer <- function(input, output, session,
                          traitdata = NULL,
                          traitstats = NULL,
-                         condition = "sex_condition") {
+                         traitsignal = NULL) {
 
-  
-  traitData <- shiny::reactive({
+  # Trait Data
+  traitDataInput <- shiny::reactive({
     if(shiny::isTruthy(input$upload)) {
       file <- input$upload
       datapath <- file$datapath
@@ -93,19 +92,26 @@ foundrServer <- function(input, output, session,
     traitdata
   })
   datatypes <- shiny::reactive({
-    unique(shiny::req(traitData())$datatype)
+    unique(shiny::req(traitDataInput())$datatype)
+  })
+  # Trait Data from selected datatypes
+  traitDataSelected <- shiny::reactive({
+    shiny::req(input$datatype)
+    dplyr::filter(
+      traitDataInput(),
+      datatype %in% input$datatype)
   })
   
   traitStats <- shiny::reactive({
-    shiny::req(traitData(), datatypes())
+    shiny::req(traitDataInput(), datatypes())
     if(shiny::isTruthy(input$upload) | is.null(traitstats)) {
-      if(!is.null(traitData()))
+      if(!is.null(traitDataInput()))
         shiny::withProgress(
           message = 'Stats calculations in progress',
           detail = 'This may take a while...',
           value = 0.5,
           { 
-            traitstats <- strainstats(traitData())
+            traitstats <- strainstats(traitDataInput())
             shiny::setProgress(
               message = "Done",
               value = 1)
@@ -115,11 +121,39 @@ foundrServer <- function(input, output, session,
     }
     if(!is.null(traitstats)) {
       if(!"datatype" %in% names(traitstats))
-        traitstats$datatype <- unique(traitData()$datatype)[1]
+        traitstats$datatype <- unique(traitDataInput()$datatype)[1]
     }
     traitstats
   })
-  cond <- shiny::reactive({condition})
+  traitSignal <- shiny::reactive({
+    shiny::req(traitDataInput(), datatypes())
+    if(shiny::isTruthy(input$upload) | is.null(traitsignal)) {
+      if(!is.null(traitDataInput()))
+        shiny::withProgress(
+          message = 'Signal calculations in progress',
+          detail = 'This may take a while...',
+          value = 0.5,
+          { 
+            traitsignal <- partition(traitDataInput())
+            shiny::setProgress(
+              message = "Done",
+              value = 1)
+          })
+      else
+        traitsignal <- NULL
+    }
+    if(!is.null(traitsignal)) {
+      if(!"datatype" %in% names(traitsignal))
+        traitsignal$datatype <- unique(traitDataInput()$datatype)[1]
+    }
+    traitsignal
+  })
+  cond <- shiny::reactive({
+    if("condition" %in% names(traitDataInput()))
+      "sex_condition"
+    else
+      "sex"
+  })
   
   output$intro <- foundrIntro()
   output$upload <- shiny::renderUI({
@@ -128,8 +162,7 @@ foundrServer <- function(input, output, session,
   })
   output$settings <- shiny::renderUI({
     shiny::req(traitStats(), datatypes())
-    p_types <- names(traitStats())
-    p_types <- p_types[stringr::str_detect(p_types, "^p_")]
+    p_types <- paste0("p_", unique(traitStats()$term))
     
     shiny::fluidRow(
       shiny::column(
@@ -142,7 +175,7 @@ foundrServer <- function(input, output, session,
         4,
         shiny::selectInput(
           "order", "Order traits by",
-          c(p_types, "variability", "alphabetical", "original"),
+          c("correlated", p_types, "alphabetical", "original"),
           p_types[1])),
       shiny::column(
         4,
@@ -157,53 +190,81 @@ foundrServer <- function(input, output, session,
   })
   
   # Trait summaries (for ordering traits, and summary table)
-  dataset <- shiny::reactive({
-    shiny::req(input$datatype)
-    dplyr::filter(traitData(), datatype %in% input$datatype)
-  })
-  traitarrange <- shiny::reactive({
+  traitDataArranged <- shiny::reactive({
     shiny::req(input$order, input$datatype, traitStats())
     if(is.null(traitStats()))
       return(NULL)
     
-    out <- dplyr::filter(traitStats(), datatype %in% input$datatype)
+    out <- dplyr::filter(
+      traitStats(),
+      datatype %in% input$datatype)
+    
     if(!nrow(out)) # Happens if traitStats changes
       return(NULL)
 
-    if(input$order == "variability") {
-      out <- dplyr::arrange(out, dplyr::desc(rawSD))
-    } else if(input$order == "alphabetical") {
+    if(input$order == "alphabetical") {
       out <- dplyr::arrange(out, trait)
     } else {
-      if(input$order != "original") {
-        out <- dplyr::arrange(out, .data[[input$order]])
+      if(input$order == "correlated") {
+        shiny::req(input$trait)
+        o <- c(input$trait,
+               names(bestcor(traitSignal(),
+                             input$trait,
+                             "signal")))
+        out <- dplyr::mutate(
+          dplyr::arrange(
+            dplyr::mutate(
+              out,
+              trait = factor(trait, o)),
+            trait),
+          trait = as.character(trait))
+      } else {
+        if(input$order != "original") {
+          # Order by p.value for termname
+          termname <- stringr::str_remove(input$order, "p_")
+          out <- traitOrderStats(out, termname)
+        }
       }
     }
     out
     
   })
-  traitorder <- shiny::reactive({
-    traitarrange()$trait
+  traitNamesArranged <- shiny::reactive({
+    unique(traitDataArranged()$trait)
   })
   
   # Select traits
   output$trait <- shiny::renderUI({
-    shiny::req(traitorder(), input$order, dataset())
-    shiny::selectizeInput("trait", "Traits:", choices = NULL, multiple = TRUE)
+    shiny::req(traitNamesArranged(), input$order, traitDataSelected())
+    shiny::selectizeInput("trait", "Traits:",
+                          choices = NULL, multiple = TRUE)
   })
   shiny::observeEvent({
-    shiny::req(dataset(), traitData(), traitorder())
-  },
-  {
-    shiny::updateSelectizeInput(session, "trait", choices = traitorder(),
-                         server = TRUE)
+    shiny::req(traitDataSelected(), traitDataInput(), traitNamesArranged())
+    
+    # Use current selection of input$trait.
+    # But make sure they are still in the traitNamesArranged().
+    selected <- current_selection()
+    selected <- selected[selected %in% traitNamesArranged()]
+    if(!length(selected))
+      selected <- NULL
+    
+    shiny::updateSelectizeInput(session, "trait", choices = traitNamesArranged(),
+                         server = TRUE, selected = selected)
+  })
+  # https://stackoverflow.com/questions/28379937/change-selectize-choices-but-retain-previously-selected-values
+  # in server.R create reactiveVal
+  current_selection <- shiny::reactiveVal(NULL)
+  # now store your current selection in the reactive value
+  shiny::observeEvent(input$trait, {
+    current_selection(input$trait)
   })
   
   # Data for selected traits
   datatraitslong <- shiny::reactive({
-    shiny::req(dataset(), input$trait, input$strains)
+    shiny::req(traitDataSelected(), input$trait, input$strains)
     dplyr::filter(
-      dataset(),
+      traitDataSelected(),
       trait %in% input$trait,
       strain %in% input$strains)
   })
@@ -235,21 +296,21 @@ foundrServer <- function(input, output, session,
   
   # Plots
   distplot <- shiny::reactive({
-    if(!shiny::isTruthy(dataset()) | !shiny::isTruthy(input$trait)) {
+    if(!shiny::isTruthy(traitDataSelected()) | !shiny::isTruthy(input$trait)) {
       return(print(ggplot2::ggplot()))
     }
-    if(!all(input$trait %in% dataset()$trait)) {
+    if(!all(input$trait %in% traitDataSelected()$trait)) {
       return(print(ggplot2::ggplot()))
     }
     
-    foundr::strainplot(
+    print(foundr::strainplot(
       datatraits(),
       facet_strain = input$facet,
       condition = cond(),
-      boxplot = TRUE)
+      boxplot = TRUE))
   })
   output$distPlot <- shiny::renderPlot({
-    print(distplot())
+    distplot()
   })
   output$plots <- shiny::renderUI({
     shiny::req(input$height)
@@ -257,14 +318,13 @@ foundrServer <- function(input, output, session,
   })
   
   termstats <- reactive({
-    shiny::req(traitarrange())
-    termStats(traitarrange())
+    shiny::req(traitDataArranged())
+    termStats(traitDataArranged())
   }) 
   volcanoplot <- reactive({
-    shiny::req(traitarrange(), input$interact, input$term, input$rescaleSD)
-    volcano(traitarrange(), input$term,
-            interact = (input$interact == "yes"),
-            rescaleSD = (input$rescaleSD == "yes"))
+    shiny::req(traitDataArranged(), input$interact, input$term)
+    volcano(traitDataArranged(), input$term,
+            interact = (input$interact == "yes"))
   })
   output$volcanoly <- plotly::renderPlotly(
     plotly::ggplotly(volcanoplot())
@@ -273,17 +333,14 @@ foundrServer <- function(input, output, session,
     print(volcanoplot())
   )
   output$volcano <- shiny::renderUI({
-    shiny::req(dataset())
+    shiny::req(traitDataSelected())
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
-          4,
+          6,
           shiny::selectInput("term", "Volcano term:", termstats(), termstats()[1])),
         shiny::column(
-          4,
-          shiny::selectInput("rescaleSD", "Rescale SD?", c("no","yes"), "yes")),
-        shiny::column(
-          4,
+          6,
           shiny::selectInput("interact", "Interactive?", c("no","yes"), "no"))),
       shiny::conditionalPanel(
         condition = "input.interact == 'yes'",
@@ -297,11 +354,19 @@ foundrServer <- function(input, output, session,
   
   output$downloadPlot <- shiny::downloadHandler(
     filename = function() {
-      paste0(shiny::req(input$plotname), ".pdf") },
+      filestub <- shiny::req(input$plotname)
+      if(req(input$button) == "Volcano")
+        filestub = paste0("Volcano_",
+                         paste(req(input$datatype), collapse = ","))
+      paste0(filestub, ".pdf") },
     content = function(file) {
       shiny::req(input$height)
       grDevices::pdf(file, width = 9, height = input$height)
-      print(distplot())
+      switch(req(input$button),
+             Plots = distplot(),
+             "Pair Plots" = scatplot(),
+             Volcano = print(volcanoplot()),
+             ggplot2::ggplot())
       grDevices::dev.off()
     })
   
@@ -315,7 +380,7 @@ foundrServer <- function(input, output, session,
     options = list(scrollX = TRUE, pageLength = 10))
   output$tablesum <- DT::renderDataTable(
     dplyr::mutate(
-      traitarrange(),
+      traitDataArranged(),
       dplyr::across(
         tidyselect::where(is.numeric),
         function(x) signif(x, 4))),
@@ -337,7 +402,7 @@ foundrServer <- function(input, output, session,
       shiny::req(input$datatype)
       paste0(shiny::req(input$tablename), ".csv") },
     content = function(file) {
-      utils::write.csv(traitarrange(), file, row.names = FALSE)
+      utils::write.csv(traitDataArranged(), file, row.names = FALSE)
     }
   )
   
