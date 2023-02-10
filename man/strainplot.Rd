@@ -5,20 +5,17 @@
 \title{GGplot by strain and condition}
 \usage{
 strainplot(
-  datatraits,
+  object,
   facet_strain = FALSE,
-  condition = "",
   shape_sex = FALSE,
   boxplot = FALSE,
   horizontal = FALSE
 )
 }
 \arguments{
-\item{datatraits}{data frame to be plotted}
+\item{object}{data frame to be plotted}
 
 \item{facet_strain}{facet by strain if `TRUE`}
-
-\item{condition}{name of column with condition}
 
 \item{shape_sex}{use different shape by sex if `TRUE`}
 

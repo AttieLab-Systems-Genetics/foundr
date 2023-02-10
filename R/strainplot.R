@@ -1,8 +1,7 @@
 #' GGplot by strain and condition
 #'
-#' @param datatraits data frame to be plotted
+#' @param object data frame to be plotted
 #' @param facet_strain facet by strain if `TRUE` 
-#' @param condition name of column with condition
 #' @param shape_sex use different shape by sex if `TRUE`
 #' @param boxplot overlay boxplot if `TRUE`
 #' @param horizontal flip vertical and horizontal axis if `TRUE`
@@ -16,16 +15,15 @@
 #' @export
 #'
 #' @examples
-strainplot <- function(datatraits,
-                               facet_strain = FALSE,
-                               condition = "",
-                               shape_sex = FALSE,
-                               boxplot = FALSE,
-                               horizontal = FALSE) {
+strainplot <- function(object,
+                       facet_strain = FALSE,
+                       shape_sex = FALSE,
+                       boxplot = FALSE,
+                       horizontal = FALSE) {
   
   # Allow for datatype grouping for traits
-  if("datatype" %in% names(datatraits)) {
-    tmp <- dplyr::distinct(datatraits, datatype, trait)
+  if("datatype" %in% names(object)) {
+    tmp <- dplyr::distinct(object, datatype, trait)
     datatype <- tmp$datatype
     trait <- tmp$trait
     ltrait <- length(trait)
@@ -37,7 +35,7 @@ strainplot <- function(datatraits,
                           sep = ":", collapse = ", "))
     
   } else {
-    trait <- unique(datatraits$trait)
+    trait <- unique(object$trait)
     ltrait <- length(trait)
     form <- "trait ~"
     title <- paste0("data for trait",
@@ -46,12 +44,16 @@ strainplot <- function(datatraits,
                           collapse = ", "))
   }
   
-  # Could have no condition.
-  if(nocond <- !all(condition %in% names(datatraits))) {
-    facet_strain <- FALSE
+  # Check if there is a condition column that is not all NA
+  condition <- "sex"
+  if("condition" %in% names(object)) {
+    if(all(is.na(object$condition)))
+      object$condition <- NULL
+    else
+      condition <- "sex_condition"
   }
 
-  p <- ggplot2::ggplot(datatraits)
+  p <- ggplot2::ggplot(object)
   
   if(boxplot) {
     p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA)
@@ -61,14 +63,14 @@ strainplot <- function(datatraits,
     # The condition could be multiple columns; unite as one.
     if(length(condition) > 1) {
       tmp <- paste(condition, sep = "_")
-      datatraits <- tidyr::unite(
-        datatraits,
+      object <- tidyr::unite(
+        object,
         tmp,
         tidyr::all_of(condition),
         na.rm = TRUE)
       condition <- tmp
     }
-    ncond <- sort(unique(datatraits[[condition]]))
+    ncond <- sort(unique(object[[condition]]))
     cond_colors <- RColorBrewer::brewer.pal(n = length(ncond), name = "Dark2")
     names(cond_colors) <- ncond
     form <- stats::formula(paste(form, "strain"))
@@ -99,10 +101,8 @@ strainplot <- function(datatraits,
     p <- p +
       ggplot2::scale_fill_manual(values = CCcolors)
 
-    if(!nocond) {
-      form <- stats::formula(paste(form, condition))
-      p <- p + ggplot2::facet_grid(form, scales = "free_y")
-    }
+    form <- stats::formula(paste(form, condition))
+    p <- p + ggplot2::facet_grid(form, scales = "free_y")
   }
 
   if(shape_sex) {
