@@ -8,7 +8,7 @@
 #' 
 #' @export
 #' @importFrom shiny fluidPage mainPanel sidebarLayout sidebarPanel sliderInput titlePanel uiOutput
-#'             tabsetPanel tabPanel includeMarkdown
+#'             tabsetPanel tabPanel includeMarkdown tags includeMarkdown
 #'
 #' @examples
 foundrUI <- function(title) {
@@ -18,6 +18,12 @@ foundrUI <- function(title) {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("intro"),
+        shiny::tags$div(
+          id = "popup",
+          helpPopup(
+            "qtl2shiny help",
+            shiny::includeMarkdown(system.file(file.path("shinyApp", "morehelp.md"), package='foundr')),
+            placement = "right", trigger = "click")),
         shiny::uiOutput("upload"),
         shiny::uiOutput("settings"),
         shiny::uiOutput("strains"),
