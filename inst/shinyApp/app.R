@@ -1,4 +1,6 @@
 library(shiny)
+devtools::install_cran("plotly") # plotly not yet on UW dataviz
+devtools::install_cran("markdown") # markdown not yet on UW dataviz
 devtools::install_cran("patchwork") # patchwork not yet on UW dataviz
 devtools::install_github("byandell/foundr")
 library(foundr)
