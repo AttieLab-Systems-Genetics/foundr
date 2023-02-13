@@ -8,8 +8,9 @@
 #'
 #' @return sorted vector of absolute correlations with names
 #' @export
-#' @importFrom dplyr across arrange distinct filter select
+#' @importFrom dplyr across arrange desc distinct filter select
 #' @importFrom tidyr matches pivot_wider unite
+#' @importFrom tibble as_tibble
 #'
 #' @examples
 bestcor <- function(object, traits, term = c("signal", "mean")) {
@@ -18,6 +19,8 @@ bestcor <- function(object, traits, term = c("signal", "mean")) {
   # Need to check if condition is present.
   # Need to check if traits are missing some combos
   
+  if(is.null(object) | is.null(traits))
+    return(NULL)
   if(!all(traits %in% unique(object$trait)))
     return(NULL)
   
@@ -83,10 +86,64 @@ bestcor <- function(object, traits, term = c("signal", "mean")) {
   object <- myfun(
     dplyr::filter(object, !(trait %in% traits)),
     term, groupsex)
+  
+  # Create data frame with absmax and columns of correlations.
+  out <- as.data.frame(cor(object, proband, use = "pair"))
+  out$absmax <- apply(out, 1, function(x) max(abs(x)))
+  out$trait <- row.names(out)
+  out <- dplyr::arrange(
+    dplyr::select(
+      tibble::as_tibble(out),
+      trait, absmax, dplyr::everything()),
+    dplyr::desc(absmax))
+  class(out) <- c("bestcor", class(out))
+  out
+}
+#' GGplot of bestcor object
+#'
+#' @param object object of class `bestcor`
+#' @param mincor minimum absolute correlation to plot
+#' @param abscor plot absolute value of correlation if `TRUE`
+#' @param ... additional parameters not used
+#'
+#' @return
+#' @export
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr mutate select
+#' @importFrom ggplot2 aes autoplot element_text facet_grid geom_point ggplot theme
+#' @rdname bestcor
+#'
+#' @examples
+ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
+  object <- tidyr::pivot_longer(
+    dplyr::select(
+      dplyr::filter(
+        dplyr::mutate(
+          object,
+          trait = stats::reorder(trait, dplyr::desc(absmax))),
+        absmax >= mincor),
+      -absmax),
+    -trait,
+    names_to = "proband",
+    values_to = "cors")
+  
+  if(abscor) {
+    object <- dplyr::mutate(object, cors = abs(cors))
+  }
 
-  sort(
-    apply(
-      cor(object, proband, use = "pair"),
-      1, function(x) max(abs(x))),
-    decreasing = TRUE)
+  p <- ggplot2::ggplot(object) +
+    ggplot2::aes(trait, cors, col = proband) +
+    ggplot2::geom_point(size = 2) + 
+    ggplot2::facet_grid(proband ~ .) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+  if(!abscor) {
+    p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")
+  }
+  p
+}
+#' @rdname bestcor
+#' @method autoplot bestcor
+#'
+autoplot.bestcor <- function(object, ...) {
+  ggplot_bestcor(object, ...)
 }

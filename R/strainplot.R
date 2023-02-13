@@ -52,6 +52,9 @@ strainplot <- function(object,
     else
       condition <- "sex_condition"
   }
+  
+  # Make sure strain is in proper order
+  object <- dplyr::mutate(object, strain = factor(strain, names(CCcolors)))
 
   p <- ggplot2::ggplot(object)
   

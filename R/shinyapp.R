@@ -8,6 +8,7 @@
 #' 
 #' @export
 #' @importFrom shiny fluidPage mainPanel sidebarLayout sidebarPanel sliderInput titlePanel uiOutput
+#'             tabsetPanel tabPanel
 #'
 #' @examples
 foundrUI <- function(title) {
@@ -26,7 +27,12 @@ foundrUI <- function(title) {
       
       # Main panel for displaying outputs ----
       shiny::mainPanel(
-        shiny::uiOutput("outs")
+        shiny::tabsetPanel(
+          type = "tabs", header = "Plots and Tables",
+          shiny::tabPanel("Singles & Pairs", shiny::uiOutput("tab_trait")),
+          shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
+          shiny::tabPanel("Volcano & Effects", shiny::uiOutput("tab_volcano"))
+        )
       )
     )
   )
@@ -196,7 +202,7 @@ foundrServer <- function(input, output, session,
     if(input$order == "alphabetical") {
       out <- dplyr::arrange(out, trait)
     } else {
-      if(input$order %in% c("cor_signal", "cor_mean")) {
+      if(input$order == "correlation") {
         out <- traitSignalBestCor()
       } else {
         if(input$order != "original") {
@@ -208,15 +214,19 @@ foundrServer <- function(input, output, session,
     }
     out
   })
+  corobject <- reactive({
+    term <- shiny::req(input$corterm)
+    bestcor(traitSignalSelectType(),
+            trait_selection(),
+            term)
+  })
   traitSignalBestCor <- shiny::reactive({
     out <- traitStatsSelectType()
     if(!shiny::isTruthy(trait_selection()))
       return(out)
     
     o <- c(trait_selection(),
-           names(bestcor(traitSignalSelectType(),
-                         trait_selection(),
-                         stringr::str_remove(input$order, "cor_"))))
+           corobject()$trait)
     dplyr::mutate(
       dplyr::arrange(
         dplyr::mutate(
@@ -258,7 +268,7 @@ foundrServer <- function(input, output, session,
     p_types <- paste0("p_", unique(traitStatsSelectType()$term))
     choices <- c(p_types, "alphabetical", "original")
 #    if(shiny::isTruthy(input$trait)) # This causes reset.
-    choices <- c("cor_signal", "cor_mean", choices)
+    choices <- c("correlation", choices)
     shiny::selectInput("order", "Order traits by", choices, p_types[1])
   })
 
@@ -310,26 +320,65 @@ foundrServer <- function(input, output, session,
   })
   
   # Output: Plots or Data
-  output$outs <- shiny::renderUI({
+  output$tab_trait <- shiny::renderUI({
     shiny::tagList(
-      shiny::radioButtons("button", "", c("Plots", "Pair Plots", "Volcano", "Data Means", "Data Summary"), "Plots", inline = TRUE),
+      shiny::radioButtons("buttrait", "Singles & Pairs Plots",
+                          c("Trait Plots", "Pair Plots"),
+                          "Trait Plots", inline = TRUE),
       shiny::conditionalPanel(
-        condition = "input.button == 'Plots'",
+        condition = "input.buttrait == 'Trait Plots'",
         shiny::uiOutput("plots")),
       shiny::conditionalPanel(
-        condition = "input.button == 'Pair Plots'",
+        condition = "input.buttrait == 'Pair Plots'",
         shiny::uiOutput("scatPlot")),
+      DT::dataTableOutput("datatable")
+    )
+  })
+  output$tab_cor <- shiny::renderUI({
+    shiny::tagList(
+      shiny::fluidRow(
+        shiny::column(
+          6,
+          shiny::selectInput("corterm", "Correlation Type",
+                             c("signal","mean"), "signal")),
+        shiny::column(
+          6,
+          shiny::checkboxInput("abscor", "Absolute Correlation?", TRUE)
+        )),
+      shiny::sliderInput("mincor", "Minimum", 0.5, 1, 0.7),
+      shiny::plotOutput("corplot", height = paste0(input$height, "in")),
+      DT::dataTableOutput("cortable"))
+
+  })
+  output$corplot <- shiny::renderPlot({
+    shiny::req(input$mincor, corobject())
+    if(is.null(corobject()) || !nrow(corobject()))
+      return(print(ggplot2::ggplot()))
+    
+    print(ggplot2::autoplot(corobject(), input$mincor, input$abscor))
+  })
+  output$cortable <- DT::renderDataTable(
+    corobject(),
+    escape = FALSE,
+    options = list(scrollX = TRUE, pageLength = 10))
+  
+  output$tab_volcano <- shiny::renderUI({
+    shiny::tagList(
+      shiny::radioButtons("butvol", "Volcano & Effects Plots",
+                          c("Volcano", "Effects"),
+                          "Volcano", inline = TRUE),
       shiny::conditionalPanel(
-        condition = "input.button == 'Volcano'",
+        condition = "input.butvol == 'Volcano'",
         shiny::uiOutput("volcano")),
       shiny::conditionalPanel(
-        condition = "input.button == 'Data Means'",
-        DT::dataTableOutput("datatable")),
-      shiny::conditionalPanel(
-        condition = "input.button == 'Data Summary'",
-        DT::dataTableOutput("tablesum")))
+        condition = "input.butvol == 'Effects'",
+        shiny::plotOutput("effectplot")),
+      DT::dataTableOutput("tablesum"))
   })
-  
+output$effectplot <- shiny::renderPlot({
+  print(effectplot(traitStatsSelectType(), trait_selection()))
+})
+
   # Plots
   distplot <- shiny::reactive({
     if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(input$trait)) {

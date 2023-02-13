@@ -26,25 +26,28 @@ foundrIntro <- function() {
 foundrScatplot <- function(traitnames,
                            traitData,
                            pair = traitpairs(traitnames, sep),
-                           shape_sex = TRUE,
-                           response = c("value","mean","signal"),
-                           line_strain = TRUE,
-                           sep = " ON ") {
-  
-  response <- match.arg(response)
+                           sep = " ON ", ...) {
   
   traits <- unique(unlist(stringr::str_split(pair, sep)))
   if(!all(traits %in% traitData$trait)) {
     return(NULL)
   }
   
-  dat <- purrr::map(pair, scatplots, traitData)
+  dat <- purrr::map(pair, scatplots, traitData, sep, ...)
   
   # Patch plots together by rows
   patchwork::wrap_plots(dat, nrow = length(dat))
 }
 
-scatplots <- function(x, traitData) {
+scatplots <- function(x, traitData,
+                      sep = " ON ", 
+                      shape_sex = TRUE,
+                      response = c("value","mean","signal"),
+                      line_strain = TRUE,
+                      ...) {
+  
+  response <- match.arg(response)
+  
   # Split trait pair by colon. Reduce to traits in x.
   x <- stringr::str_split(x, sep)[[1]][2:1]
   traitData <- dplyr::filter(traitData, trait %in% x)
@@ -52,12 +55,16 @@ scatplots <- function(x, traitData) {
   if(response == "value") {
     # Create columns for each trait pair with full data.
     out <- pivot_pair(traitData, x)
+  } else {
+    out <- traitData
   }
   
   if("sex_condition" %in% names(traitData)) {
     groupsex <- "sex_condition"
+    conds <- c("sex", "condition")
   } else {
     groupsex <- "sex"
+    conds <- "sex"
   }
   
   if(response != "value" | nrow(out) < 2) { # Reduce to mean.
@@ -66,15 +73,9 @@ scatplots <- function(x, traitData) {
     out <- 
       dplyr::ungroup(
         dplyr::summarize(
-          if(groupsex == "sex") {
-            dplyr::group_by(
-              traitData,
-              datatype, trait, strain, sex)
-          } else {
-            dplyr::group_by(
-              traitData,
-              datatype, trait, strain, sex, condition)
-          },
+          dplyr::group_by(
+            traitData,
+            dplyr::across(c("datatype", "trait", "strain", conds))),
           value = mean(value, na.rm = TRUE)))
     
     # pivot_pair not working when misaligned sex_condition

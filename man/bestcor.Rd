@@ -2,16 +2,28 @@
 % Please edit documentation in R/bestcor.R
 \name{bestcor}
 \alias{bestcor}
+\alias{ggplot_bestcor}
+\alias{autoplot.bestcor}
 \title{Traits with Best Correlation}
 \usage{
 bestcor(object, traits, term = c("signal", "mean"))
+
+ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
+
+\method{autoplot}{bestcor}(object, ...)
 }
 \arguments{
-\item{object}{data frame from `partition`}
+\item{object}{object of class `bestcor`}
 
 \item{traits}{names of traits in `object`}
 
 \item{term}{either `signal` or `mean`}
+
+\item{mincor}{minimum absolute correlation to plot}
+
+\item{abscor}{plot absolute value of correlation if `TRUE`}
+
+\item{...}{additional parameters not used}
 }
 \value{
 sorted vector of absolute correlations with names
