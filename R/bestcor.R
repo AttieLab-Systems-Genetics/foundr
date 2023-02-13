@@ -115,6 +115,9 @@ bestcor <- function(object, traits, term = c("signal", "mean")) {
 #'
 #' @examples
 ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
+  if(is.null(object))
+    return(NULL)
+  
   object <- tidyr::pivot_longer(
     dplyr::select(
       dplyr::filter(
@@ -126,6 +129,9 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     -trait,
     names_to = "proband",
     values_to = "cors")
+  
+  if(!nrow(object))
+    return(NULL)
   
   if(abscor) {
     object <- dplyr::mutate(object, cors = abs(cors))
