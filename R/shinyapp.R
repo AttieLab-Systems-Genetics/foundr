@@ -8,7 +8,7 @@
 #' 
 #' @export
 #' @importFrom shiny fluidPage mainPanel sidebarLayout sidebarPanel sliderInput titlePanel uiOutput
-#'             tabsetPanel tabPanel
+#'             tabsetPanel tabPanel includeMarkdown
 #'
 #' @examples
 foundrUI <- function(title) {
@@ -46,10 +46,11 @@ foundrUI <- function(title) {
 #' @param input,output,session shiny parameters
 #' @param traitdata data frame with trait data
 #' @param traitstats data frame with summary data
+#' @param helpath path to markdown file (say `help.md`) for intro
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
-#' @importFrom shiny checkboxGroupInput checkboxInput column conditionalPanel
+#' @importFrom shiny a br checkboxGroupInput checkboxInput column conditionalPanel
 #'             downloadButton downloadHandler fluidRow isTruthy observeEvent
 #'             plotOutput radioButtons reactive reactiveVal renderPlot renderUI req
 #'             selectInput selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
@@ -69,7 +70,8 @@ foundrUI <- function(title) {
 foundrServer <- function(input, output, session,
                          traitdata = NULL,
                          traitstats = NULL,
-                         traitsignal = NULL) {
+                         traitsignal = NULL,
+                         helppath = "") {
 
   # INPUT DATA (changes at server call or upload)
   # Trait Data: <datatype>, trait, strain, sex, <condition>, value
@@ -252,7 +254,7 @@ foundrServer <- function(input, output, session,
   })
   
   # Render UIs for shiny UI
-  output$intro <- foundrIntro()
+  output$intro <- foundrIntro(helppath)
   output$upload <- shiny::renderUI({
     shiny::fileInput("upload", "Upload CSV, XLS, XLSX or RDS:", accept = c(".csv",".xls",".xlsx",".rds"),
                      width = "100%")

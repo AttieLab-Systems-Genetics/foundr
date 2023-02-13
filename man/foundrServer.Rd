@@ -10,7 +10,8 @@ foundrServer(
   session,
   traitdata = NULL,
   traitstats = NULL,
-  traitsignal = NULL
+  traitsignal = NULL,
+  helppath = ""
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ foundrServer(
 \item{traitdata}{data frame with trait data}
 
 \item{traitstats}{data frame with summary data}
+
+\item{helpath}{path to markdown file (say `help.md`) for intro}
 }
 \value{
 A Server definition that can be passed to the `shinyServer` function.

@@ -1,11 +1,16 @@
-foundrIntro <- function() {
-  if(exists("userDatasets") &&
-     is.function(userDatasets) &&
-     all(is.list(userDatasets()))) {
-    datainfo <- userDatasets()
+foundrIntro <- function(helppath = "") {
+  if(helppath != "" && file.exists(helppath)) {
+    datainfo <- shiny::includeMarkdown(helppath)
   } else {
-    datainfo <- ""
-  } 
+    if(exists("userDatasets") &&
+       is.function(userDatasets) &&
+       all(is.list(userDatasets()))) {
+      datainfo <- userDatasets()
+    } else {
+      datainfo <- shiny::includeMarkdown(
+        system.file(file.path("shinyApp", "help.md"), package='foundr'))
+    } 
+  }
 
   renderUI({
     tagList(
@@ -14,6 +19,7 @@ foundrIntro <- function() {
                href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
       "and both sexes, possibly crossed with experimental conditions.",
       datainfo,
+      shiny::br(),
       "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
       "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
       "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
