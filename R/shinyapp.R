@@ -34,10 +34,10 @@ foundrUI <- function(title) {
       # Main panel for displaying outputs ----
       shiny::mainPanel(
         shiny::tabsetPanel(
-          type = "tabs", header = "Plots and Tables",
-          shiny::tabPanel("Singles & Pairs", shiny::uiOutput("tab_trait")),
+          type = "tabs", header = "Plots and Tables", id = "tabpanel",
+          shiny::tabPanel("Traits", shiny::uiOutput("tab_trait")),
           shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
-          shiny::tabPanel("Volcano & Effects", shiny::uiOutput("tab_volcano"))
+          shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano"))
         )
       )
     )
@@ -330,7 +330,7 @@ foundrServer <- function(input, output, session,
   # Output: Plots or Data
   output$tab_trait <- shiny::renderUI({
     shiny::tagList(
-      shiny::radioButtons("buttrait", "Singles & Pairs Plots",
+      shiny::radioButtons("buttrait", "Single & Pair Plots",
                           c("Trait Plots", "Pair Plots"),
                           "Trait Plots", inline = TRUE),
       shiny::conditionalPanel(
@@ -358,12 +358,15 @@ foundrServer <- function(input, output, session,
       DT::dataTableOutput("cortable"))
 
   })
+  corplot <- shiny::reactive({
+    ggplot2::autoplot(corobject(), input$mincor, input$abscor)
+  })
   output$corplot <- shiny::renderPlot({
     shiny::req(input$mincor, corobject())
     if(is.null(corobject()) || !nrow(corobject()))
       return(print(ggplot2::ggplot()))
     
-    print(ggplot2::autoplot(corobject(), input$mincor, input$abscor))
+    print(corplot())
   })
   output$cortable <- DT::renderDataTable(
     corobject(),
@@ -380,29 +383,32 @@ foundrServer <- function(input, output, session,
         shiny::uiOutput("volcano")),
       shiny::conditionalPanel(
         condition = "input.butvol == 'Effects'",
-        shiny::plotOutput("effectplot")),
+        shiny::plotOutput("effects")),
       DT::dataTableOutput("tablesum"))
   })
-output$effectplot <- shiny::renderPlot({
-  print(effectplot(traitStatsSelectType(), trait_selection()))
-})
+  effectsplot <- shiny::reactive({
+    print(effectplot(traitStatsSelectType(), trait_selection()))
+  })
+  output$effects <- shiny::renderPlot({
+    effectsplot()
+  })
 
   # Plots
   distplot <- shiny::reactive({
     if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(input$trait)) {
-      return(print(ggplot2::ggplot()))
+      return(ggplot2::ggplot())
     }
     if(!all(input$trait %in% traitDataSelectType()$trait)) {
-      return(print(ggplot2::ggplot()))
+      return(ggplot2::ggplot())
     }
     
-    print(strainplot(
+    strainplot(
       traitDataSelectTrait(),
       facet_strain = input$facet,
-      boxplot = TRUE))
+      boxplot = TRUE)
   })
   output$distPlot <- shiny::renderPlot({
-    distplot()
+    print(distplot())
   })
   output$plots <- shiny::renderUI({
     shiny::req(input$height)
@@ -442,23 +448,81 @@ output$effectplot <- shiny::renderPlot({
         shiny::plotOutput("volcanopr")))
   })
   
-  output$downloads <- foundrDownloads(shiny::req(input$trait), shiny::req(input$datatype))
+  output$filename <- renderUI({
+    filename <- paste(shiny::req(input$datatype), collapse = ".")
+    if(shiny::isTruthy(input$trait)) {
+      ltrait <- length(input$trait)
+      if(shiny::req(input$tabpanel) != "Volcano") {
+        filename <- paste0(filename,
+                           "_",
+                           paste(abbreviate(input$trait, ceiling(60 / ltrait)),
+                                 collapse = "."))
+      }
+    }
+    shiny::textAreaInput("filename", "File Prefix", filename)
+  })
+  output$downloads <- renderUI({
+    shiny::req(input$trait)
+    shiny::tagList(
+      shiny::fluidRow(
+        shiny::column(
+          6,
+          shiny::uiOutput("filename")),
+        shiny::column(
+          3,
+          shiny::downloadButton("downloadPlot", "Plots")),
+        shiny::column(
+          3,
+          shiny::downloadButton("downloadTable", "Data"))))
+  })
   
   output$downloadPlot <- shiny::downloadHandler(
     filename = function() {
-      filestub <- shiny::req(input$plotname)
-      if(req(input$button) == "Volcano")
-        filestub = paste0("Volcano_",
-                         paste(req(input$datatype), collapse = ","))
-      paste0(filestub, ".pdf") },
+      fname <- paste0(shiny::req(input$filename), ".pdf")
+      switch(
+        shiny::req(input$tabpanel),
+        Traits = {
+          switch(input$buttrait,
+                 "Trait Plots" = {
+                   fname <- paste0("trait_", fname)
+                 },
+                 "Pair Plots" = {
+                   fname <- paste0("pair_", fname)
+                 })
+        },
+        Correlation = {
+          fname <- paste0("cor_", fname)
+        },
+        Volcano = {
+          switch(input$butvol,
+                 Volcano = {
+                   fname <- paste0("volcano_", fname)
+                 },
+                 Effects = {
+                   fname <- paste0("effect_", fname)
+                 })
+        })
+      fname
+    },
     content = function(file) {
       shiny::req(input$height)
       grDevices::pdf(file, width = 9, height = input$height)
-      switch(req(input$button),
-             Plots = distplot(),
-             "Pair Plots" = scatplot(),
-             Volcano = print(volcanoplot()),
-             ggplot2::ggplot())
+      switch(
+        shiny::req(input$tabpanel),
+        Traits = {
+          switch(input$buttrait,
+                 "Trait Plots" = print(distplot()),
+                 "Pair Plots" = print(scatsplot()))
+        },
+        Correlation = {
+          print(corplot())
+        },
+        Volcano = {
+          switch(input$butvol,
+                 Volcano = print(volcanoplot()),
+                 Effects = print(effectsplot()))
+        },
+        ggplot2::ggplot())
       grDevices::dev.off()
     })
   
@@ -478,23 +542,31 @@ output$effectplot <- shiny::renderPlot({
         function(x) signif(x, 4))),
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
-  output$tablename <- shiny::renderUI({
-    filename <- shiny::req(input$datatype)
-    shiny::textInput("tablename", "Summary File Prefix", filename)
-  })
-  output$downloadMean <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$plotname), ".csv") },
-    content = function(file) {
-      utils::write.csv(datameans(), file, row.names = FALSE)
-    }
-  )
+  
   output$downloadTable <- shiny::downloadHandler(
     filename = function() {
-      shiny::req(input$datatype)
-      paste0(shiny::req(input$tablename), ".csv") },
+      fname <- paste0(shiny::req(input$filename), ".csv")
+      switch(
+        shiny::req(input$tabpanel),
+        Traits = {
+          fname <- paste0("trait_", fname)
+        },
+        Correlation = {
+          fname <- paste0("cor_", fname)
+        },
+        Volcano = {
+          fname <- paste0("stats_", fname)
+        })
+      fname
+    },
     content = function(file) {
-      utils::write.csv(traitStatsArranged(), file, row.names = FALSE)
+      utils::write.csv(
+        switch(
+          shiny::req(input$tabpanel),
+          Traits = datameans(),
+          Correlation = corobject(),
+          Volcano = traitStatsArranged()),
+        file, row.names = FALSE)
     }
   )
   
@@ -517,54 +589,16 @@ output$effectplot <- shiny::renderPlot({
       shiny::plotOutput("scatplot", height = paste0(input$height, "in"))
     )
   })
+  scatsplot <- reactive({
+    foundrScatplot(req(input$trait),
+                   traitDataSelectTrait(),
+                   req(input$pair))
+  })
   output$scatplot <- shiny::renderPlot({
     if(!shiny::isTruthy(input$pair)) {
       return(print(ggplot2::ggplot()))
     }
     
-    print(foundrScatplot(req(input$trait),
-                         traitDataSelectTrait(),
-                         req(input$pair)))
-  })
-}
-
-#' Downloads for Founder App
-#'
-#' See `foundrServer` for details of download outputs.
-#' 
-#' @param trait trait name(s)
-#' @param datatype type of data
-#'
-#' @return uses shiny downloadHandler
-#' 
-#' @export
-#'
-#' @examples
-foundrDownloads <- function(trait, datatype) {
-  shiny::renderUI({
-    ltrait <- length(trait)
-    filename <- paste0(paste(datatype, collapse = "."),
-                       "_",
-                       paste(abbreviate(trait, ceiling(60 / ltrait)),
-                             collapse = "."))
-    
-    shiny::tagList(
-      shiny::fluidRow(
-        shiny::column(
-          6,
-          shiny::textAreaInput("plotname", "File Prefix", filename)),
-        shiny::column(
-          3,
-          shiny::downloadButton("downloadPlot", "Plots")),
-        shiny::column(
-          3,
-          shiny::downloadButton("downloadMean", "Means"))),
-      shiny::fluidRow(
-        shiny::column(
-          6,
-          shiny::uiOutput("tablename")),
-        shiny::column(
-          3,
-          shiny::downloadButton("downloadTable", "Summary"))))
+    print(scatsplot())
   })
 }

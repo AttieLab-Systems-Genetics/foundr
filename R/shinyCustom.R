@@ -130,8 +130,6 @@ foundrData <- function(traitData, traitnames) {
   traitData
 }
 
-
-
 foundrMean <- function(traitData) {
   if("sex_condition" %in% names(traitData)) {
     groupsex <- "sex_condition"
@@ -145,6 +143,7 @@ foundrMean <- function(traitData) {
           dplyr::summarize(
             dplyr::group_by(traitData, strain, .data[[groupsex]], trait),
             value = mean(value, na.rm = TRUE), .groups = "drop")),
+        strain = factor(strain, names(CCcolors)),
         value = signif(value, 4)),
       names_from = "strain", values_from = "value"),
     trait, .data[[groupsex]])
