@@ -25,7 +25,7 @@ foundrIntro <- function(helppath = "") {
       "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
       "See",
       "GitHub:", shiny::a(paste("byandell/foundr",
-                                paste0("(version", utils::packageVersion("foundr"), ")")),
+                                paste0("(version ", utils::packageVersion("foundr"), ")")),
                           href = "https://github.com/byandell/foundr"))
 
 # Maybe eventually add this, but too confusing for now.
