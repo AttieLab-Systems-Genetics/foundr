@@ -31,7 +31,7 @@ helpPopup <- function(title, content,
       `data-animation` = TRUE,
       `data-placement` = match.arg(placement, several.ok = TRUE)[1],
       `data-trigger` = match.arg(trigger, several.ok = TRUE)[1],
-      "Help ..."
+      "More Help ..."
     )
   )
 }

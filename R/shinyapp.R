@@ -17,13 +17,6 @@ foundrUI <- function(title) {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::uiOutput("intro"),
-        shiny::tags$div(
-          id = "popup",
-          helpPopup(
-            "qtl2shiny help",
-            shiny::includeMarkdown(system.file(file.path("shinyApp", "morehelp.md"), package='foundr')),
-            placement = "right", trigger = "click")),
         shiny::uiOutput("upload"),
         shiny::uiOutput("settings"),
         shiny::uiOutput("strains"),
@@ -37,7 +30,8 @@ foundrUI <- function(title) {
           type = "tabs", header = "Plots and Tables", id = "tabpanel",
           shiny::tabPanel("Traits", shiny::uiOutput("tab_trait")),
           shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
-          shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano"))
+          shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano")),
+          shiny::tabPanel("About", shiny::uiOutput("intro"))
         )
       )
     )
@@ -66,7 +60,7 @@ foundrUI <- function(title) {
 #' @importFrom DT dataTableOutput renderDataTable
 #' @importFrom ggplot2 ggplot
 #' @importFrom grDevices pdf dev.off
-#' @importFrom utils combn write.csv
+#' @importFrom utils combn packageVersion write.csv
 #' @importFrom stringr str_detect
 #' @importFrom tools file_ext
 #' @importFrom readxl read_excel

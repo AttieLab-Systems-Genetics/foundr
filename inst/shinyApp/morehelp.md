@@ -1,3 +1,3 @@
 More help is on the way...
 
-Click the `Help ...` tag again to remove this popup.
+Click the `More Help ...` tag again to remove this popup.
