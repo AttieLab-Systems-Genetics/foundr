@@ -27,7 +27,7 @@ foundrUI <- function(title) {
       # Main panel for displaying outputs ----
       shiny::mainPanel(
         shiny::tabsetPanel(
-          type = "tabs", header = "Plots and Tables", id = "tabpanel",
+          type = "tabs", header = "", id = "tabpanel",
           shiny::tabPanel("Traits", shiny::uiOutput("tab_trait")),
           shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
           shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano")),
