@@ -24,7 +24,7 @@ foundrIntro <- function(helppath = "") {
       "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
       "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
       "See",
-      "GigHub:", shiny::a(paste("byandell/foundr",
+      "GitHub:", shiny::a(paste("byandell/foundr",
                                 utils::packageVersion("foundr")),
                           href = "https://github.com/byandell/foundr"))
 
