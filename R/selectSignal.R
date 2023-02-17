@@ -41,12 +41,6 @@ selectSignalWide <- function(traitSignal,
                              strains = names(CCcolors),
                              response = c("mean", "signal")) {
   
-  if("condition" %in% names(traitSignal)) {
-    groupsex <- "sex_condition"
-  } else {
-    groupsex <- "sex"
-  }
-  
   out <- selectSignal(traitSignal, traitnames, strains, response)
   nout <- c(names(out), levels(out$strain))
   nout <- nout[!(nout %in% c("strain", "value"))]
@@ -56,5 +50,5 @@ selectSignalWide <- function(traitSignal,
         out,
         names_from = "strain", values_from = "value"),
       dplyr::all_of(nout)),
-    trait, .data[[groupsex]])
+    trait, sex)
 }
