@@ -12,7 +12,7 @@
 #' @examples
 effectplot <- function(object, traits = unique(object$trait)[1:5]) {
   
-  if(is.null(object))
+  if(is.null(object) | is.null(traits))
     return(ggplot2::ggplot())
   
   object <- tidyr::pivot_longer(

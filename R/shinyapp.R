@@ -217,25 +217,13 @@ foundrServer <- function(input, output, session,
     out
   })
   corobject <- reactive({
-    term <- shiny::req(input$corterm)
     bestcor(traitSignalSelectType(),
             trait_selection(),
-            term)
+            shiny::req(input$corterm))
   })
   traitSignalBestCor <- shiny::reactive({
-    out <- traitStatsSelectType()
-    if(!shiny::isTruthy(trait_selection()))
-      return(out)
-    
-    o <- c(trait_selection(),
-           corobject()$trait)
-    dplyr::mutate(
-      dplyr::arrange(
-        dplyr::mutate(
-          out,
-          trait = factor(trait, o)),
-        trait),
-      trait = as.character(trait))
+    bestcorStats(traitStatsSelectType(),
+                 c(trait_selection(), corobject()$trait))
   })
   traitNamesArranged <- shiny::reactive({
     unique(shiny::req(traitStatsArranged())$trait)
@@ -243,14 +231,11 @@ foundrServer <- function(input, output, session,
   
   # Trait Data for Selected Traits
   traitDataSelectTrait <- shiny::reactive({
-    shiny::req(traitDataSelectType(), input$trait, input$strains)
-    
-    foundrData(
-      dplyr::filter(
-        traitDataSelectType(),
-        trait %in% input$trait,
-        strain %in% input$strains),
-      input$trait)
+    selectTrait(shiny::req(traitDataSelectType()),
+                shiny::req(traitSignalSelectType()),
+                shiny::req(input$trait),
+                shiny::req(input$strains),
+                shiny::req(input$butresp))
   })
   
   # Render UIs for shiny UI
@@ -324,9 +309,17 @@ foundrServer <- function(input, output, session,
   # Output: Plots or Data
   output$tab_trait <- shiny::renderUI({
     shiny::tagList(
-      shiny::radioButtons("buttrait", "Single & Pair Plots",
-                          c("Trait Plots", "Pair Plots"),
-                          "Trait Plots", inline = TRUE),
+      shiny::fluidRow(
+        shiny::column(
+          6,
+          shiny::radioButtons("buttrait", "Single & Pair Plots",
+                              c("Trait Plots", "Pair Plots"),
+                              "Trait Plots", inline = TRUE)),
+        shiny::column(
+          6,
+          shiny::radioButtons("butresp", "Response",
+                              c("individual", "mean", "signal", "ind_signal"),
+                              "individual", inline = TRUE))),
       shiny::conditionalPanel(
         condition = "input.buttrait == 'Trait Plots'",
         shiny::uiOutput("plots")),
@@ -522,7 +515,15 @@ foundrServer <- function(input, output, session,
   
   # Data Table
   datameans <- shiny::reactive({
-    foundrMean(traitDataSelectTrait())
+    response <- shiny::req(input$butresp)
+    if(response == "individual")
+      response <- "mean"
+    if(response == "ind_signal")
+      response <- "signal"
+    selectSignalWide(traitSignalSelectType(),
+                 shiny::req(input$trait),
+                 shiny::req(input$strains),
+                 response)
   })
   output$datatable <- DT::renderDataTable(
     datameans(),

@@ -122,38 +122,3 @@ scatplots <- function(x, traitData,
   }
   p
 }
-
-foundrData <- function(traitData, traitnames) {
-  ltrait <- length(traitnames)
-  traitData <- dplyr::mutate(
-    traitData,
-    trait = abbreviate(trait, ceiling(60 / ltrait)))
-
-  if("condition" %in% names(traitData)) {
-    traitData <- tidyr::unite(
-      traitData,
-      sex_condition, sex, condition,
-      remove = FALSE,
-      na.rm = TRUE)
-  }
-  traitData
-}
-
-foundrMean <- function(traitData) {
-  if("sex_condition" %in% names(traitData)) {
-    groupsex <- "sex_condition"
-  } else {
-    groupsex <- "sex"
-  }
-  dplyr::arrange(
-    tidyr::pivot_wider(
-      dplyr::mutate(
-        dplyr::ungroup(
-          dplyr::summarize(
-            dplyr::group_by(traitData, strain, .data[[groupsex]], trait),
-            value = mean(value, na.rm = TRUE), .groups = "drop")),
-        strain = factor(strain, names(CCcolors)),
-        value = signif(value, 4)),
-      names_from = "strain", values_from = "value"),
-    trait, .data[[groupsex]])
-}

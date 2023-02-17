@@ -23,14 +23,20 @@ pivot_pair <- function(object, pair) {
   byvars <- names(object)
   byvars <- byvars[!(byvars %in% c("datatype", "trait", "value"))]
   object <- split(dplyr::select(object, -trait), object$trait)
-  nocond <- sapply(object, function(x) all(is.na(x$condition)))
-  if(any(nocond)) {
-    byvars <- byvars[byvars != "condition"]
-    for(i in names(nocond)) {
-      if(nocond[i])
-        object[[i]]$condition <- NULL
+  ntraits <- names(object)
+  
+  # Take care of special case of condition column with some or all NAs
+  if("condition" %in% names(object)) {
+    nocond <- sapply(object, function(x) all(is.na(x$condition)))
+    if(any(nocond)) {
+      byvars <- byvars[byvars != "condition"]
+      for(i in names(nocond)) {
+        if(nocond[i])
+          object[[i]]$condition <- NULL
+      }
     }
   }
+  
   object <- dplyr::full_join(object[[1]], object[[2]],
                              by = byvars)
   if(!("condition" %in% names(object))) {
@@ -38,7 +44,7 @@ pivot_pair <- function(object, pair) {
   }
   
   # Replace names of values with trait names
-  names(object)[match(c("value.x","value.y"), names(object))] <- names(nocond)
+  names(object)[match(c("value.x","value.y"), names(object))] <- ntraits
   
   dplyr::filter(
     object,

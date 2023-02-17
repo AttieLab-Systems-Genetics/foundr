@@ -2,35 +2,35 @@
 #'
 #' Find other traits with best correlation with selected traits.
 #' 
-#' @param object data frame from `partition`
-#' @param traits names of traits in `object`
+#' @param traitSignal data frame from `partition`
+#' @param traits names of traits in `traitSignal`
 #' @param term either `signal` or `mean`
 #'
 #' @return sorted vector of absolute correlations with names
 #' @export
-#' @importFrom dplyr across arrange desc distinct filter select
+#' @importFrom dplyr across arrange desc distinct filter mutate select
 #' @importFrom tidyr matches pivot_wider unite
 #' @importFrom tibble as_tibble
 #'
 #' @examples
-bestcor <- function(object, traits, term = c("signal", "mean")) {
+bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
   term <- match.arg(term)
   
   # Need to check if condition is present.
   # Need to check if traits are missing some combos
   
-  if(is.null(object) | is.null(traits))
+  if(is.null(traitSignal) | is.null(traits))
     return(NULL)
-  if(!all(traits %in% unique(object$trait)))
+  if(!all(traits %in% unique(traitSignal$trait)))
     return(NULL)
   
-  proband <- dplyr::filter(object, trait %in% traits)
+  proband <- dplyr::filter(traitSignal, trait %in% traits)
   
-  if("condition" %in% names(object)) {
+  if("condition" %in% names(traitSignal)) {
     if(all(is.na(proband$condition))) {
       # proband does not use condition, so subset to traits that agree
       proband$condition <- NULL
-      object <- dplyr::filter(object, is.na(condition))
+      traitSignal <- dplyr::filter(traitSignal, is.na(condition))
       groupsex <- "sex"
     } else {
       groupsex <- "sex_condition"
@@ -53,20 +53,20 @@ bestcor <- function(object, traits, term = c("signal", "mean")) {
       levels,
       tidyr::matches(conds))$levels)
   ofactors <- tidyr::unite(
-    object,
+    traitSignal,
     levels,
     tidyr::matches(conds))$levels %in% factors
   
-  object <- object[ofactors,]
+  traitSignal <- traitSignal[ofactors,]
   
   # Pivot wider to put each trait in its own column
-  myfun <- function(object, term, groupsex) {
+  myfun <- function(traitSignal, term, groupsex) {
     if(term == "mean")
-      object$signal <- NULL
+      traitSignal$signal <- NULL
     else
-      object$mean <- NULL
-    if("datatype" %in% names(object))
-      object$datatype <- NULL
+      traitSignal$mean <- NULL
+    if("datatype" %in% names(traitSignal))
+      traitSignal$datatype <- NULL
 
     if(groupsex == "sex")
       conds <- c("strain", "sex")
@@ -76,19 +76,19 @@ bestcor <- function(object, traits, term = c("signal", "mean")) {
     dplyr::select(
       tidyr::pivot_wider(
         dplyr::arrange(
-          object,
+          traitSignal,
           trait, dplyr::across(conds)),
         names_from = "trait", values_from = term),
       -tidyr::matches(conds))
   }
 
   proband <- myfun(proband, term, groupsex)
-  object <- myfun(
-    dplyr::filter(object, !(trait %in% traits)),
+  traitSignal <- myfun(
+    dplyr::filter(traitSignal, !(trait %in% traits)),
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
-  out <- as.data.frame(cor(object, proband, use = "pair"))
+  out <- as.data.frame(cor(traitSignal, proband, use = "pair"))
   out$absmax <- apply(out, 1, function(x) max(abs(x)))
   out$trait <- row.names(out)
   out <- dplyr::arrange(
@@ -99,6 +99,20 @@ bestcor <- function(object, traits, term = c("signal", "mean")) {
   class(out) <- c("bestcor", class(out))
   out
 }
+
+bestcorStats <- function(traitStats, traitnames = "") {
+  if(traitnames == "")
+    return(traitStats)
+  
+  dplyr::mutate(
+    dplyr::arrange(
+      dplyr::mutate(
+        traitStats,
+        trait = factor(trait, traitnames)),
+      trait),
+    trait = as.character(trait))
+}
+
 #' GGplot of bestcor object
 #'
 #' @param object object of class `bestcor`

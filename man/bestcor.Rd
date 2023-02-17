@@ -6,18 +6,20 @@
 \alias{autoplot.bestcor}
 \title{Traits with Best Correlation}
 \usage{
-bestcor(object, traits, term = c("signal", "mean"))
+bestcor(traitSignal, traits, term = c("signal", "mean"))
 
 ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 
 \method{autoplot}{bestcor}(object, ...)
 }
 \arguments{
-\item{object}{object of class `bestcor`}
+\item{traitSignal}{data frame from `partition`}
 
-\item{traits}{names of traits in `object`}
+\item{traits}{names of traits in `traitSignal`}
 
 \item{term}{either `signal` or `mean`}
+
+\item{object}{object of class `bestcor`}
 
 \item{mincor}{minimum absolute correlation to plot}
 
