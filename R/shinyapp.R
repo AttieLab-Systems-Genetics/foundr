@@ -47,6 +47,7 @@ foundrUI <- function(title) {
 #' @param traitdata data frame with trait data
 #' @param traitstats data frame with summary data
 #' @param helpath path to markdown file (say `help.md`) for intro
+#' @param condition_name name of condition
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
@@ -71,8 +72,10 @@ foundrServer <- function(input, output, session,
                          traitdata = NULL,
                          traitstats = NULL,
                          traitsignal = NULL,
-                         helppath = "") {
+                         helppath = "",
+                         condition_name = "condition") {
 
+  conditionname <- reactive({condition_name})
   # INPUT DATA (changes at server call or upload)
   # Trait Data: <datatype>, trait, strain, sex, <condition>, value
   traitDataInput <- shiny::reactive({
@@ -523,7 +526,7 @@ foundrServer <- function(input, output, session,
     selectSignalWide(traitSignalSelectType(),
                  shiny::req(input$trait),
                  shiny::req(input$strains),
-                 response)
+                 response, conditionname())
   })
   output$datatable <- DT::renderDataTable(
     datameans(),

@@ -11,7 +11,8 @@ foundrServer(
   traitdata = NULL,
   traitstats = NULL,
   traitsignal = NULL,
-  helppath = ""
+  helppath = "",
+  condition_name = "condition"
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ foundrServer(
 \item{traitdata}{data frame with trait data}
 
 \item{traitstats}{data frame with summary data}
+
+\item{condition_name}{name of condition}
 
 \item{helpath}{path to markdown file (say `help.md`) for intro}
 }

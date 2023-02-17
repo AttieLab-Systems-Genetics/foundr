@@ -39,16 +39,23 @@ selectSignal <- function(traitSignal,
 selectSignalWide <- function(traitSignal,
                              traitnames,
                              strains = names(CCcolors),
-                             response = c("mean", "signal")) {
+                             response = c("mean", "signal"),
+                             condition_name = "condition") {
   
   out <- selectSignal(traitSignal, traitnames, strains, response)
   nout <- c(names(out), levels(out$strain))
   nout <- nout[!(nout %in% c("strain", "value"))]
-  dplyr::arrange(
+  out <- dplyr::arrange(
     dplyr::select(
       tidyr::pivot_wider(
         out,
         names_from = "strain", values_from = "value"),
       dplyr::all_of(nout)),
     trait, sex)
+  
+  m <- match("condition", names(out))
+  if(!is.na(m)) {
+    names(out)[m] <- condition_name
+  }
+  out
 }
