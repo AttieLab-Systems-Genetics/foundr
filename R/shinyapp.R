@@ -359,7 +359,11 @@ foundrServer <- function(input, output, session,
     print(corplot())
   })
   output$cortable <- DT::renderDataTable(
-    corobject(),
+    dplyr::mutate(
+      corobject(),
+      dplyr::across(
+        tidyselect::where(is.numeric),
+        function(x) signif(x, 4))),
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   
