@@ -15,6 +15,8 @@
 #' @export
 #'
 #' @examples
+#' strainplot(sampleData)
+#' 
 strainplot <- function(object,
                        facet_strain = FALSE,
                        shape_sex = FALSE,
@@ -49,8 +51,11 @@ strainplot <- function(object,
   if("condition" %in% names(object)) {
     if(all(is.na(object$condition)))
       object$condition <- NULL
-    else
+    else {
       condition <- "sex_condition"
+      if(!("sex_condition" %in% names(object)))
+        object <- tidyr::unite(object, sex_condition, sex, condition, remove = FALSE)
+    }
   }
   
   # Make sure strain is in proper order

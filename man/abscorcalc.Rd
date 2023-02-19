@@ -4,7 +4,7 @@
 \alias{abscorcalc}
 \title{Calculate Absolute Correlations}
 \usage{
-abscorcalc(object, method = "spearman", abs = TRUE)
+abscorcalc(object, method = c("spearman", "pearson"), abs = TRUE)
 }
 \arguments{
 \item{object}{data frame}
@@ -18,4 +18,7 @@ data frame with design columns, `trait` names and `value` of absolute correlatio
 }
 \description{
 Calculate Absolute Correlations
+}
+\examples{
+abscorcalc(sampleData)
 }

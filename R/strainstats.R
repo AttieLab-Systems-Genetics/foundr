@@ -19,14 +19,27 @@
 #' @importfrom rlang .data
 #' 
 #' @export
-#'
+#' @examples
+#' strainstats(sampleData)
 strainstats <- function(object,
                     trait = "trait",
                     value = "value",
-                    signal = "strain * sex * condition",
-                    ancillary = "strain * sex + sex * condition",
+                    signal = ifelse(
+                      is_condition,
+                      "strain * sex * condition",
+                      "strain * sex"),
+                    ancillary = ifelse(
+                      is_condition,
+                      "strain * sex + sex * condition",
+                      "sex"),
                     calc_sd = TRUE) {
-
+  
+  # Is condition in the object (and not all NA)?
+  is_condition <- ("condition" %in% names(object))
+  if(is_condition) {
+    is_condition <- !all(is.na(object$condition))
+  }
+  
   out <- dplyr::bind_rows(
     purrr::map(
       split(object, object[[trait]]),

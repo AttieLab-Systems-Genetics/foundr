@@ -29,3 +29,7 @@ object of class ggplot
 \description{
 GGplot by strain and condition
 }
+\examples{
+strainplot(sampleData)
+
+}

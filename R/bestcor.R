@@ -13,6 +13,10 @@
 #' @importFrom tibble as_tibble
 #'
 #' @examples
+#' sampleSignal <- partition(sampleData)
+#' out <- bestcor(sampleSignal, "A")
+#' ggplot_bestcor(out, 0)
+#' ggplot_bestcor(out, 0, abscor = FALSE)
 bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
   term <- match.arg(term)
   
@@ -127,7 +131,6 @@ bestcorStats <- function(traitStats, traitnames = "") {
 #' @importFrom ggplot2 aes autoplot element_text facet_grid geom_point ggplot theme
 #' @rdname bestcor
 #'
-#' @examples
 ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
   if(is.null(object))
     return(NULL)

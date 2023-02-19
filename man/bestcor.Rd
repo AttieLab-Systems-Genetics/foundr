@@ -33,3 +33,9 @@ sorted vector of absolute correlations with names
 \description{
 Find other traits with best correlation with selected traits.
 }
+\examples{
+sampleSignal <- partition(sampleData)
+out <- bestcor(sampleSignal, "A")
+ggplot_bestcor(out, 0)
+ggplot_bestcor(out, 0, abscor = FALSE)
+}

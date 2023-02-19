@@ -8,8 +8,8 @@ strainstats(
   object,
   trait = "trait",
   value = "value",
-  signal = "strain * sex * condition",
-  ancillary = "strain * sex + sex * condition",
+  signal = ifelse(is_condition, "strain * sex * condition", "strain * sex"),
+  ancillary = ifelse(is_condition, "strain * sex + sex * condition", "sex"),
   calc_sd = TRUE
 )
 }
@@ -31,4 +31,7 @@ data frame with summaries by trait
 }
 \description{
 Use Broom to Find Stats for Model Summaries
+}
+\examples{
+strainstats(sampleData)
 }

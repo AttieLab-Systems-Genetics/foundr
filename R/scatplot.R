@@ -16,6 +16,7 @@
 #' @export
 #'
 #' @examples
+#' scatplot(sampleData, "A", "B")
 scatplot <- function(data, x, y,
                      shape_sex = TRUE,
                      line_strain = TRUE,

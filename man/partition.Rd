@@ -33,3 +33,6 @@ concerns aspects of the experiment that are controlled. Noise is unexplained var
 The three parts will be orthogonal to each other.
 The `signal` factors, entered as terms for `formula`, are conditioned by the `ancillary` factors.
 }
+\examples{
+partition(sampleData)
+}

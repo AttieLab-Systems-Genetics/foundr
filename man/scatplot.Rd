@@ -29,3 +29,6 @@ scatplot(
 \description{
 Scatter plot by trait values
 }
+\examples{
+scatplot(sampleData, "A", "B")
+}

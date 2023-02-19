@@ -11,9 +11,12 @@
 #' @export
 #'
 #' @examples
+#' abscorcalc(sampleData)
 abscorcalc <- function(object,
-                       method = "spearman",
+                       method = c("spearman","pearson"),
                        abs = TRUE) {
+  method <- match.arg(method)
+  
   colnames <- names(object)
   colnames <- colnames[!(colnames %in% c("trait","value"))]
   

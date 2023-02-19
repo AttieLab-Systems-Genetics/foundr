@@ -21,6 +21,7 @@
 #' @export
 #'
 #' @examples
+#' partition(sampleData)
 partition <- function(object,
                     trait = "trait",
                     value = "value",
@@ -36,7 +37,7 @@ partition <- function(object,
   # Is condition in the object (and not all NA)?
   is_condition <- ("condition" %in% names(object))
   if(is_condition) {
-    !is_conditon <- all(is.na(object$condition))
+    is_condition <- !all(is.na(object$condition))
   }
   
   # Somehow this give extra entries when there are missing values.
