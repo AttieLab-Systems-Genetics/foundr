@@ -46,8 +46,14 @@ foundrUI <- function(title) {
 #' @param input,output,session shiny parameters
 #' @param traitdata data frame with trait data
 #' @param traitstats data frame with summary data
-#' @param helpath path to markdown file (say `help.md`) for intro
+#' @param customSettings list of custom settings
 #' @param condition_name name of condition
+#' 
+#' @description 
+#' The `customSettings` is a list that may include
+#'   `help` = name of help markdown file (e.g. `"help.md"`)
+#'   `condition` = names of condition (e.g. `"diet"`) 
+#'   `datatype` = names of datatypes (e.g. `uploaded = "MyUpload"`)
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
@@ -72,14 +78,30 @@ foundrServer <- function(input, output, session,
                          traitdata = NULL,
                          traitstats = NULL,
                          traitsignal = NULL,
-                         helppath = "",
+                         customSettings = NULL,
                          condition_name = "condition") {
-
+  
+  # Temporary kludge
+  if(!is.list(customSettings)) {
+    customSettings <- list(
+      help = customSettings,
+      condition = condition_name)
+  }
+  if(is.null(customSettings$condition))
+    customSettings$condition <- "condition"
+  if(is.null(customSettings$datatype$uploaded)) {
+    if(is.null(customSettings$datatype))
+      customSettings$datatype <- list()
+    customSettings$datatype$uploaded <- "Uploaded"
+  }
+  
   # INPUT DATA (changes at server call or upload)
   # Trait Data: <datatype>, trait, strain, sex, <condition>, value
   newtraitdata <- reactive({
     if(shiny::isTruthy(input$upload)) {
-      newTraitData(input$upload$datapath, condition_name, "uploaded")
+      newTraitData(input$upload$datapath,
+                   customSettings$condition,
+                   customSettings$datatype$uploaded)
     } else {
       NULL
     }
@@ -231,7 +253,7 @@ foundrServer <- function(input, output, session,
   })
   
   # Render UIs for shiny UI
-  output$intro <- foundrIntro(helppath)
+  output$intro <- foundrIntro(customSettings$help)
   output$upload <- shiny::renderUI({
     shiny::fileInput("upload", "Upload CSV, XLS, XLSX or RDS:", accept = c(".csv",".xls",".xlsx",".rds"),
                      width = "100%")
@@ -519,7 +541,7 @@ foundrServer <- function(input, output, session,
     selectSignalWide(traitSignalSelectType(),
                  shiny::req(input$trait),
                  shiny::req(input$strains),
-                 response, condition_name)
+                 response, customSettings$condition)
   })
   output$datatable <- DT::renderDataTable(
     datameans(),

@@ -1,5 +1,5 @@
-foundrIntro <- function(helppath = "") {
-  if(helppath != "" && file.exists(helppath)) {
+foundrIntro <- function(helppath = NULL) {
+  if(!is.null(helppath) && helppath != "" && file.exists(helppath)) {
     datainfo <- shiny::includeMarkdown(helppath)
   } else {
     if(exists("userDatasets") &&

@@ -11,7 +11,7 @@ foundrServer(
   traitdata = NULL,
   traitstats = NULL,
   traitsignal = NULL,
-  helppath = "",
+  customSettings = NULL,
   condition_name = "condition"
 )
 }
@@ -22,14 +22,20 @@ foundrServer(
 
 \item{traitstats}{data frame with summary data}
 
-\item{condition_name}{name of condition}
+\item{customSettings}{list of custom settings}
 
-\item{helpath}{path to markdown file (say `help.md`) for intro}
+\item{condition_name}{name of condition}
 }
 \value{
 A Server definition that can be passed to the `shinyServer` function.
 }
 \description{
+The `customSettings` is a list that may include
+  `help` = name of help markdown file (e.g. `"help.md"`)
+  `condition` = names of condition (e.g. `"diet"`) 
+  `datatype` = names of datatypes (e.g. `uploaded = "MyUpload"`)
+}
+\details{
 User needs to supply the following routines:
   userDatasets() # function returning list of text for intro
 }

@@ -1,4 +1,4 @@
-newTraitData <- function(datapath, condition_name, datatype_name = "uploaded") {
+newTraitData <- function(datapath, condition_name, datatype_name) {
   newdata <- switch(
     tools::file_ext(datapath),
     csv = read.csv(datapath),
