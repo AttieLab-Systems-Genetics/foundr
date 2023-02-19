@@ -372,11 +372,16 @@ foundrServer <- function(input, output, session,
   output$cortable <- DT::renderDataTable(
     {
       shiny::req(corobject())
-      dplyr::mutate(
-        corobject(),
-        dplyr::across(
-          tidyselect::where(is.numeric),
-          function(x) signif(x, 4)))
+      dplyr::right_join(
+        dplyr::distinct(
+          traitSignalSelectType(),
+          datatype, trait),
+        dplyr::mutate(
+          corobject(),
+          dplyr::across(
+            tidyselect::where(is.numeric),
+            function(x) signif(x, 4))),
+        by = "trait")
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
