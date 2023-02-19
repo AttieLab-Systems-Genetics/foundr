@@ -47,7 +47,6 @@ foundrUI <- function(title) {
 #' @param traitdata data frame with trait data
 #' @param traitstats data frame with summary data
 #' @param customSettings list of custom settings
-#' @param condition_name name of condition
 #' 
 #' @description 
 #' The `customSettings` is a list that may include
@@ -78,14 +77,15 @@ foundrServer <- function(input, output, session,
                          traitdata = NULL,
                          traitstats = NULL,
                          traitsignal = NULL,
-                         customSettings = NULL,
-                         condition_name = "condition") {
+                         customSettings = NULL) {
   
-  # Temporary kludge
+  # Turn customSettings into list if it is scalar.
   if(!is.list(customSettings)) {
-    customSettings <- list(
-      help = customSettings,
-      condition = condition_name)
+    if(length(customSettings) > 1) {
+      customSettings <- as.list(customSettings)
+    } else {
+      customSettings <- list(help = customSettings)
+    }
   }
   if(is.null(customSettings$condition))
     customSettings$condition <- "condition"
@@ -370,11 +370,14 @@ foundrServer <- function(input, output, session,
     print(corplot())
   })
   output$cortable <- DT::renderDataTable(
-    dplyr::mutate(
-      corobject(),
-      dplyr::across(
-        tidyselect::where(is.numeric),
-        function(x) signif(x, 4))),
+    {
+      shiny::req(corobject())
+      dplyr::mutate(
+        corobject(),
+        dplyr::across(
+          tidyselect::where(is.numeric),
+          function(x) signif(x, 4)))
+    },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   

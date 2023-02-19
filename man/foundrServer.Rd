@@ -11,8 +11,7 @@ foundrServer(
   traitdata = NULL,
   traitstats = NULL,
   traitsignal = NULL,
-  customSettings = NULL,
-  condition_name = "condition"
+  customSettings = NULL
 )
 }
 \arguments{
@@ -23,8 +22,6 @@ foundrServer(
 \item{traitstats}{data frame with summary data}
 
 \item{customSettings}{list of custom settings}
-
-\item{condition_name}{name of condition}
 }
 \value{
 A Server definition that can be passed to the `shinyServer` function.

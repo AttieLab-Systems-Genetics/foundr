@@ -101,7 +101,7 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
 }
 
 bestcorStats <- function(traitStats, traitnames = "") {
-  if(traitnames == "")
+  if(traitnames == "" | is.null(traitnames) | is.null(traitStats))
     return(traitStats)
   
   dplyr::mutate(

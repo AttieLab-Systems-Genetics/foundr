@@ -6,7 +6,7 @@
 \usage{
 cor_extreme(
   traitsum,
-  object = cor_compare(traitum, ...),
+  object = cor_compare(traitsum, ...),
   ...,
   cormin = 0.8,
   minlogp = 2

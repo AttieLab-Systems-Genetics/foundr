@@ -44,10 +44,15 @@ cor_compare <- function(traitsum, cor1, cor2, ...) {
 #'
 #' @examples
 cor_extreme <- function(traitsum,
-                        object = cor_compare(traitum, ...),
+                        object = cor_compare(traitsum, ...),
                         ...,
                         cormin = 0.8,
                         minlogp = 2) {
+  if(is.null(traitsum))
+    return(NULL)
+  if(is.null(object))
+    retrun(NULL)
+  
   traits <- as.character(traitsum$trait)
   
   object <- object %>%
@@ -111,6 +116,11 @@ ggplot_extreme <- function(object, summary_type,
                          dat_extreme = cor_extreme(...)[1,],
                          ...,
                          condition = "") {
+  if(is.null(object))
+    return(ggplot2::ggplot())
+  if(is.null(dat_extreme) || !nrow(dat_extreme))
+    return(ggplot2::ggplot())
+  
   if(nrow(dat_extreme > 1)) {
     warning("dat_extreme should have only one row")
     dat_extreme <- dat_extreme[1,]
