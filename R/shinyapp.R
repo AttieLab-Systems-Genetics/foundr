@@ -126,7 +126,7 @@ foundrServer <- function(input, output, session,
           newtraitdata()[trnames[keepcol]])
       }
     }
-    traitdata
+    rename_datatypes(traitdata, customSettings$datatype)
   })
   # Trait Stats: <datatype>, trait, term, SD, p.value
   traitStatsInput <- shiny::reactive({
@@ -145,7 +145,7 @@ foundrServer <- function(input, output, session,
       if(!"datatype" %in% names(traitstats))
         traitstats$datatype <- unique(traitDataInput()$datatype)[1]
     }
-    traitstats
+    rename_datatypes(traitstats, customSettings$datatype)
   })
   # Trait Signal: <datatype>, strain, sex, <condition>, trait, signal, mean
   traitSignalInput <- shiny::reactive({
@@ -160,7 +160,7 @@ foundrServer <- function(input, output, session,
           newtraitsignal)
       }
     }
-    traitsignal
+    rename_datatypes(traitsignal, customSettings$datatype)
   })
 
   # SELECTING SUBSETS OF INPUT DATA by datatype
