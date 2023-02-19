@@ -75,30 +75,33 @@ foundrServer <- function(input, output, session,
                          helppath = "",
                          condition_name = "condition") {
 
-  conditionname <- reactive({condition_name})
   # INPUT DATA (changes at server call or upload)
   # Trait Data: <datatype>, trait, strain, sex, <condition>, value
-  traitDataInput <- shiny::reactive({
+  newtraitdata <- reactive({
     if(shiny::isTruthy(input$upload)) {
-      file <- input$upload
-      datapath <- file$datapath
-      traitdata <- switch(
-        tools::file_ext(datapath),
-        csv = read.csv(datapath),
-        xls, xlsx = readxl::read_excel(datapath),
-        rds = readRDS(datapath))
+      newTraitData(input$upload$datapath, condition_name, "uploaded")
+    } else {
+      NULL
     }
-    if(!is.null(traitdata)) {
-      if(!"datatype" %in% names(traitdata))
-        traitdata$datatype <- "uploaded"
-      
-      if(shiny::isTruthy(input$upload)) {
-        # Normal scores with jitter for new data
-        traitdata <-
-          dplyr::ungroup(
-            dplyr::mutate(
-              dplyr::group_by(traitdata, datatype, trait),
-              value = nqrank(value, jitter = TRUE)))
+  })
+  
+  traitDataInput <- shiny::reactive({
+    newdata <- newtraitdata()
+    if(!is.null(newdata)) {
+      if(is.null(traitdata)) {
+        traitdata <- newdata
+      } else {
+        # Append new data
+        trnames <- names(traitdata)
+        newtrnames <- names(newtraitdata())
+        keepcol <- match(newtrnames, trnames, nomatch = 0)
+        if(any(keepcol == 0)) {
+          # Drop unused columns (see verifyColumns for column handling)
+          newtrnames[newtrnames[keepcol == 0]] <- NULL
+        }
+        traitdata <- dplyr::bind_rows(
+          traitdata,
+          newtraitdata()[trnames[keepcol]])
       }
     }
     traitdata
@@ -106,20 +109,15 @@ foundrServer <- function(input, output, session,
   # Trait Stats: <datatype>, trait, term, SD, p.value
   traitStatsInput <- shiny::reactive({
     shiny::req(traitDataInput(), datatypes())
-    if(shiny::isTruthy(input$upload) | is.null(traitstats)) {
-      if(!is.null(traitDataInput()))
-        shiny::withProgress(
-          message = 'Stats calculations in progress',
-          detail = 'This may take a while...',
-          value = 0.5,
-          { 
-            traitstats <- strainstats(traitDataInput())
-            shiny::setProgress(
-              message = "Done",
-              value = 1)
-          })
-      else
-        traitstats <- NULL
+    
+    # Create stats for new data
+    if(!is.null(newtraitdata())) {
+      newtraitstats <- progress(newtraitdata(), strainstats, "Stats")
+      if(!is.null(newtraitstats)) {
+        traitstats <- dplyr::bind_rows(
+          traitstats,
+          newtraitstats)
+      }
     }
     if(!is.null(traitstats)) {
       if(!"datatype" %in% names(traitstats))
@@ -130,24 +128,15 @@ foundrServer <- function(input, output, session,
   # Trait Signal: <datatype>, strain, sex, <condition>, trait, signal, mean
   traitSignalInput <- shiny::reactive({
     shiny::req(traitDataInput(), datatypes())
-    if(shiny::isTruthy(input$upload) | is.null(traitsignal)) {
-      if(!is.null(traitDataInput()))
-        shiny::withProgress(
-          message = 'Signal calculations in progress',
-          detail = 'This may take a while...',
-          value = 0.5,
-          { 
-            traitsignal <- partition(traitDataInput())
-            shiny::setProgress(
-              message = "Done",
-              value = 1)
-          })
-      else
-        traitsignal <- NULL
-    }
-    if(!is.null(traitsignal)) {
-      if(!"datatype" %in% names(traitsignal))
-        traitsignal$datatype <- unique(traitDataInput()$datatype)[1]
+    
+    # Create signal for new data
+    if(!is.null(newtraitdata())) {
+      newtraitsignal <- progress(newtraitdata(), partition, "Signal")
+      if(!is.null(newtraitsignal)) {
+        traitsignal <- dplyr::bind_rows(
+          traitsignal,
+          newtraitsignal)
+      }
     }
     traitsignal
   })
@@ -530,7 +519,7 @@ foundrServer <- function(input, output, session,
     selectSignalWide(traitSignalSelectType(),
                  shiny::req(input$trait),
                  shiny::req(input$strains),
-                 response, conditionname())
+                 response, condition_name)
   })
   output$datatable <- DT::renderDataTable(
     datameans(),

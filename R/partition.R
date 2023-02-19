@@ -24,8 +24,20 @@
 partition <- function(object,
                     trait = "trait",
                     value = "value",
-                    signal = "strain * sex * condition",
-                    ancillary = "strain * sex + sex * condition") {
+                    signal = ifelse(
+                      is_condition,
+                      "strain * sex * condition",
+                      "strain * sex"),
+                    ancillary = ifelse(
+                      is_condition,
+                      "strain * sex + sex * condition",
+                      "sex")) {
+  
+  # Is condition in the object (and not all NA)?
+  is_condition <- ("condition" %in% names(object))
+  if(is_condition) {
+    !is_conditon <- all(is.na(object$condition))
+  }
   
   # Somehow this give extra entries when there are missing values.
   
@@ -60,18 +72,24 @@ partition <- function(object,
 
   traits <- unique(object$trait)
   
+  out <- dplyr::bind_rows(
+    purrr::map(
+      split(object, object[[trait]]),
+      function(object) {
+        # Use NULL if not enough data to fit.
+        tryCatch(redfit(object), error = function(e) NULL)
+      }),
+    .id = trait)
+  
+  # All fits fail.
+  if(!nrow(out)) 
+    return(NULL)
+  
   out <- dplyr::select(
     dplyr::mutate(
       dplyr::distinct(
         dplyr::filter(
-          dplyr::bind_rows(
-            purrr::map(
-              split(object, object[[trait]]),
-                function(object) {
-                  # Use NULL if not enough data to fit.
-                  tryCatch(redfit(object), error = function(e) NULL)
-                }),
-            .id = trait),
+          out,
           !is.na(.data[[value]])),
         dplyr::across(c(signal_terms, "trait", "signal", "ancillary"))),
       mean = signal + ancillary),
