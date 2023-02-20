@@ -116,10 +116,8 @@ ggplot_extreme <- function(object, summary_type,
                          dat_extreme = cor_extreme(...)[1,],
                          ...,
                          condition = "") {
-  if(is.null(object))
-    return(ggplot2::ggplot())
-  if(is.null(dat_extreme) || !nrow(dat_extreme))
-    return(ggplot2::ggplot())
+  if(is.null(object) || is.null(dat_extreme) || !nrow(dat_extreme))
+    return(plot_null("No data or extremes."))
   
   if(nrow(dat_extreme > 1)) {
     warning("dat_extreme should have only one row")

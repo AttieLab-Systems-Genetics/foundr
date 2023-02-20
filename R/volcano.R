@@ -1,6 +1,6 @@
 #' One-sided Volcano Plot
 #'
-#' @param object data frame with `trait` names, `term` names, `SD` and `p.value`
+#' @param object data frame 
 #' @param termname name of `term` to show
 #' @param threshold named vector for `SD` and `p.value`
 #' @param interact prepare for interactive if `TRUE`
@@ -14,11 +14,17 @@
 #' @importFrom rlang .data
 #'
 #' @examples
-volcano <- function(object, termname = terms[1],
+#' sampleStats <- strainstats(sampleData)
+#' volcano(sampleStats)
+volcano <- function(object,
+                    termname = terms[1],
                     threshold = c(SD = 1, p = 0.01),
                     interact = FALSE) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
+  if(!("term" %in% names(object))) {
+    object <- strainstats(object)
+  }
   # Prefer one of terms, but could be any p-value term
   terms <- termStats(object)
   uterm <- unique(object$term)

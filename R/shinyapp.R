@@ -365,7 +365,7 @@ foundrServer <- function(input, output, session,
   output$corplot <- shiny::renderPlot({
     shiny::req(input$mincor, corobject())
     if(is.null(corobject()) || !nrow(corobject()))
-      return(print(ggplot2::ggplot()))
+      return(print(plot_null("Need to specify at least one trait.")))
     
     print(corplot())
   })
@@ -409,10 +409,10 @@ foundrServer <- function(input, output, session,
   # Plots
   distplot <- shiny::reactive({
     if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(input$trait)) {
-      return(ggplot2::ggplot())
+      return(plot_null("Need to specify at least one trait."))
     }
     if(!all(input$trait %in% traitDataSelectType()$trait)) {
-      return(ggplot2::ggplot())
+      return(plot_null("Traits not in datasets (should not happen)."))
     }
     
     strainplot(
@@ -435,10 +435,14 @@ foundrServer <- function(input, output, session,
   volcanoplot <- reactive({
     shiny::req(traitStatsSelectType(), input$interact, input$term)
     volcano(traitStatsSelectType(), input$term,
+            threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
             interact = (input$interact == "yes"))
   })
   output$volcanoly <- plotly::renderPlotly(
-    plotly::ggplotly(volcanoplot())
+    plotly::ggplotly(
+      volcanoplot() +
+        ggplot2::xlim(shiny::req(input$volsd), NA) +
+        ggplot2::ylim(shiny::req(input$volpval), NA))
   )
   output$volcanopr <- shiny::renderPlot(
     print(volcanoplot())
@@ -453,6 +457,20 @@ foundrServer <- function(input, output, session,
         shiny::column(
           6,
           shiny::selectInput("interact", "Interactive?", c("no","yes"), "no"))),
+      shiny::conditionalPanel(
+        condition = "input.butvol == 'Volcano'",
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::sliderInput("volsd", "SD line:",
+                               0, signif(max(traitStatsSelectType()$SD), 2),
+                               1, step = 0.1)),
+          shiny::column(
+            6,
+            shiny::sliderInput("volpval", "-log10(p.value) line:",
+                               0, min(10,round(-log10(min(traitStatsSelectType()$p.value)), 1)),
+                               2, step = 0.5)))
+      ),
       shiny::conditionalPanel(
         condition = "input.interact == 'yes'",
         plotly::plotlyOutput("volcanoly")),
@@ -535,7 +553,7 @@ foundrServer <- function(input, output, session,
                  Volcano = print(volcanoplot()),
                  Effects = print(effectsplot()))
         },
-        ggplot2::ggplot())
+        plot_null("Tab panel with no output."))
       grDevices::dev.off()
     })
   
@@ -617,7 +635,7 @@ foundrServer <- function(input, output, session,
   })
   output$scatplot <- shiny::renderPlot({
     if(!shiny::isTruthy(input$pair)) {
-      return(print(ggplot2::ggplot()))
+      return(print(plot_null("Need to specify at least two traits.")))
     }
     
     print(scatsplot())

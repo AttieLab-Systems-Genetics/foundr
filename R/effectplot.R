@@ -13,7 +13,7 @@
 effectplot <- function(object, traits = unique(object$trait)[1:5]) {
   
   if(is.null(object) | is.null(traits))
-    return(ggplot2::ggplot())
+    return(plot_null("Need to specify at least one trait."))
   
   object <- tidyr::pivot_longer(
     dplyr::mutate(

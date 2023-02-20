@@ -12,7 +12,7 @@ volcano(
 )
 }
 \arguments{
-\item{object}{data frame with `trait` names, `term` names, `SD` and `p.value`}
+\item{object}{data frame}
 
 \item{termname}{name of `term` to show}
 
@@ -22,4 +22,8 @@ volcano(
 }
 \description{
 One-sided Volcano Plot
+}
+\examples{
+sampleStats <- strainstats(sampleData)
+volcano(sampleStats)
 }
