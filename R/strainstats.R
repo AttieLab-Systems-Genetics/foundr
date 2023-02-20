@@ -105,14 +105,17 @@ traitOrderStats <- function(object, termname) {
 #' @importFrom stringr str_remove
 #'
 #' @examples
-termStats <- function(object) {
+termStats <- function(object, signal = TRUE) {
   terms <- unique(object$term)
 
-  # Return the strain terms with condition if present
-  if(any(grepl("condition", terms)))
-    c("signal", terms[grepl(".*strain.*condition", terms)])
-  else
-    c("signal", terms[grepl(".*strain", terms)])
+  if(signal) {
+    # Return the strain terms with condition if present
+    if(any(grepl("condition", terms)))
+      terms <- c("signal", terms[grepl(".*strain.*condition", terms)])
+    else
+      terms <- c("signal", terms[grepl(".*strain", terms)])
+  }
+  terms
 }
 
 signalfit <- function(traitdata, value, signal, ancillary) {

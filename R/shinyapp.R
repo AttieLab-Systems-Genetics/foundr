@@ -430,7 +430,7 @@ foundrServer <- function(input, output, session,
   
   termstats <- reactive({
     shiny::req(traitStatsSelectType())
-    termStats(traitStatsSelectType())
+    termStats(traitStatsSelectType(), FALSE)
   }) 
   volcanoplot <- reactive({
     shiny::req(traitStatsSelectType(), input$interact, input$term)

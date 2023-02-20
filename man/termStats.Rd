@@ -4,7 +4,7 @@
 \alias{termStats}
 \title{Terms in Stats Object}
 \usage{
-termStats(object)
+termStats(object, signal = TRUE)
 }
 \arguments{
 \item{object}{object from `strainstats`}
