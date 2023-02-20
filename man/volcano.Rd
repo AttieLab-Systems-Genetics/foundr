@@ -8,7 +8,8 @@ volcano(
   object,
   termname = terms[1],
   threshold = c(SD = 1, p = 0.01),
-  interact = FALSE
+  interact = FALSE,
+  traitnames = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ volcano(
 \item{threshold}{named vector for `SD` and `p.value`}
 
 \item{interact}{prepare for interactive if `TRUE`}
+
+\item{traitnames}{include trait names if `TRUE`}
 }
 \description{
 One-sided Volcano Plot

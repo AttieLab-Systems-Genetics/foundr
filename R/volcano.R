@@ -4,6 +4,7 @@
 #' @param termname name of `term` to show
 #' @param threshold named vector for `SD` and `p.value`
 #' @param interact prepare for interactive if `TRUE`
+#' @param traitnames include trait names if `TRUE`
 #'
 #' @return
 #' @export
@@ -19,7 +20,8 @@
 volcano <- function(object,
                     termname = terms[1],
                     threshold = c(SD = 1, p = 0.01),
-                    interact = FALSE) {
+                    interact = FALSE,
+                    traitnames = TRUE) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
   if(!("term" %in% names(object))) {
@@ -58,9 +60,13 @@ volcano <- function(object,
     # The significantly differentially expressed traits are in the upper quadrats.
     ggplot2::scale_color_manual(values=c(DOWN = "blue", NO = "black", UP = "red"))
   
-  if(interact) {
-    p + ggplot2::geom_text()
+  if(traitnames) {
+    if(interact) {
+      p + ggplot2::geom_text()
+    } else {
+      p + ggrepel::geom_text_repel(max.overlaps = 20)
+    }
   } else {
-    p + ggrepel::geom_text_repel(max.overlaps = 20)
+    p
   }
 }

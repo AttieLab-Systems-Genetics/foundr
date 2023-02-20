@@ -433,10 +433,11 @@ foundrServer <- function(input, output, session,
     termStats(traitStatsSelectType(), FALSE)
   }) 
   volcanoplot <- reactive({
-    shiny::req(traitStatsSelectType(), input$interact, input$term)
+    shiny::req(traitStatsSelectType(), input$interact, input$term, input$volsd, input$volpval)
     volcano(traitStatsSelectType(), input$term,
             threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
-            interact = (input$interact == "yes"))
+            interact = (input$interact == "yes"),
+            traitnames = (input$traitnames == "yes"))
   })
   output$volcanoly <- plotly::renderPlotly(
     plotly::ggplotly(
@@ -448,14 +449,17 @@ foundrServer <- function(input, output, session,
     print(volcanoplot())
   )
   output$volcano <- shiny::renderUI({
-    shiny::req(traitDataSelectType())
+    trstats <- traitStatsSelectType()
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
-          6,
-          shiny::selectInput("term", "Volcano term:", termstats(), termstats()[1])),
+          4,
+          shiny::selectInput("term", "Volcano term:", termstats())),
         shiny::column(
-          6,
+          4,
+          shiny::selectInput("traitnames", "Trait names:", c("no","yes"), "yes")),
+        shiny::column(
+          4,
           shiny::selectInput("interact", "Interactive?", c("no","yes"), "no"))),
       shiny::conditionalPanel(
         condition = "input.interact == 'yes'",
@@ -469,12 +473,12 @@ foundrServer <- function(input, output, session,
           shiny::column(
             6,
             shiny::sliderInput("volsd", "SD line:",
-                               0, signif(max(traitStatsSelectType()$SD), 2),
+                               0, signif(max(trstats$SD), 2),
                                1, step = 0.1)),
           shiny::column(
             6,
             shiny::sliderInput("volpval", "-log10(p.value) line:",
-                               0, min(10,round(-log10(min(traitStatsSelectType()$p.value)), 1)),
+                               0, min(10,round(-log10(min(trstats$p.value)), 1)),
                                2, step = 0.5)))))
   })
   
