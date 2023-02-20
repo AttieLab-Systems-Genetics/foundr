@@ -69,8 +69,14 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
       traitSignal$signal <- NULL
     else
       traitSignal$mean <- NULL
-    if("datatype" %in% names(traitSignal))
-      traitSignal$datatype <- NULL
+    
+    if(!("datatype" %in% names(traitSignal)))
+      traitSignal$datatype <- "unknown"
+    traitSignal <- tidyr::unite(
+      traitSignal,
+      datatype_trait,
+      datatype, trait,
+      sep = ";")
 
     if(groupsex == "sex")
       conds <- c("strain", "sex")
@@ -81,8 +87,8 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
       tidyr::pivot_wider(
         dplyr::arrange(
           traitSignal,
-          trait, dplyr::across(conds)),
-        names_from = "trait", values_from = term),
+          datatype_trait, dplyr::across(conds)),
+        names_from = "datatype_trait", values_from = term),
       -tidyr::matches(conds))
   }
 
@@ -100,6 +106,17 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
       tibble::as_tibble(out),
       trait, absmax, dplyr::everything()),
     dplyr::desc(absmax))
+  
+  # Rearrange as dataframe with datatype, trait, absmax, probandtype, proband, cors
+  out <- 
+    tidyr::separate(
+      tidyr::separate(
+        tidyr::pivot_longer(
+          out,
+          tidyr::all_of(names(proband)),
+          names_to = "proband", values_to = "cors"),
+        trait, c("datatype", "trait"), sep = ";"),
+      proband, c("probandtype", "proband"), sep = ";")
   class(out) <- c("bestcor", class(out))
   out
 }
@@ -135,6 +152,33 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
   if(is.null(object))
     return(NULL)
   
+  if(!nrow(object))
+    return(NULL)
+  
+  if(abscor) {
+    object <- dplyr::mutate(object, cors = abs(cors))
+  }
+  
+  object <- tidyr::unite(object, trait, datatype, trait)
+
+  p <- ggplot2::ggplot(object) +
+    ggplot2::aes(trait, cors, col = proband) +
+    ggplot2::geom_point(size = 2) + 
+    ggplot2::facet_grid(probandtype + proband ~ .) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+  if(!abscor) {
+    p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")
+  }
+  p
+}
+#' @rdname bestcor
+#' @method autoplot bestcor
+#'
+autoplot.bestcor <- function(object, ...) {
+  ggplot_bestcor(object, ...)
+}
+
+garbage_code <- function() {
   object <- tidyr::pivot_longer(
     dplyr::select(
       dplyr::filter(
@@ -147,26 +191,4 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     names_to = "proband",
     values_to = "cors")
   
-  if(!nrow(object))
-    return(NULL)
-  
-  if(abscor) {
-    object <- dplyr::mutate(object, cors = abs(cors))
-  }
-
-  p <- ggplot2::ggplot(object) +
-    ggplot2::aes(trait, cors, col = proband) +
-    ggplot2::geom_point(size = 2) + 
-    ggplot2::facet_grid(proband ~ .) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
-  if(!abscor) {
-    p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")
-  }
-  p
-}
-#' @rdname bestcor
-#' @method autoplot bestcor
-#'
-autoplot.bestcor <- function(object, ...) {
-  ggplot_bestcor(object, ...)
 }

@@ -19,7 +19,6 @@ foundrUI <- function(title) {
       shiny::sidebarPanel(
         shiny::uiOutput("upload"),
         shiny::uiOutput("settings"),
-        shiny::uiOutput("strains"),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
         shiny::uiOutput("downloads"),
         shiny::uiOutput("trait")),
@@ -274,17 +273,22 @@ foundrServer <- function(input, output, session,
   })
 
   output$settings <- shiny::renderUI({
-    shiny::fluidRow(
-      shiny::column(
-        4,
-        shiny::uiOutput("datatype")),
-      shiny::column(
-        4,
-        shiny::uiOutput("order")),
-      shiny::column(
-        4,
-        shiny::checkboxInput(
-          "facet", "Facet by strain?", FALSE)))
+    shiny::tagList(
+      shiny::fluidRow(
+        shiny::column(
+          8,
+          shiny::uiOutput("datatype")),
+        shiny::column(
+          4,
+          shiny::uiOutput("order"))),
+      shiny::fluidRow(
+        shiny::column(
+          8,
+          shiny::uiOutput("strains")),
+        shiny::column(
+          4,
+          shiny::checkboxInput(
+            "facet", "Facet by strain?", FALSE))))
   })
   
   output$strains <- shiny::renderUI({

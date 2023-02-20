@@ -73,6 +73,10 @@ partition <- function(object,
 
   traits <- unique(object$trait)
   
+  if(is_datatype <- ("datatype" %in% names(object))) {
+    object <- tidyr::unite(object, trait, datatype, trait, sep = ";")
+  }
+  
   out <- dplyr::bind_rows(
     purrr::map(
       split(object, object[[trait]]),
@@ -95,6 +99,15 @@ partition <- function(object,
         dplyr::across(c(signal_terms, "trait", "signal", "ancillary"))),
       mean = signal + ancillary),
     -ancillary)
+  
+  if(is_datatype) {
+    out <- 
+      dplyr::select(
+        tidyr::separate(
+          out,
+          trait, c("datatype", "trait"), sep = ";"),
+        datatype, dplyr::everything())
+  }
   
   dplyr::arrange(
     dplyr::mutate(
