@@ -458,6 +458,12 @@ foundrServer <- function(input, output, session,
           6,
           shiny::selectInput("interact", "Interactive?", c("no","yes"), "no"))),
       shiny::conditionalPanel(
+        condition = "input.interact == 'yes'",
+        plotly::plotlyOutput("volcanoly")),
+      shiny::conditionalPanel(
+        condition = "input.interact == 'no'",
+        shiny::plotOutput("volcanopr")),
+      shiny::conditionalPanel(
         condition = "input.butvol == 'Volcano'",
         shiny::fluidRow(
           shiny::column(
@@ -469,14 +475,7 @@ foundrServer <- function(input, output, session,
             6,
             shiny::sliderInput("volpval", "-log10(p.value) line:",
                                0, min(10,round(-log10(min(traitStatsSelectType()$p.value)), 1)),
-                               2, step = 0.5)))
-      ),
-      shiny::conditionalPanel(
-        condition = "input.interact == 'yes'",
-        plotly::plotlyOutput("volcanoly")),
-      shiny::conditionalPanel(
-        condition = "input.interact == 'no'",
-        shiny::plotOutput("volcanopr")))
+                               2, step = 0.5)))))
   })
   
   output$filename <- renderUI({
