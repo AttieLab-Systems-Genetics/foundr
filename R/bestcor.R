@@ -122,14 +122,14 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
 }
 
 bestcorStats <- function(traitStats, traitnames = "") {
-  if(traitnames == "" | is.null(traitnames) | is.null(traitStats))
+  if(any(traitnames == "") | is.null(traitnames) | is.null(traitStats))
     return(traitStats)
   
   dplyr::mutate(
     dplyr::arrange(
       dplyr::mutate(
         traitStats,
-        trait = factor(trait, traitnames)),
+        trait = factor(trait, unique(traitnames))),
       trait),
     trait = as.character(trait))
 }
@@ -143,7 +143,7 @@ bestcorStats <- function(traitStats, traitnames = "") {
 #'
 #' @return
 #' @export
-#' @importFrom tidyr pivot_longer
+#' @importFrom tidyr pivot_longer unite
 #' @importFrom dplyr mutate select
 #' @importFrom ggplot2 aes autoplot element_text facet_grid geom_point ggplot theme
 #' @rdname bestcor
@@ -159,7 +159,16 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     object <- dplyr::mutate(object, cors = abs(cors))
   }
   
-  object <- tidyr::unite(object, trait, datatype, trait)
+  object <- 
+    dplyr::select(
+      dplyr::filter(
+        dplyr::mutate(
+          tidyr::unite(
+            object,
+            trait, datatype, trait, sep = ": "),
+          trait = stats::reorder(trait, dplyr::desc(absmax))),
+        absmax >= mincor),
+    -absmax)
 
   p <- ggplot2::ggplot(object) +
     ggplot2::aes(trait, cors, col = proband) +
@@ -176,19 +185,4 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
 #'
 autoplot.bestcor <- function(object, ...) {
   ggplot_bestcor(object, ...)
-}
-
-garbage_code <- function() {
-  object <- tidyr::pivot_longer(
-    dplyr::select(
-      dplyr::filter(
-        dplyr::mutate(
-          object,
-          trait = stats::reorder(trait, dplyr::desc(absmax))),
-        absmax >= mincor),
-      -absmax),
-    -trait,
-    names_to = "proband",
-    values_to = "cors")
-  
 }

@@ -235,6 +235,7 @@ foundrServer <- function(input, output, session,
             shiny::req(input$corterm))
   })
   traitSignalBestCor <- shiny::reactive({
+    # Need to change this to include datatype.
     bestcorStats(traitStatsSelectType(),
                  c(trait_selection(), corobject()$trait))
   })
@@ -374,19 +375,11 @@ foundrServer <- function(input, output, session,
     print(corplot())
   })
   output$cortable <- DT::renderDataTable(
-    {
-      shiny::req(corobject())
-      dplyr::right_join(
-        dplyr::distinct(
-          traitSignalSelectType(),
-          datatype, trait),
-        dplyr::mutate(
-          corobject(),
-          dplyr::across(
-            tidyselect::where(is.numeric),
-            function(x) signif(x, 4))),
-        by = "trait")
-    },
+    dplyr::mutate(
+      dplyr::select(
+        corobject(),
+        -absmax),
+      cors = signif(cors, 4)),
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   

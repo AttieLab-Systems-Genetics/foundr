@@ -16,6 +16,9 @@ selectSignal <- function(traitSignal,
                          traitnames,
                          strains = names(CCcolors),
                          response = c("mean", "signal")) {
+  if(is.null(traitSignal))
+    return(NULL)
+  
   response <- match.arg(response)
   
   if("condition" %in% names(traitSignal)) {
