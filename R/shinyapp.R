@@ -243,6 +243,11 @@ foundrServer <- function(input, output, session,
     }
     out
   })
+  traits_selected <- shiny::reactive({
+    shiny::req(input$trait)
+  })
+  
+  
   corobject <- reactive({
     bestcor(traitSignalSelectType(),
             trait_selection(),
@@ -261,7 +266,7 @@ foundrServer <- function(input, output, session,
   traitDataSelectTrait <- shiny::reactive({
     selectTrait(shiny::req(traitDataSelectType()),
                 shiny::req(traitSignalSelectType()),
-                shiny::req(input$trait),
+                shiny::req(traits_selected()),
                 shiny::req(input$strains),
                 shiny::req(input$butresp))
   })
@@ -282,7 +287,7 @@ foundrServer <- function(input, output, session,
   output$order <- shiny::renderUI({
     p_types <- paste0("p_", unique(traitStatsSelectType()$term))
     choices <- c(p_types, "alphabetical", "original")
-#    if(shiny::isTruthy(input$trait)) # This causes reset.
+#    if(shiny::isTruthy(traits_selected())) # This causes reset.
     choices <- c("correlation", choices)
     shiny::selectInput("order", "Order traits by", choices, p_types[1])
   })
@@ -321,7 +326,7 @@ foundrServer <- function(input, output, session,
   shiny::observeEvent(
     shiny::req(traitDataSelectType(), traitDataInput(), traitNamesArranged()),
     {
-      # Use current selection of input$trait.
+      # Use current selection of traits_selected().
       # But make sure they are still in the traitNamesArranged().
       selected <- trait_selection()
       choices <- traitNamesArranged()
@@ -423,10 +428,10 @@ foundrServer <- function(input, output, session,
 
   # Plots
   distplot <- shiny::reactive({
-    if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(input$trait)) {
+    if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(traits_selected())) {
       return(plot_null("Need to specify at least one trait."))
     }
-    if(!all(input$trait %in% traitDataSelectType()$trait)) {
+    if(!all(traits_selected() %in% traitDataSelectType()$trait)) {
       return(plot_null("Traits not in datasets (should not happen)."))
     }
     
@@ -499,19 +504,19 @@ foundrServer <- function(input, output, session,
   
   output$filename <- renderUI({
     filename <- paste(shiny::req(datatypes_selected()), collapse = ".")
-    if(shiny::isTruthy(input$trait)) {
-      ltrait <- length(input$trait)
+    if(shiny::isTruthy(traits_selected())) {
+      ltrait <- length(traits_selected())
       if(shiny::req(input$tabpanel) != "Volcano") {
         filename <- paste0(filename,
                            "_",
-                           paste(abbreviate(input$trait, ceiling(60 / ltrait)),
+                           paste(abbreviate(traits_selected(), ceiling(60 / ltrait)),
                                  collapse = "."))
       }
     }
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
   output$downloads <- renderUI({
-    shiny::req(input$trait)
+    shiny::req(traits_selected())
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
@@ -583,7 +588,7 @@ foundrServer <- function(input, output, session,
     if(response == "ind_signal")
       response <- "signal"
     selectSignalWide(traitSignalSelectType(),
-                 shiny::req(input$trait),
+                 shiny::req(traits_selected()),
                  shiny::req(input$strains),
                  response, customSettings$condition)
   })
@@ -633,10 +638,10 @@ foundrServer <- function(input, output, session,
   
   output$pair <- shiny::renderUI({
     # Somehow when input$height is changed this is reset.
-    shiny::req(input$trait)
-    if(length(input$trait) < 2)
+    shiny::req(traits_selected())
+    if(length(traits_selected()) < 2)
       return(NULL)
-    choices <- traitpairs(input$trait)
+    choices <- traitpairs(traits_selected())
     
     shiny::selectInput(
       "pair", "Select pairs for scatterplots",
@@ -644,16 +649,16 @@ foundrServer <- function(input, output, session,
       multiple = TRUE, width = '100%')
   })
   output$scatPlot <- shiny::renderUI({
-    shiny::req(input$trait, datatypes_selected(), input$order)
+    shiny::req(traits_selected(), datatypes_selected(), input$order)
     shiny::tagList(
       shiny::uiOutput("pair"),
       shiny::plotOutput("scatplot", height = paste0(input$height, "in"))
     )
   })
   scatsplot <- reactive({
-    foundrScatplot(req(input$trait),
-                   traitDataSelectTrait(),
-                   req(input$pair))
+    ggplot_scatplot(traitDataSelectTrait(),
+                    req(traits_selected()),
+                    req(input$pair))
   })
   output$scatplot <- shiny::renderPlot({
     if(!shiny::isTruthy(input$pair)) {
@@ -663,3 +668,44 @@ foundrServer <- function(input, output, session,
     print(scatsplot())
   })
 }
+
+foundrIntro <- function(helppath = NULL) {
+  if(!is.null(helppath) && helppath != "" && file.exists(helppath)) {
+    datainfo <- shiny::includeMarkdown(helppath)
+  } else {
+    if(exists("userDatasets") &&
+       is.function(userDatasets) &&
+       all(is.list(userDatasets()))) {
+      datainfo <- userDatasets()
+    } else {
+      datainfo <- shiny::includeMarkdown(
+        system.file(file.path("shinyApp", "help.md"), package='foundr'))
+    } 
+  }
+  
+  renderUI({
+    tagList(
+      "Founder dataset consists of",
+      shiny::a("8 CC mice strains,",
+               href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
+      "and both sexes, possibly crossed with experimental conditions.",
+      datainfo,
+      shiny::br(),
+      "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
+      "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
+      "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
+      "See",
+      "GitHub:", shiny::a(paste("byandell/foundr",
+                                paste0("(version ", utils::packageVersion("foundr"), ")")),
+                          href = "https://github.com/byandell/foundr"))
+    
+    # Maybe eventually add this, but too confusing for now.
+    #   shiny::tags$div(
+    #        id = "popup",
+    #        helpPopup(
+    #          "Foundr Help",
+    #          shiny::includeMarkdown(system.file(file.path("shinyApp", "morehelp.md"), package='foundr')),
+    #          placement = "right", trigger = "click")))
+  })
+}
+

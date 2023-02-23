@@ -30,11 +30,45 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
   
   proband <- dplyr::filter(traitSignal, trait %in% traits)
   
+  # Figure out better way to do correlation by cond:trait if appropriate
+  # Think calcium8G
+  # Following seems to work if proband has all condition = NA, but not for mix.
+  # But maybe computations are wrong?
+  
   if("condition" %in% names(traitSignal)) {
     if(all(is.na(proband$condition))) {
-      # proband does not use condition, so subset to traits that agree
+      # proband does not use condition, so drop condition column
       proband$condition <- NULL
-      traitSignal <- dplyr::filter(traitSignal, is.na(condition))
+      
+      # Adjust traitSignal
+      is_condition <- !is.na(traitSignal$condition)
+      if(any(is_condition)) {
+        tmp1 <- tidyr::unite(
+          dplyr::filter(
+            traitSignal,
+            is_condition),
+          trait, condition, trait,
+          sep = ":")
+        tmp2 <- dplyr::select(
+          dplyr::filter(
+            traitSignal,
+            !is_condition),
+          -condition)
+        
+        # Drop any condition:trait entries in tmp2 already in tmp1
+        is_dup <- (tmp2$trait %in% tmp1$trait)
+        if(any(is_dup)) {
+          tmp2 <- tmp2[!is_dup,]
+        }
+        traitSignal <- dplyr::bind_rows(tmp1, tmp2)
+      } else {
+        # subset traitSignal to traits that agree and drop condition
+        traitSignal <- dplyr::filter(traitSignal, is.na(condition))
+        traitSignal$condition <- NULL
+      }
+      if(!nrow(traitSignal))
+        return(NULL)
+
       groupsex <- "sex"
     } else {
       groupsex <- "sex_condition"
@@ -49,6 +83,7 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
   else
     conds <- c("strain", "sex", "condition")
   
+  # 
   factors <- unique(
     tidyr::unite(
       dplyr::distinct(

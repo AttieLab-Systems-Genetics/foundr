@@ -1,47 +1,19 @@
-foundrIntro <- function(helppath = NULL) {
-  if(!is.null(helppath) && helppath != "" && file.exists(helppath)) {
-    datainfo <- shiny::includeMarkdown(helppath)
-  } else {
-    if(exists("userDatasets") &&
-       is.function(userDatasets) &&
-       all(is.list(userDatasets()))) {
-      datainfo <- userDatasets()
-    } else {
-      datainfo <- shiny::includeMarkdown(
-        system.file(file.path("shinyApp", "help.md"), package='foundr'))
-    } 
-  }
-
-  renderUI({
-    tagList(
-      "Founder dataset consists of",
-      shiny::a("8 CC mice strains,",
-               href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
-      "and both sexes, possibly crossed with experimental conditions.",
-      datainfo,
-      shiny::br(),
-      "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
-      "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
-      "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
-      "See",
-      "GitHub:", shiny::a(paste("byandell/foundr",
-                                paste0("(version ", utils::packageVersion("foundr"), ")")),
-                          href = "https://github.com/byandell/foundr"))
-
-# Maybe eventually add this, but too confusing for now.
-#   shiny::tags$div(
-#        id = "popup",
-#        helpPopup(
-#          "Foundr Help",
-#          shiny::includeMarkdown(system.file(file.path("shinyApp", "morehelp.md"), package='foundr')),
-#          placement = "right", trigger = "click")))
-  })
-}
-
-foundrScatplot <- function(traitnames,
-                           traitData,
-                           pair = traitpairs(traitnames, sep),
-                           sep = " ON ", ...) {
+#' GGplot of pairs of traits
+#'
+#' @param traitData 
+#' @param traitnames 
+#' @param pair 
+#' @param sep 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+ggplot_scatplot <- function(traitData,
+                            traitnames,
+                            pair = traitpairs(traitnames, sep),
+                            sep = " ON ", ...) {
   
   traits <- unique(unlist(stringr::str_split(pair, sep)))
   if(!all(traits %in% traitData$trait)) {
