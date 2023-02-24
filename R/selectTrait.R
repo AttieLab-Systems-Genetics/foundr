@@ -70,5 +70,7 @@ selectTrait <- function(traitData, traitSignal,
       remove = FALSE,
       na.rm = TRUE)
   }
+  
+  class(traitData) <- c("traitData", class(traitData))
   traitData
 }

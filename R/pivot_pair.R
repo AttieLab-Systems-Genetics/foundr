@@ -16,6 +16,7 @@ pivot_pair <- function(object, pair) {
   
   # Reduce to pair of traits.
   object <- dplyr::filter(object, trait %in% pair)
+  nocond <- !("condition" %in% names(object))
   
   # Columns sex and condition present. Need to carefully address differences in condition.
   
@@ -26,7 +27,7 @@ pivot_pair <- function(object, pair) {
   ntraits <- names(object)
   
   # Take care of special case of condition column with some or all NAs
-  if("condition" %in% names(object)) {
+  if(!nocond) {
     nocond <- sapply(object, function(x) all(is.na(x$condition)))
     if(any(nocond)) {
       byvars <- byvars[byvars != "condition"]

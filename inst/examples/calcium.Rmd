@@ -163,6 +163,36 @@ ggplot(tsi8ds) +
 
 # Pairs
 
+Want traitPairs etc. to have features of selectTrait. It does not appear to be working well when conditions don't align.
+
+- add line for mean and signal approaches
+- traitPairs computes mean right now--want to use selectTrait
+
+```{r}
+tds <- selectTrait(td, tsi, traitnames[c(1,4)], response = "mean")
+```
+
+
+```{r}
+out <- traitPairs(tds, traitnames[c(1,4)], response = "mean")
+```
+
+```{r}
+ggplot_traitPairs(out)
+```
+
+```{r}
+tds <- selectTrait(td, tsi, traitnames[c(4,5)], response = "mean")
+```
+
+
+```{r}
+out <- traitPairs(tds, traitnames[c(4,5)], response = "mean")
+```
+
+```{r}
+ggplot_traitPairs(out)
+```
 
 ```{r}
 out <- traitPairs(td, traitnames[c(1,5)], response = "mean")
