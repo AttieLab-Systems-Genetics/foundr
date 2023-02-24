@@ -637,7 +637,7 @@ foundrServer <- function(input, output, session,
     shiny::req(trait_selection())
     if(length(trait_selection()) < 2)
       return(NULL)
-    choices <- traitpairs(trait_selection())
+    choices <- trait_pairs(trait_selection())
     
     shiny::selectInput(
       "pair", "Select pairs for scatterplots",
