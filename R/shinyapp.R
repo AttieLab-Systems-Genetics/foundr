@@ -435,7 +435,7 @@ foundrServer <- function(input, output, session,
       return(plot_null("Traits not in datasets (should not happen)."))
     }
     
-    strainplot(
+    ggplot_traitData(
       traitDataSelectTrait(),
       facet_strain = input$facet,
       boxplot = TRUE)
@@ -656,9 +656,10 @@ foundrServer <- function(input, output, session,
     )
   })
   scatsplot <- reactive({
-    ggplot_scatplot(traitDataSelectTrait(),
-                    req(traits_selected()),
-                    req(input$pair))
+    ggplot_traitPairs(traitPairs(traitDataSelectTrait(),
+                      req(traits_selected()),
+                      req(input$pair)))
+    
   })
   output$scatplot <- shiny::renderPlot({
     if(!shiny::isTruthy(input$pair)) {

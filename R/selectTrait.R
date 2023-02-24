@@ -14,12 +14,18 @@
 #' @importFrom rlang .data
 #'
 #' @examples
-selectTrait <- function(traitData, traitSignal, traitnames, strains, response, abbrev = TRUE) {
+selectTrait <- function(traitData, traitSignal,
+                        traitnames = unique(traitSignal$trait),
+                        strains = names(CCcolors),
+                        response = c("individual", "mean", "signal", "ind_signal"),
+                        abbrev = TRUE) {
   if("condition" %in% names(traitData)) {
     bys <- c("datatype","strain","sex","condition","trait")
   } else {
     bys <- c("datatype","strain","sex","trait")
   }
+  
+  response <- match.arg(response)
   if(response %in% c("individual", "ind_signal")) {
     if(response == "ind_signal") {
       # This does not appear to be working

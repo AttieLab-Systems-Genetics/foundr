@@ -1,0 +1,268 @@
+---
+title: "Calcium"
+author: "Brian Yandell"
+date: "2023-02-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(foundr)
+```
+
+```{r}
+datadir <- "../../../attie_alan/FounderCalciumStudy"
+```
+
+```{r}
+traitData <- readRDS(file.path(datadir, "traitData.rds"))
+traitStats<- readRDS(file.path(datadir, "traitStats.rds"))
+traitSignal <- readRDS(file.path(datadir, "traitSignal.rds"))
+```
+
+```{r}
+td <- traitData %>% filter(grepl("freq_8_2|Fbp1_PP_5480", trait))
+tst <- traitStats %>% filter(grepl("freq_8_2|Fbp1_PP_5480", trait))
+tsi <- traitSignal %>% filter(grepl("freq_8_2|Fbp1_PP_5480", trait))
+```
+
+```{r}
+(traitnames <- sort(unique(td$trait)))
+```
+
+Join the following with object 
+```{r}
+tmp <- td %>%
+  group_by(trait) %>%
+  summarize(condgroup = paste(unique(condition), collapse = ";")) %>%
+  ungroup()
+```
+
+```{r}
+td8 <- td %>%
+    filter(
+      condition == "8G" |
+        (is.na(condition) & grepl("8G:", trait)))
+```
+
+Want to refactor ggplot_traitData to use patchwork for separate traits.
+
+```{r height = 9}
+ggplot_traitData(td)
+```
+
+```{r height = 9}
+ggplot_traitData(td8)
+```
+
+```{r height = 9}
+ggplot_traitData(td %>%
+                   filter(trait %in% traitnames[1:3]) %>%
+                   mutate(condition = ifelse(trait == "8G:freq_8_2",
+                                             "8G", condition)))
+```
+
+```{r height = 9}
+ggplot_traitData(td %>%
+                   filter(trait %in% traitnames[1:3]))
+```
+
+```{r height = 9}
+ggplot_traitData(td %>%
+                   filter(trait %in% traitnames[1:3]) %>%
+                   mutate(trait = factor(trait, traitnames[1:3])))
+```
+**Reorder trait names by using factor (want to do this in app)**
+
+```{r}
+tra <- selectTrait(td, tsi, traitnames[3:1])
+```
+
+```{r height = 9}
+ggplot_traitData(td %>%
+                   filter(trait %in% traitnames[1:3]) %>%
+                   mutate(trait = factor(trait, traitnames[3:1])))
+```
+
+```{r}
+summary((td8 %>%
+  select(-condition) %>%
+  arrange(strain, sex, animal) %>%
+  unite(trait, datatype, trait, sep = ": ") %>%
+  pivot_wider(
+    names_from = "trait",
+    values_from = "value") %>%
+  rename(A = 'calcium: 8G:freq_8_2',
+         B = 'calcium8G: freq_8_2') %>%
+  mutate(dif = A - B) %>%
+  select(-A, -B))$dif)
+```
+
+```{r}
+(tsi8 <- tsi %>%
+    filter(
+      condition == "8G" |
+        (is.na(condition) & grepl("8G:", trait))))
+```
+
+```{r}
+tsi8dm <- tsi8 %>%
+  select(-condition, -signal) %>%
+  arrange(strain, sex) %>%
+  unite(trait, datatype, trait, sep = ": ") %>%
+  pivot_wider(
+    names_from = "trait",
+    values_from = "mean") %>%
+  rename(A = 'calcium: 8G:freq_8_2',
+         B = 'calcium8G: freq_8_2')
+summary((tsi8dm %>%
+  mutate(dif = A - B) %>%
+  select(-A, -B))$dif)
+```
+
+```{r}
+ggplot(tsi8dm) +
+  aes(A, B, col = strain) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_point() +
+  facet_wrap(~ sex) +
+  ggtitle("Compare Means")
+```
+
+```{r}
+tsi8ds <- tsi8 %>%
+  select(-condition, -mean) %>%
+  arrange(strain, sex) %>%
+  unite(trait, datatype, trait, sep = ": ") %>%
+  pivot_wider(
+    names_from = "trait",
+    values_from = "signal") %>%
+  rename(A = 'calcium: 8G:freq_8_2',
+         B = 'calcium8G: freq_8_2') %>%
+  mutate(dif = A - B)
+summary(tsi8ds$dif)
+```
+
+```{r}
+ggplot(tsi8ds) +
+  aes(A, B, col = strain) +
+  geom_abline(slope = 1, intercept = 0) +
+  geom_point() +
+  facet_wrap(~ sex) +
+  ggtitle("Compare Signals")
+```
+
+
+# Pairs
+
+
+```{r}
+out <- traitPairs(td, traitnames[c(1,5)], response = "mean")
+```
+
+```{r}
+ggplot_traitPairs(out)
+```
+
+```{r}
+foundr:::foundrScatplot(traitnames[c(1,5)], td, response = "mean")
+```
+
+```{r}
+foundr:::foundrScatplot(traitnames[c(5,1)], td, response = "mean")
+```
+
+```{r}
+foundr:::foundrScatplot(traitnames[c(1,4)], td, response = "mean")
+```
+
+```{r}
+foundr:::foundrScatplot(traitnames[c(5,4)], td, response = "mean")
+```
+
+# Correlation
+
+bestcor only considers other data that agrees with condition arrangement
+How to refactor to get correlations across conditions?
+
+One challenge is that the nqrank gives different values, but here we even see different signs to correlation! **TRY ON RAW DATA**
+
+Error: 'x' must be numeric (when both protein and calcium8G used for 5,4)
+
+Error: Faceting variables must have at least one value
+
+```{r}
+bestcor(tsi %>% filter(trait %in% traitnames[c(1,4)]), traitnames[4]) %>%
+  select(-absmax)
+```
+
+```{r}
+bestcor(tsi %>% filter(trait %in% traitnames[c(2,4)]), traitnames[4]) %>%
+  select(-absmax)
+```
+
+```{r}
+bestcor(tsi %>% filter(trait %in% traitnames[c(3,4)]), traitnames[4]) %>%
+  select(-absmax)
+```
+
+```{r}
+bestcor(tsi %>% filter(trait %in% traitnames[1:4]), traitnames[4]) %>%
+  select(-absmax)
+```
+
+The following seems to get it wrong--why?
+
+```{r}
+bestcor(tsi %>% filter(trait %in% traitnames[4:5]), traitnames[4]) %>%
+  select(-absmax)
+```
+
+```{r}
+bestcor(tsi, traitnames[4]) %>%
+  select(-absmax)
+```
+
+We saved some sublets in tmp3 and tmp4.
+
+```{r}
+tmp3 <- read.csv("tmp3.csv") %>% select(-1)
+tmp4 <- read.csv("tmp4.csv") %>% select(-1)
+```
+
+```{r}
+tmp5 <- full_join(
+  tmp3,
+  tmp4,
+  by = c("strain", "sex", "trait")
+)
+```
+
+```{r}
+ggplot(tmp5) +
+  aes(signal.x, signal.y, col = strain) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_smooth(method = "lm", se = FALSE, col = "darkgrey") +
+  geom_point() +
+  facet_wrap(~ sex)
+```
+
+## multiple traits with different condition situations
+
+```{r}
+bc <- bestcor(tsi, traitnames[c(5,4)])
+```
+
+```{r}
+
+```{r}
+bc <- bestcor(tsi, traitnames[c(1,4)])
+```
+
+```
+
+

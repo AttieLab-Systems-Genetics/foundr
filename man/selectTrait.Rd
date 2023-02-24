@@ -7,9 +7,9 @@
 selectTrait(
   traitData,
   traitSignal,
-  traitnames,
-  strains,
-  response,
+  traitnames = unique(traitSignal$trait),
+  strains = names(CCcolors),
+  response = c("individual", "mean", "signal", "ind_signal"),
   abbrev = TRUE
 )
 }
