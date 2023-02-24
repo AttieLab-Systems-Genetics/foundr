@@ -4,12 +4,12 @@
 \alias{effectplot}
 \title{Effect Plots}
 \usage{
-effectplot(object, traits = unique(object$trait)[1:5])
+effectplot(object, traitnames = unique(object$trait)[1:5])
 }
 \arguments{
 \item{object}{data frame with `trait` names, `term` names, `SD` and `p.value`}
 
-\item{trait}{`trait` names to show}
+\item{traitnames}{`traitnames` to show}
 }
 \description{
 Effect Plots

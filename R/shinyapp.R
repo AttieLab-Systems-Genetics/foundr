@@ -243,11 +243,7 @@ foundrServer <- function(input, output, session,
     }
     out
   })
-  traits_selected <- shiny::reactive({
-    shiny::req(input$trait)
-  })
-  
-  
+
   corobject <- reactive({
     bestcor(traitSignalSelectType(),
             trait_selection(),
@@ -266,7 +262,7 @@ foundrServer <- function(input, output, session,
   traitDataSelectTrait <- shiny::reactive({
     selectTrait(shiny::req(traitDataSelectType()),
                 shiny::req(traitSignalSelectType()),
-                shiny::req(traits_selected()),
+                shiny::req(trait_selection()),
                 shiny::req(input$strains),
                 shiny::req(input$butresp))
   })
@@ -287,7 +283,7 @@ foundrServer <- function(input, output, session,
   output$order <- shiny::renderUI({
     p_types <- paste0("p_", unique(traitStatsSelectType()$term))
     choices <- c(p_types, "alphabetical", "original")
-#    if(shiny::isTruthy(traits_selected())) # This causes reset.
+#    if(shiny::isTruthy(trait_selection())) # This causes reset.
     choices <- c("correlation", choices)
     shiny::selectInput("order", "Order traits by", choices, p_types[1])
   })
@@ -326,7 +322,7 @@ foundrServer <- function(input, output, session,
   shiny::observeEvent(
     shiny::req(traitDataSelectType(), traitDataInput(), traitNamesArranged()),
     {
-      # Use current selection of traits_selected().
+      # Use current selection of trait_selection().
       # But make sure they are still in the traitNamesArranged().
       selected <- trait_selection()
       choices <- traitNamesArranged()
@@ -428,10 +424,10 @@ foundrServer <- function(input, output, session,
 
   # Plots
   distplot <- shiny::reactive({
-    if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(traits_selected())) {
+    if(!shiny::isTruthy(traitDataSelectType()) | !shiny::isTruthy(trait_selection())) {
       return(plot_null("Need to specify at least one trait."))
     }
-    if(!all(traits_selected() %in% traitDataSelectType()$trait)) {
+    if(!all(trait_selection() %in% traitDataSelectType()$trait)) {
       return(plot_null("Traits not in datasets (should not happen)."))
     }
     
@@ -504,19 +500,19 @@ foundrServer <- function(input, output, session,
   
   output$filename <- renderUI({
     filename <- paste(shiny::req(datatypes_selected()), collapse = ".")
-    if(shiny::isTruthy(traits_selected())) {
-      ltrait <- length(traits_selected())
+    if(shiny::isTruthy(trait_selection())) {
+      ltrait <- length(trait_selection())
       if(shiny::req(input$tabpanel) != "Volcano") {
         filename <- paste0(filename,
                            "_",
-                           paste(abbreviate(traits_selected(), ceiling(60 / ltrait)),
+                           paste(abbreviate(trait_selection(), ceiling(60 / ltrait)),
                                  collapse = "."))
       }
     }
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
   output$downloads <- renderUI({
-    shiny::req(traits_selected())
+    shiny::req(trait_selection())
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
@@ -588,7 +584,7 @@ foundrServer <- function(input, output, session,
     if(response == "ind_signal")
       response <- "signal"
     selectSignalWide(traitSignalSelectType(),
-                 shiny::req(traits_selected()),
+                 shiny::req(trait_selection()),
                  shiny::req(input$strains),
                  response, customSettings$condition)
   })
@@ -638,10 +634,10 @@ foundrServer <- function(input, output, session,
   
   output$pair <- shiny::renderUI({
     # Somehow when input$height is changed this is reset.
-    shiny::req(traits_selected())
-    if(length(traits_selected()) < 2)
+    shiny::req(trait_selection())
+    if(length(trait_selection()) < 2)
       return(NULL)
-    choices <- traitpairs(traits_selected())
+    choices <- traitpairs(trait_selection())
     
     shiny::selectInput(
       "pair", "Select pairs for scatterplots",
@@ -649,7 +645,7 @@ foundrServer <- function(input, output, session,
       multiple = TRUE, width = '100%')
   })
   output$scatPlot <- shiny::renderUI({
-    shiny::req(traits_selected(), datatypes_selected(), input$order)
+    shiny::req(trait_selection(), datatypes_selected(), input$order)
     shiny::tagList(
       shiny::uiOutput("pair"),
       shiny::plotOutput("scatplot", height = paste0(input$height, "in"))
@@ -657,7 +653,7 @@ foundrServer <- function(input, output, session,
   })
   scatsplot <- reactive({
     ggplot_traitPairs(traitPairs(traitDataSelectTrait(),
-                      req(traits_selected()),
+                      req(trait_selection()),
                       req(input$pair)))
     
   })

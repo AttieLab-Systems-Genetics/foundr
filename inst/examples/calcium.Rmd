@@ -82,6 +82,10 @@ ggplot_traitData(td %>%
 tra <- selectTrait(td, tsi, traitnames[3:1])
 ```
 
+```{r}
+ggplot_traitData(tra)
+```
+
 ```{r height = 9}
 ggplot_traitData(td %>%
                    filter(trait %in% traitnames[1:3]) %>%

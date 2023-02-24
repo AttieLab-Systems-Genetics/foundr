@@ -1,4 +1,7 @@
 mutate_datatypes <- function(object, datatypes, undo = FALSE) {
+  if(is.null(object) | is.null(datatypes))
+    return(NULL)
+
   if(undo) {
     for(i in seq_along(datatypes)) {
       object <- dplyr::mutate(
@@ -23,6 +26,9 @@ mutate_datatypes <- function(object, datatypes, undo = FALSE) {
   object
 }
 rename_datatypes <- function(object, datatypes, undo = FALSE) {
+  if(is.null(object) | is.null(datatypes))
+    return(NULL)
+  
   if(undo) {
     #shiny::req(input$datatype)
     # object = long names of selected datatypes

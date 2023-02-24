@@ -52,9 +52,15 @@ selectTrait <- function(traitData, traitSignal,
   
   if(abbrev) {
     ltrait <- length(traitnames)
+    # Temporary. Need to address datatype as well.
+    m <- which(!duplicated(traitData$trait))
+    names(m) <- traitData$trait[m]
+    m <- m[traitnames]
+    
     traitData <- dplyr::mutate(
       traitData,
-      trait = abbreviate(trait, ceiling(60 / ltrait)))
+      trait = abbreviate(trait, ceiling(60 / ltrait)),
+      trait = factor(trait, trait[m]))
   }
   
   if("condition" %in% names(traitData)) {

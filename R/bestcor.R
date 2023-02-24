@@ -1,9 +1,9 @@
 #' Traits with Best Correlation
 #'
-#' Find other traits with best correlation with selected traits.
+#' Find other traits with best correlation with selected traitnames.
 #' 
 #' @param traitSignal data frame from `partition`
-#' @param traits names of traits in `traitSignal`
+#' @param traitnames names of traits in `traitSignal`
 #' @param term either `signal` or `mean`
 #'
 #' @return sorted vector of absolute correlations with names
@@ -17,18 +17,20 @@
 #' out <- bestcor(sampleSignal, "A")
 #' ggplot_bestcor(out, 0)
 #' ggplot_bestcor(out, 0, abscor = FALSE)
-bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
+bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
   term <- match.arg(term)
   
   # Need to check if condition is present.
-  # Need to check if traits are missing some combos
+  # Need to check if traitnames are missing some combos
   
-  if(is.null(traitSignal) | is.null(traits))
+  if(is.null(traitSignal) | is.null(traitnames))
     return(NULL)
-  if(!all(traits %in% unique(traitSignal$trait)))
+  if(!all(traitnames %in% unique(traitSignal$trait)))
     return(NULL)
   
-  proband <- dplyr::filter(traitSignal, trait %in% traits)
+  proband <- dplyr::filter(
+      traitSignal,
+      trait %in% traitnames)
   
   # Figure out better way to do correlation by cond:trait if appropriate
   # Think calcium8G
@@ -62,7 +64,7 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
         }
         traitSignal <- dplyr::bind_rows(tmp1, tmp2)
       } else {
-        # subset traitSignal to traits that agree and drop condition
+        # subset traitSignal to traitnames that agree and drop condition
         traitSignal <- dplyr::filter(traitSignal, is.na(condition))
         traitSignal$condition <- NULL
       }
@@ -129,7 +131,7 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
 
   proband <- myfun(proband, term, groupsex)
   traitSignal <- myfun(
-    dplyr::filter(traitSignal, !(trait %in% traits)),
+    dplyr::filter(traitSignal, !(trait %in% traitnames)),
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
@@ -144,14 +146,17 @@ bestcor <- function(traitSignal, traits, term = c("signal", "mean")) {
   
   # Rearrange as dataframe with datatype, trait, absmax, probandtype, proband, cors
   out <- 
-    tidyr::separate(
+    dplyr::mutate(
       tidyr::separate(
-        tidyr::pivot_longer(
-          out,
-          tidyr::all_of(names(proband)),
-          names_to = "proband", values_to = "cors"),
-        trait, c("datatype", "trait"), sep = ";"),
-      proband, c("probandtype", "proband"), sep = ";")
+        tidyr::separate(
+          tidyr::pivot_longer(
+            out,
+            tidyr::all_of(names(proband)),
+            names_to = "proband", values_to = "cors"),
+          trait, c("datatype", "trait"), sep = ";"),
+        proband, c("probandtype", "proband"), sep = ";"),
+      proband = factor(proband, traitnames))
+  
   class(out) <- c("bestcor", class(out))
   out
 }

@@ -6,7 +6,7 @@
 \alias{autoplot.bestcor}
 \title{Traits with Best Correlation}
 \usage{
-bestcor(traitSignal, traits, term = c("signal", "mean"))
+bestcor(traitSignal, traitnames, term = c("signal", "mean"))
 
 ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 
@@ -15,7 +15,7 @@ ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 \arguments{
 \item{traitSignal}{data frame from `partition`}
 
-\item{traits}{names of traits in `traitSignal`}
+\item{traitnames}{names of traits in `traitSignal`}
 
 \item{term}{either `signal` or `mean`}
 
@@ -31,7 +31,7 @@ ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 sorted vector of absolute correlations with names
 }
 \description{
-Find other traits with best correlation with selected traits.
+Find other traits with best correlation with selected traitnames.
 }
 \examples{
 sampleSignal <- partition(sampleData)

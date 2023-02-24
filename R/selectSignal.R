@@ -18,6 +18,8 @@ selectSignal <- function(traitSignal,
                          response = c("mean", "signal")) {
   if(is.null(traitSignal))
     return(NULL)
+  if(!all(traitnames %in% traitSignal$trait))
+    return(NULL)
   
   response <- match.arg(response)
   
@@ -46,6 +48,9 @@ selectSignalWide <- function(traitSignal,
                              condition_name = "condition") {
   
   out <- selectSignal(traitSignal, traitnames, strains, response)
+  if(is.null(out))
+    return(NULL)
+  
   nout <- c(names(out), levels(out$strain))
   nout <- nout[!(nout %in% c("strain", "value"))]
   out <- dplyr::arrange(

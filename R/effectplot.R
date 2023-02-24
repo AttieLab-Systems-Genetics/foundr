@@ -1,7 +1,7 @@
 #' Effect Plots
 #'
 #' @param object data frame with `trait` names, `term` names, `SD` and `p.value`
-#' @param trait `trait` names to show
+#' @param traitnames `traitnames` to show
 #'
 #' @return
 #' @export
@@ -10,17 +10,19 @@
 #' @importFrom tidyr pivot_longer
 #'
 #' @examples
-effectplot <- function(object, traits = unique(object$trait)[1:5]) {
+effectplot <- function(object, traitnames = unique(object$trait)[1:5]) {
   
-  if(is.null(object) | is.null(traits))
+  if(is.null(object) | is.null(traitnames))
     return(plot_null("Need to specify at least one trait."))
   
   object <- tidyr::pivot_longer(
     dplyr::mutate(
       dplyr::rename(
-        dplyr::filter(
-          object,
-          trait %in% traits),
+        dplyr::mutate(
+          dplyr::filter(
+            object,
+            trait %in% traitnames),
+          trait = factor(trait, traitnames)),
         terms = "term",
         log10pvalue = "p.value"),
       terms = factor(terms, unique(terms)),

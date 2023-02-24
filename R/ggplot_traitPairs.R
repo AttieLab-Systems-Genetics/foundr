@@ -92,6 +92,8 @@ traitPairs <- function(traitData,
 #' @examples
 ggplot_traitPairs <- function(object, ...) {
 
+  if(is.null(object))
+    return(plot_null("No Trait Pairs Object."))
   plots <- purrr::map(object, pairplots, sep = attr(object, "sep"), ...)
   
   # Patch plots together by rows
@@ -103,7 +105,6 @@ pairplots <- function(object,
                       line_strain = TRUE,
                       title = paste(pair[1], "vs", pair[2]),
                       ...) {
-  
   # Get trait pair
   pair <- attr(object, "pair")[2:1]
 
