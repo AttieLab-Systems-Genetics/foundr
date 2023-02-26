@@ -107,12 +107,12 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
     else
       traitSignal$mean <- NULL
     
-    if(!("datatype" %in% names(traitSignal)))
-      traitSignal$datatype <- "unknown"
+    if(!("dataset" %in% names(traitSignal)))
+      traitSignal$dataset <- "unknown"
     traitSignal <- tidyr::unite(
       traitSignal,
-      datatype_trait,
-      datatype, trait,
+      dataset_trait,
+      dataset, trait,
       sep = ";")
 
     if(groupsex == "sex")
@@ -124,8 +124,8 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
       tidyr::pivot_wider(
         dplyr::arrange(
           traitSignal,
-          datatype_trait, dplyr::across(conds)),
-        names_from = "datatype_trait", values_from = term),
+          dataset_trait, dplyr::across(conds)),
+        names_from = "dataset_trait", values_from = term),
       -tidyr::matches(conds))
   }
 
@@ -144,7 +144,7 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
       trait, absmax, dplyr::everything()),
     dplyr::desc(absmax))
   
-  # Rearrange as dataframe with datatype, trait, absmax, probandtype, proband, cors
+  # Rearrange as dataframe with dataset, trait, absmax, probandtype, proband, cors
   out <- 
     dplyr::mutate(
       tidyr::separate(
@@ -153,7 +153,7 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
             out,
             tidyr::all_of(names(proband)),
             names_to = "proband", values_to = "cors"),
-          trait, c("datatype", "trait"), sep = ";"),
+          trait, c("dataset", "trait"), sep = ";"),
         proband, c("probandtype", "proband"), sep = ";"),
       proband = factor(proband, traitnames))
   
@@ -205,7 +205,7 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
         dplyr::mutate(
           tidyr::unite(
             object,
-            trait, datatype, trait, sep = ": "),
+            trait, dataset, trait, sep = ": "),
           trait = stats::reorder(trait, dplyr::desc(absmax))),
         absmax >= mincor),
     -absmax)

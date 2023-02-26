@@ -54,7 +54,7 @@ traitPairs <- function(traitData,
           dplyr::summarize(
             dplyr::group_by(
               traitData,
-              dplyr::across(c("datatype", "trait", "strain", conds))),
+              dplyr::across(c("dataset", "trait", "strain", conds))),
             value = mean(value, na.rm = TRUE)))
       
       # pivot_pair not working when misaligned sex_condition

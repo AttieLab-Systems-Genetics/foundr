@@ -22,7 +22,7 @@ pivot_pair <- function(object, pair) {
   
   # split by trait
   byvars <- names(object)
-  byvars <- byvars[!(byvars %in% c("datatype", "trait", "value"))]
+  byvars <- byvars[!(byvars %in% c("dataset", "trait", "value"))]
   object <- split(dplyr::select(object, -trait), object$trait)
   ntraits <- names(object)
   

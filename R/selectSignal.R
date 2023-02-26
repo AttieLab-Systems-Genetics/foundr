@@ -24,9 +24,9 @@ selectSignal <- function(traitSignal,
   response <- match.arg(response)
   
   if("condition" %in% names(traitSignal)) {
-    bys <- c("datatype","strain","sex","condition","trait")
+    bys <- c("dataset","strain","sex","condition","trait")
   } else {
-    bys <- c("datatype","strain","sex","trait")
+    bys <- c("dataset","strain","sex","trait")
   }
 
   dplyr::mutate(

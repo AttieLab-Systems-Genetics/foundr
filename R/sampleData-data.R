@@ -3,7 +3,7 @@
 #'
 #' @title Sample Data for Package foundr
 #'
-#' @description A data frame with columns `datatype`, `strain`, `sex`, `animal`, `condition`, `trait`, `value`
+#' @description A data frame with columns `dataset`, `strain`, `sex`, `animal`, `condition`, `trait`, `value`
 #'
 #' @details
 #' `sampleData` is a minimal data example for the foundr package.

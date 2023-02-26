@@ -30,7 +30,7 @@ A Server definition that can be passed to the `shinyServer` function.
 The `customSettings` is a list that may include
   `help` = name of help markdown file (e.g. `"help.md"`)
   `condition` = names of condition (e.g. `"diet"`) 
-  `datatype` = names of datatypes (e.g. `uploaded = "MyUpload"`)
+  `dataset` = names of datasets (e.g. `uploaded = "MyUpload"`)
 }
 \details{
 User needs to supply the following routines:

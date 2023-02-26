@@ -51,7 +51,7 @@ foundrUI <- function(title) {
 #' The `customSettings` is a list that may include
 #'   `help` = name of help markdown file (e.g. `"help.md"`)
 #'   `condition` = names of condition (e.g. `"diet"`) 
-#'   `datatype` = names of datatypes (e.g. `uploaded = "MyUpload"`)
+#'   `dataset` = names of datasets (e.g. `uploaded = "MyUpload"`)
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
@@ -88,21 +88,21 @@ foundrServer <- function(input, output, session,
   }
   if(is.null(customSettings$condition))
     customSettings$condition <- "condition"
-  customSettings$datatype <- unlist(customSettings$datatype)
-  if(!("uploaded" %in% names(customSettings$datatype))) {
-    if(is.null(customSettings$datatype))
-      customSettings$datatype <- c(uploaded = "Uploaded")
+  customSettings$dataset <- unlist(customSettings$dataset)
+  if(!("uploaded" %in% names(customSettings$dataset))) {
+    if(is.null(customSettings$dataset))
+      customSettings$dataset <- c(uploaded = "Uploaded")
     else
-      customSettings$datatype["uploaded"] <- "Uploaded"
+      customSettings$dataset["uploaded"] <- "Uploaded"
   }
   
   # INPUT DATA (changes at server call or upload)
-  # Trait Data: <datatype>, trait, strain, sex, <condition>, value
+  # Trait Data: <dataset>, trait, strain, sex, <condition>, value
   newtraitdata <- reactive({
     if(shiny::isTruthy(input$upload)) {
       newTraitData(input$upload$datapath,
                    customSettings$condition,
-                   customSettings$datatype["uploaded"])
+                   customSettings$dataset["uploaded"])
     } else {
       NULL
     }
@@ -110,6 +110,11 @@ foundrServer <- function(input, output, session,
   
   traitDataInput <- shiny::reactive({
     newdata <- newtraitdata()
+    if(!is.null(traitdata)) {
+      if("datatype" %in% names(traitdata)) {
+        traitdata <- dplyr::rename(traitdata, dataset = "datatype")
+      }
+    }
     if(!is.null(newdata)) {
       if(is.null(traitdata)) {
         traitdata <- newdata
@@ -127,12 +132,17 @@ foundrServer <- function(input, output, session,
           newtraitdata()[trnames[keepcol]])
       }
     }
-    #mutate_datatypes(traitdata, customSettings$datatype)
+    #mutate_datasets(traitdata, customSettings$dataset)
     traitdata
   })
-  # Trait Stats: <datatype>, trait, term, SD, p.value
+  # Trait Stats: <dataset>, trait, term, SD, p.value
   traitStatsInput <- shiny::reactive({
-    shiny::req(traitDataInput(), datatypes())
+    shiny::req(traitDataInput(), datasets())
+    if(!is.null(traitstats)) {
+      if("datatype" %in% names(traitstats)) {
+        traitstats <- dplyr::rename(traitstats, dataset = "datatype")
+      }
+    }
     
     # Create stats for new data
     if(!is.null(newtraitdata())) {
@@ -144,15 +154,20 @@ foundrServer <- function(input, output, session,
       }
     }
     if(!is.null(traitstats)) {
-      if(!"datatype" %in% names(traitstats))
-        traitstats$datatype <- unique(traitDataInput()$datatype)[1]
+      if(!"dataset" %in% names(traitstats))
+        traitstats$dataset <- unique(traitDataInput()$dataset)[1]
     }
-    #mutate_datatypes(traitstats, customSettings$datatype)
+    #mutate_datasets(traitstats, customSettings$dataset)
     traitstats
   })
-  # Trait Signal: <datatype>, strain, sex, <condition>, trait, signal, mean
+  # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, mean
   traitSignalInput <- shiny::reactive({
-    shiny::req(traitDataInput(), datatypes())
+    shiny::req(traitDataInput(), datasets())
+    if(!is.null(traitsignal)) {
+      if("datatype" %in% names(traitsignal)) {
+        traitsignal <- dplyr::rename(traitsignal, dataset = "datatype")
+      }
+    }
     
     # Create signal for new data
     if(!is.null(newtraitdata())) {
@@ -163,49 +178,49 @@ foundrServer <- function(input, output, session,
           newtraitsignal)
       }
     }
-    #mutate_datatypes(traitsignal, customSettings$datatype)
+    #mutate_datasets(traitsignal, customSettings$dataset)
     traitsignal
   })
 
-  # SELECTING SUBSETS OF INPUT DATA by datatype
+  # SELECTING SUBSETS OF INPUT DATA by dataset
   # Select Data Types
-  datatypes <- shiny::reactive({
-    rename_datatypes(
+  datasets <- shiny::reactive({
+    rename_datasets(
       shiny::req(traitDataInput()),
-      customSettings$datatype,
+      customSettings$dataset,
       FALSE)
   })
-  datatypes_selected <- shiny::reactive({
-    rename_datatypes(
-      shiny::req(input$datatype),
-      customSettings$datatype,
+  datasets_selected <- shiny::reactive({
+    rename_datasets(
+      shiny::req(input$dataset),
+      customSettings$dataset,
       TRUE)
   })
-  # Trait Data from selected datatypes
+  # Trait Data from selected datasets
   traitDataSelectType <- shiny::reactive({
-    shiny::req(datatypes_selected())
+    shiny::req(datasets_selected())
     out <- dplyr::filter(
       traitDataInput(),
-      datatype %in% datatypes_selected())
+      dataset %in% datasets_selected())
     if("condition" %in% names(out)) {
       if(all(is.na(out$condition)))
         out$condition <- NULL
     }
     out
   })
-  # Trait Stats from selected datatypes
+  # Trait Stats from selected datasets
   traitStatsSelectType <- shiny::reactive({
-    shiny::req(datatypes_selected())
+    shiny::req(datasets_selected())
     dplyr::filter(
       traitStatsInput(),
-      datatype %in% datatypes_selected())
+      dataset %in% datasets_selected())
   })
-  # Trait Signal from selected datatypes
+  # Trait Signal from selected datasets
   traitSignalSelectType <- shiny::reactive({
-    shiny::req(datatypes_selected())
+    shiny::req(datasets_selected())
     out <- dplyr::filter(
       traitSignalInput(),
-      datatype %in% datatypes_selected())
+      dataset %in% datasets_selected())
     
     if(!nrow(out)) # Happens if traitStatsSelectType changes
       return(NULL)
@@ -220,7 +235,7 @@ foundrServer <- function(input, output, session,
   # Arrange Trait Stats (order traits for menu and summary table)
   traitStatsArranged <- shiny::reactive({
     shiny::req(input$order,
-               datatypes_selected(),
+               datasets_selected(),
                traitStatsSelectType(),
                traitSignalSelectType())
     
@@ -250,7 +265,7 @@ foundrServer <- function(input, output, session,
             shiny::req(input$corterm))
   })
   traitSignalBestCor <- shiny::reactive({
-    # Need to change this to include datatype.
+    # Need to change this to include dataset.
     bestcorStats(traitStatsSelectType(),
                  c(trait_selection(), corobject()$trait))
   })
@@ -273,11 +288,11 @@ foundrServer <- function(input, output, session,
     shiny::fileInput("upload", "Upload CSV, XLS, XLSX or RDS:", accept = c(".csv",".xls",".xlsx",".rds"),
                      width = "100%")
   })
-  output$datatype <- shiny::renderUI({
-    shiny::req(datatypes())
+  output$dataset <- shiny::renderUI({
+    shiny::req(datasets())
     shiny::selectInput(
-      "datatype", "Measurement set",
-      datatypes(), datatypes()[1],
+      "dataset", "Measurement set",
+      datasets(), datasets()[1],
       multiple = TRUE)
   })
   output$order <- shiny::renderUI({
@@ -293,7 +308,7 @@ foundrServer <- function(input, output, session,
       shiny::fluidRow(
         shiny::column(
           8,
-          shiny::uiOutput("datatype")),
+          shiny::uiOutput("dataset")),
         shiny::column(
           4,
           shiny::uiOutput("order"))),
@@ -381,7 +396,7 @@ foundrServer <- function(input, output, session,
   })
   corplot <- shiny::reactive({
     ggplot_bestcor(
-      mutate_datatypes(corobject(), customSettings$datatype, undo = TRUE), 
+      mutate_datasets(corobject(), customSettings$dataset, undo = TRUE), 
       input$mincor, input$abscor)
   })
   output$corplot <- shiny::renderPlot({
@@ -394,9 +409,9 @@ foundrServer <- function(input, output, session,
   output$cortable <- DT::renderDataTable(
     dplyr::mutate(
       dplyr::select(
-        mutate_datatypes(
+        mutate_datasets(
           corobject(),
-          customSettings$datatype),
+          customSettings$dataset),
         -absmax),
       cors = signif(cors, 4)),
     escape = FALSE,
@@ -499,7 +514,7 @@ foundrServer <- function(input, output, session,
   })
   
   output$filename <- renderUI({
-    filename <- paste(shiny::req(datatypes_selected()), collapse = ".")
+    filename <- paste(shiny::req(datasets_selected()), collapse = ".")
     if(shiny::isTruthy(trait_selection())) {
       ltrait <- length(trait_selection())
       if(shiny::req(input$tabpanel) != "Volcano") {
@@ -589,16 +604,16 @@ foundrServer <- function(input, output, session,
                  response, customSettings$condition)
   })
   output$datatable <- DT::renderDataTable(
-    mutate_datatypes(
+    mutate_datasets(
       datameans(),
-      customSettings$datatype),
+      customSettings$dataset),
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   output$tablesum <- DT::renderDataTable(
     dplyr::mutate(
-      mutate_datatypes(
+      mutate_datasets(
         traitStatsArranged(),
-        customSettings$datatype),
+        customSettings$dataset),
       dplyr::across(
         tidyselect::where(is.numeric),
         function(x) signif(x, 4))),
@@ -645,7 +660,7 @@ foundrServer <- function(input, output, session,
       multiple = TRUE, width = '100%')
   })
   output$scatPlot <- shiny::renderUI({
-    shiny::req(trait_selection(), datatypes_selected(), input$order)
+    shiny::req(trait_selection(), datasets_selected(), input$order)
     shiny::tagList(
       shiny::uiOutput("pair"),
       shiny::plotOutput("scatplot", height = paste0(input$height, "in"))

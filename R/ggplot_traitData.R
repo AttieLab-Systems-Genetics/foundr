@@ -32,12 +32,13 @@ ggplot_traitData <- function(object,
   # Find all condition groupings (including NA)
   object <- left_join(
     object,
-    object %>%
-      dplyr::group_by(datatype, trait) %>%
+    dplyr::ungroup(
       dplyr::summarize(
-        condgroup = paste(unique(condition), collapse = ";")) %>%
-      dplyr::ungroup(),
-    by = c("datatype", "trait"))
+        dplyr::group_by(
+          object,
+          dataset, trait),
+        condgroup = paste(unique(condition), collapse = ";"))),
+    by = c("dataset", "trait"))
 
   # Split object by condition grouping
   object <- split(
@@ -61,13 +62,13 @@ ggplot_onetrait <- function(object,
                             boxplot = FALSE,
                             horizontal = FALSE,
                             ...) {
-  # Allow for datatype grouping for traits
-  if("datatype" %in% names(object)) {
-    tmp <- dplyr::distinct(object, datatype, trait)
-    datatype <- tmp$datatype
+  # Allow for dataset grouping for traits
+  if("dataset" %in% names(object)) {
+    tmp <- dplyr::distinct(object, dataset, trait)
+    dataset <- tmp$dataset
     trait <- tmp$trait
     ltrait <- length(trait)
-    form <- "datatype + trait ~"
+    form <- "dataset + trait ~"
   } else {
     trait <- unique(object$trait)
     ltrait <- length(trait)

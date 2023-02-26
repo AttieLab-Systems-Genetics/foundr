@@ -1,4 +1,4 @@
-newTraitData <- function(datapath, condition_name, datatype_name) {
+newTraitData <- function(datapath, condition_name, dataset_name) {
   newdata <- switch(
     tools::file_ext(datapath),
     csv = read.csv(datapath),
@@ -8,7 +8,7 @@ newTraitData <- function(datapath, condition_name, datatype_name) {
   trnames <- names(newdata)
   
   # Need error handling here with useful message.
-  cnames <- c("datatype","trait", "strain", "sex", "condition", "value")
+  cnames <- c("dataset","trait", "strain", "sex", "condition", "value")
   if(!all(cnames[-c(1,5)] %in% trnames))
     return(NULL)
   
@@ -29,8 +29,12 @@ newTraitData <- function(datapath, condition_name, datatype_name) {
     }
   }
   
-  if(!"datatype" %in% names(newdata))
-    newdata$datatype <- datatype_name
+  if(!"dataset" %in% names(newdata)) {
+    if("datatype" %in% names(newdata))
+      newdata <- dplyr::rename(newdata, dataset = "datatype")
+    else
+      newdata$dataset <- dataset_name
+  }
   
   m <- match(cnames, names(newdata))
   newdata <- newdata[cnames[!is.na(m)]]
@@ -38,7 +42,7 @@ newTraitData <- function(datapath, condition_name, datatype_name) {
   # Normal scores with jitter for new data
   dplyr::ungroup(
     dplyr::mutate(
-      dplyr::group_by(newdata, datatype, trait),
+      dplyr::group_by(newdata, dataset, trait),
       value = nqrank(value, jitter = TRUE)))
   
 }

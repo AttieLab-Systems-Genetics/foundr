@@ -20,9 +20,9 @@ selectTrait <- function(traitData, traitSignal,
                         response = c("individual", "mean", "signal", "ind_signal"),
                         abbrev = TRUE) {
   if("condition" %in% names(traitData)) {
-    bys <- c("datatype","strain","sex","condition","trait")
+    bys <- c("dataset","strain","sex","condition","trait")
   } else {
-    bys <- c("datatype","strain","sex","trait")
+    bys <- c("dataset","strain","sex","trait")
   }
   
   response <- match.arg(response)
@@ -52,7 +52,7 @@ selectTrait <- function(traitData, traitSignal,
   
   if(abbrev) {
     ltrait <- length(traitnames)
-    # Temporary. Need to address datatype as well.
+    # Temporary. Need to address dataset as well.
     m <- which(!duplicated(traitData$trait))
     names(m) <- traitData$trait[m]
     m <- m[traitnames]
