@@ -17,10 +17,10 @@
 #' @export
 #'
 #' @examples
-#' ggplot_traitData(sampleData)
+#' ggplot_traitSolos(sampleData)
 #' 
-ggplot_traitData <- function(object,
-                             ...) {
+ggplot_traitSolos <- function(object,
+                              ...) {
   
   if("condition" %in% names(object)) {
     if(all(is.na(object$condition)))
@@ -162,19 +162,19 @@ ggplot_onetrait <- function(object,
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
 }
 #' @export
-#' @rdname ggplot_traitData
+#' @rdname ggplot_traitSolos
 strainplot <- function(object, ...) {
   strainplot(object, ...)
 }
 #' @export
-#' @rdname ggplot_traitData
-#' @method autoplot traitData
-autoplot.traitData <- function(object, ...) {
-  ggplot_traitData(object, ...)
+#' @rdname ggplot_traitSolos
+#' @method autoplot traitSolos
+autoplot.traitSolos <- function(object, ...) {
+  ggplot_traitSolos(object, ...)
 }
 #' @export
-#' @rdname ggplot_traitData
-#' @method plot traitData
-plot.traitData <- function(object, ...) {
-  ggplot_traitData(object, ...)
+#' @rdname ggplot_traitSolos
+#' @method plot traitSolos
+plot.traitSolos <- function(object, ...) {
+  ggplot_traitSolos(object, ...)
 }

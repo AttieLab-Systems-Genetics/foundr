@@ -20,14 +20,11 @@ datadir <- "../../../attie_alan/FounderCalciumStudy"
 
 ```{r}
 traitData <- readRDS(file.path(datadir, "traitData.rds")) %>%
-  rename(dataset = "datatype") %>%
-  unite(datatraits, dataset, trait, sep = ": ", remove = FALSE)
+  rename(dataset = "datatype")
 traitStats<- readRDS(file.path(datadir, "traitStats.rds")) %>%
-  rename(dataset = "datatype") %>%
-  unite(datatraits, dataset, trait, sep = ": ", remove = FALSE)
+  rename(dataset = "datatype")
 traitSignal <- readRDS(file.path(datadir, "traitSignal.rds")) %>%
-  rename(dataset = "datatype") %>%
-  unite(datatraits, dataset, trait, sep = ": ", remove = FALSE)
+  rename(dataset = "datatype")
 ```
 
 ```{r}
@@ -37,129 +34,52 @@ tsi <- traitSignal %>% filter(grepl("freq_8_2|Fbp1_PP_5480", trait))
 ```
 
 ```{r}
-(traitnames <- sort(unique(tsi$datatraits)))
-```
-
-Join the following with object 
-```{r}
-tmp <- td %>%
-  group_by(trait) %>%
-  summarize(condgroup = paste(unique(condition), collapse = ";")) %>%
-  ungroup()
+(traitnames <- unique(foundr:::unite_datatraits(tsi)))
 ```
 
 ```{r}
-td8 <- td %>%
-    filter(
-      condition == "8G" |
-        (is.na(condition) & grepl("8G:", trait)))
-```
-
-Want to refactor ggplot_traitData to use patchwork for separate traits.
-
-```{r height = 9}
-ggplot_traitData(td)
-```
-
-```{r height = 9}
-ggplot_traitData(td8)
-```
-
-```{r height = 9}
-ggplot_traitData(td %>%
-                   filter(datatraits %in% traitnames[1:3]) %>%
-                   mutate(condition = ifelse(trait == "8G:freq_8_2",
-                                             "8G", condition)))
-```
-
-```{r height = 9}
-ggplot_traitData(td %>%
-                   filter(datatraits %in% traitnames[1:3]))
-```
-**Reorder trait names by using factor (in app)**
-
-```{r}
-tra <- selectTrait(td, tsi, traitnames[3:1])
+tsolo <- traitSolos(td, tsi)
 ```
 
 ```{r}
-ggplot_traitData(tra)
-```
-
-```{r height = 9}
-ggplot_traitData(td %>%
-                   filter(trait %in% traitnames[1:3]) %>%
-                   mutate(trait = factor(trait, traitnames[3:1])))
+summary(tsolo)
 ```
 
 ```{r}
-summary((td8 %>%
-  select(-condition) %>%
-  arrange(strain, sex, animal) %>%
-  unite(trait, datatype, trait, sep = ": ") %>%
-  pivot_wider(
-    names_from = "trait",
-    values_from = "value") %>%
-  rename(A = 'calcium: 8G:freq_8_2',
-         B = 'calcium8G: freq_8_2') %>%
-  mutate(dif = A - B) %>%
-  select(-A, -B))$dif)
+plot(tsolo)
 ```
 
 ```{r}
-(tsi8 <- tsi %>%
-    filter(
-      condition == "8G" |
-        (is.na(condition) & grepl("8G:", trait))))
+tsolo8 <- traitSolos(td, tsi, traitnames[1:3])
 ```
 
 ```{r}
-tsi8dm <- tsi8 %>%
-  select(-condition, -signal) %>%
-  arrange(strain, sex) %>%
-  unite(trait, datatype, trait, sep = ": ") %>%
-  pivot_wider(
-    names_from = "trait",
-    values_from = "mean") %>%
-  rename(A = 'calcium: 8G:freq_8_2',
-         B = 'calcium8G: freq_8_2')
-summary((tsi8dm %>%
-  mutate(dif = A - B) %>%
-  select(-A, -B))$dif)
+summary(tsolo8)
 ```
 
 ```{r}
-ggplot(tsi8dm) +
-  aes(A, B, col = strain) +
-  geom_abline(slope = 1, intercept = 0) +
-  geom_point() +
-  facet_wrap(~ sex) +
-  ggtitle("Compare Means")
+plot(tsolo8)
 ```
 
 ```{r}
-tsi8ds <- tsi8 %>%
-  select(-condition, -mean) %>%
-  arrange(strain, sex) %>%
-  unite(trait, datatype, trait, sep = ": ") %>%
-  pivot_wider(
-    names_from = "trait",
-    values_from = "signal") %>%
-  rename(A = 'calcium: 8G:freq_8_2',
-         B = 'calcium8G: freq_8_2') %>%
-  mutate(dif = A - B)
-summary(tsi8ds$dif)
+summary(traitSolos(td, tsi, traitnames[c(2,1,3)]))
 ```
 
 ```{r}
-ggplot(tsi8ds) +
-  aes(A, B, col = strain) +
-  geom_abline(slope = 1, intercept = 0) +
-  geom_point() +
-  facet_wrap(~ sex) +
-  ggtitle("Compare Signals")
+plot(traitSolos(td, tsi, traitnames[1:3]))
 ```
 
+```{r}
+tra <- traitSolos(td, tsi, traitnames[3:1])
+```
+
+```{r}
+summary(tra)
+```
+
+```{r}
+plot(tra)
+```
 
 # Pairs
 
@@ -169,12 +89,14 @@ Want traitPairs etc. to have features of selectTrait. It does not appear to be w
 - traitPairs computes mean right now--want to use selectTrait
 
 ```{r}
-tds <- selectTrait(td, tsi, traitnames[c(1,4)], response = "mean")
+tds <- traitSolos(td, tsi, traitnames[c(1,4)], response = "mean")
 ```
 
+Seems to mostly work. Hardwired response = value and mean. Need to fix that.
 
 ```{r}
-out <- traitPairs(tds, traitnames[c(1,4)], response = "mean")
+out <- traitPairs(tra, traitnames = unique(foundr:::unite_datatraits(tra)),
+                       pair = foundr:::trait_pairs(traitnames, " ON ")[1])
 ```
 
 ```{r}
@@ -259,30 +181,6 @@ bestcor(tsi %>% filter(trait %in% traitnames[4:5]), traitnames[4]) %>%
 ```{r}
 bestcor(tsi, traitnames[4]) %>%
   select(-absmax)
-```
-
-We saved some sublets in tmp3 and tmp4.
-
-```{r}
-tmp3 <- read.csv("tmp3.csv") %>% select(-1)
-tmp4 <- read.csv("tmp4.csv") %>% select(-1)
-```
-
-```{r}
-tmp5 <- full_join(
-  tmp3,
-  tmp4,
-  by = c("strain", "sex", "trait")
-)
-```
-
-```{r}
-ggplot(tmp5) +
-  aes(signal.x, signal.y, col = strain) +
-  geom_abline(intercept = 0, slope = 1) +
-  geom_smooth(method = "lm", se = FALSE, col = "darkgrey") +
-  geom_point() +
-  facet_wrap(~ sex)
 ```
 
 ## multiple traits with different condition situations

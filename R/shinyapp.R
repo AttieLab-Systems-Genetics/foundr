@@ -283,11 +283,11 @@ foundrServer <- function(input, output, session,
   
   # Trait Data for Selected Traits
   traitDataSelectTrait <- shiny::reactive({
-    selectTrait(shiny::req(traitDataSelectType()),
+    traitSolos(shiny::req(traitDataSelectType()),
                 shiny::req(traitSignalSelectType()),
                 shiny::req(trait_selection()),
-                shiny::req(input$strains),
-                shiny::req(input$butresp))
+               shiny::req(input$butresp),
+                shiny::req(input$strains))
   })
   
   # Render UIs for shiny UI
@@ -447,10 +447,9 @@ foundrServer <- function(input, output, session,
 
   # Plots
   distplot <- shiny::reactive({
-    ggplot_traitData(
-      traitDataSelectTrait(),
-      facet_strain = input$facet,
-      boxplot = TRUE)
+    plot(traitDataSelectTrait(),
+         facet_strain = input$facet,
+         boxplot = TRUE)
   })
   output$distPlot <- shiny::renderPlot({
     print(distplot())
@@ -594,20 +593,13 @@ foundrServer <- function(input, output, session,
   
   # Data Table
   datameans <- shiny::reactive({
+    shiny::req(trait_selection(), input$strains)
     response <- shiny::req(input$butresp)
-    if(response == "individual")
-      response <- "mean"
-    if(response == "ind_signal")
-      response <- "signal"
-    selectSignalWide(traitSignalSelectType(),
-                 shiny::req(trait_selection()),
-                 shiny::req(input$strains),
-                 response, customSettings$condition)
+    
+    summary(traitDataSelectTrait(), customSettings)
   })
   output$datatable <- DT::renderDataTable(
-    mutate_datasets(
-      datameans(),
-      customSettings$dataset),
+    datameans(),
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   output$tablesum <- DT::renderDataTable(

@@ -5,8 +5,8 @@
 \title{GGplot of pairs of traits}
 \usage{
 traitPairs(
-  traitData,
-  traitnames,
+  object,
+  traitnames = unique(unite_datatraits(object)),
   pair = trait_pairs(traitnames, sep),
   response = c("value", "mean", "signal"),
   sep = " ON ",
@@ -14,7 +14,7 @@ traitPairs(
 )
 }
 \arguments{
-\item{traitData}{}
+\item{object}{}
 
 \item{traitnames}{}
 

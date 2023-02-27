@@ -1,6 +1,6 @@
 #' GGplot of pairs of traits
 #'
-#' @param traitData 
+#' @param object 
 #' @param traitnames 
 #' @param pair 
 #' @param sep 
@@ -10,45 +10,45 @@
 #' @export
 #'
 #' @examples
-traitPairs <- function(traitData,
-                       traitnames,
+traitPairs <- function(object,
+                       traitnames = unique(unite_datatraits(object)),
                        pair = trait_pairs(traitnames, sep),
                        response = c("value","mean","signal"),
                        sep = " ON ",
                        ...) {
   
-  if(is.null(traitData))
+  if(is.null(object))
     return(NULL)
   
   traits <- unique(unlist(stringr::str_split(pair, sep)))
   
-  traitData <- tidyr::unite(
-    traitData,
+  object <- tidyr::unite(
+    object,
     datatraits,
     dataset, trait,
     sep = ": ", remove = FALSE)
   
-  if(!all(traits %in% traitData$datatraits)) {
+  if(!all(traits %in% object$datatraits)) {
     return(NULL)
   }
   
   response <- match.arg(response)
   
-  pairsetup <- function(x, traitData,
+  pairsetup <- function(x, object,
                         sep = " ON ",
                         ...) {
     # Split trait pair by colon. Reduce to traits in x.
     x <- stringr::str_split(x, sep)[[1]][2:1]
-    traitData <- dplyr::filter(traitData, datatraits %in% x)
+    object <- dplyr::filter(object, datatraits %in% x)
     
     if(response == "value") {
       # Create columns for each trait pair with full data.
-      out <- pivot_pair(traitData, x)
+      out <- pivot_pair(object, x)
     } else {
-      out <- traitData
+      out <- object
     }
     
-    if("sex_condition" %in% names(traitData)) {
+    if("sex_condition" %in% names(object)) {
       groupsex <- "sex_condition"
       conds <- c("sex", "condition")
     } else {
@@ -59,14 +59,10 @@ traitPairs <- function(traitData,
     if(response != "value" | nrow(out) < 2) { # Reduce to mean.
       line_strain <- FALSE
       # Problem of nrow<2 likely from traits having different subjects.
-      out <- 
-        dplyr::ungroup(
-          dplyr::summarize(
-            dplyr::group_by(
-              traitData,
-              dplyr::across(c("dataset", "trait", "strain", conds))),
-            value = mean(value, na.rm = TRUE)))
-      
+      # Reduce to response
+      out <- selectSignal(object, traitnames, "mean")
+      out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
+
       # pivot_pair not working when misaligned sex_condition
       
       # Create columns for each trait pair with trait means.
@@ -85,7 +81,7 @@ traitPairs <- function(traitData,
   
   out <- purrr::map(
     purrr::set_names(pair),
-    pairsetup, traitData, sep, ...)
+    pairsetup, object, sep, ...)
   class(out) <- c("traitPairs", class(out))
   attr(out, "sep") <- sep
   
