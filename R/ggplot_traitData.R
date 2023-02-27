@@ -32,7 +32,7 @@ ggplot_traitData <- function(object,
   if(is.null(object$dataset))
     object$dataset <- "unknown"
   
-  # Find all condition groupings (including NA)
+  # Find all condition groupings (including NA) for plotting.
   object <- left_join(
     object,
     dplyr::ungroup(

@@ -74,7 +74,8 @@ partition <- function(object,
   traits <- unique(object$trait)
   
   if(is_dataset <- ("dataset" %in% names(object))) {
-    object <- tidyr::unite(object, trait, dataset, trait, sep = ";")
+    # Temporarily for datatraits (called here trait) as `dataset: trait`
+    object <- tidyr::unite(object, trait, dataset, trait, sep = ": ")
   }
   
   out <- dplyr::bind_rows(
@@ -101,11 +102,12 @@ partition <- function(object,
     -ancillary)
   
   if(is_dataset) {
+    # If dataset was in object, restore it from `dataset: trait`
     out <- 
       dplyr::select(
         tidyr::separate(
           out,
-          trait, c("dataset", "trait"), sep = ";"),
+          trait, c("dataset", "trait"), sep = ": "),
         dataset, dplyr::everything())
   }
   
