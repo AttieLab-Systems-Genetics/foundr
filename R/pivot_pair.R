@@ -20,7 +20,7 @@ pivot_pair <- function(object, pair) {
   
   # Columns sex and condition present. Need to carefully address differences in condition.
   
-  # split by trait
+  # split by datatraits
   object <- split(dplyr::select(object, -datatraits, -dataset, -trait), object$datatraits)
   ntraits <- names(object)
   byvars <- names(object[[1]])
