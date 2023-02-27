@@ -17,8 +17,14 @@ traitPairs <- function(traitData,
                        sep = " ON ",
                        ...) {
   
+  if(is.null(traitData))
+    return(NULL)
+  
   traits <- unique(unlist(stringr::str_split(pair, sep)))
-  if(!all(traits %in% traitData$trait)) {
+  
+  traitData <- tidyr::unite(traitData, datatraits, dataset, trait, sep = ": ", remove = FALSE)
+  
+  if(!all(traits %in% traitData$datatraits)) {
     return(NULL)
   }
   
@@ -29,7 +35,7 @@ traitPairs <- function(traitData,
                         ...) {
     # Split trait pair by colon. Reduce to traits in x.
     x <- stringr::str_split(x, sep)[[1]][2:1]
-    traitData <- dplyr::filter(traitData, trait %in% x)
+    traitData <- dplyr::filter(traitData, datatraits %in% x)
     
     if(response == "value") {
       # Create columns for each trait pair with full data.

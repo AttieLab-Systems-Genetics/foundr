@@ -10,21 +10,21 @@
 #'
 #' @examples
 pivot_pair <- function(object, pair) {
-  if(!all(pair %in% object$trait)) {
+  if(!all(pair %in% object$datatraits)) {
     return(NULL)
   }
   
   # Reduce to pair of traits.
-  object <- dplyr::filter(object, trait %in% pair)
+  object <- dplyr::filter(object, datatraits %in% pair)
   nocond <- !("condition" %in% names(object))
   
   # Columns sex and condition present. Need to carefully address differences in condition.
   
   # split by trait
-  byvars <- names(object)
-  byvars <- byvars[!(byvars %in% c("dataset", "trait", "value"))]
-  object <- split(dplyr::select(object, -trait), object$trait)
+  object <- split(dplyr::select(object, -datatraits, -dataset, -trait), object$datatraits)
   ntraits <- names(object)
+  byvars <- names(object[[1]])
+  byvars <- byvars[byvars != "value"]
   
   # Take care of special case of condition column with some or all NAs
   if(!nocond) {

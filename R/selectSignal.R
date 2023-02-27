@@ -33,8 +33,7 @@ selectSignal <- function(traitSignal,
     dplyr::select(
       dplyr::mutate(
         dplyr::filter(
-          traitSignal,
-          trait %in% traitnames,
+          unite_datatraits(traitData, traitnames, TRUE),
           strain %in% strains),
         value = .data[[response]]),
       dplyr::all_of(c(bys, "value"))),

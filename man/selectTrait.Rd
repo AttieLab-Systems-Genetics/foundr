@@ -7,10 +7,11 @@
 selectTrait(
   traitData,
   traitSignal,
-  traitnames = unique(traitSignal$trait),
+  traitnames = unite_datatraits(traitSignal),
   strains = names(CCcolors),
   response = c("individual", "mean", "signal", "ind_signal"),
-  abbrev = TRUE
+  abbrev = TRUE,
+  sep = ": "
 )
 }
 \arguments{
@@ -18,7 +19,7 @@ selectTrait(
 
 \item{traitSignal}{data frame}
 
-\item{traitnames}{names of traits to subset}
+\item{traitnames}{names of `dataset: trait` combinations to subset}
 
 \item{strains}{names of strains to subset}
 

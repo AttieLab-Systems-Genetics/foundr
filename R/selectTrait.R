@@ -2,7 +2,7 @@
 #'
 #' @param traitData data frame
 #' @param traitSignal data frame
-#' @param traitnames names of traits to subset
+#' @param traitnames names of `dataset: trait` combinations to subset
 #' @param strains names of strains to subset
 #' @param response name of response to return
 #' @param abbrev abbreviate names if `TRUE`
@@ -15,10 +15,11 @@
 #'
 #' @examples
 selectTrait <- function(traitData, traitSignal,
-                        traitnames = unique(traitSignal$trait),
+                        traitnames = unite_datatraits(traitSignal),
                         strains = names(CCcolors),
                         response = c("individual", "mean", "signal", "ind_signal"),
-                        abbrev = TRUE) {
+                        abbrev = TRUE,
+                        sep = ": ") {
   if("condition" %in% names(traitData)) {
     bys <- c("dataset","strain","sex","condition","trait")
   } else {
@@ -41,26 +42,30 @@ selectTrait <- function(traitData, traitSignal,
           -mean, -signal)
     }
     
-    traitData <- dplyr::filter(
-      traitData,
-      trait %in% traitnames,
-      strain %in% strains)
-    
+    traitData <- 
+      dplyr::filter(
+        unite_datatraits(traitData, traitnames, TRUE),
+        strain %in% strains)
+
   } else {
     traitData <- selectSignal(traitSignal, traitnames, strains, response)
   }
   
+  # This breaks when traitnames = `dataset: trait`
+  # Want to preserve order of traitnames into traitData
   if(abbrev) {
     ltrait <- length(traitnames)
     # Temporary. Need to address dataset as well.
-    m <- which(!duplicated(traitData$trait))
-    names(m) <- traitData$trait[m]
+    tmp <- tidyr::unite(traitData, datatraits, dataset, trait, sep = sep, remove = FALSE)
+    m <- which(!duplicated(tmp$datatraits))
+    names(m) <- tmp$datatraits[m]
     m <- m[traitnames]
     
     traitData <- dplyr::mutate(
       traitData,
       trait = abbreviate(trait, ceiling(60 / ltrait)),
-      trait = factor(trait, trait[m]))
+      trait = factor(trait, unique(trait[m])),
+      dataset = factor(dataset, unique(dataset[m])))
   }
   
   if("condition" %in% names(traitData)) {
