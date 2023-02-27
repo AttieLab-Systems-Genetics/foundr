@@ -306,7 +306,7 @@ foundrServer <- function(input, output, session,
   output$order <- shiny::renderUI({
     p_types <- paste0("p_", unique(traitStatsSelectType()$term))
     choices <- c(p_types, "alphabetical", "original")
-#    if(shiny::isTruthy(datatraits_selected())) # This causes reset.
+#    if(shiny::isTruthy(trait_selection())) # This causes reset.
     choices <- c("correlation", choices)
     shiny::selectInput("order", "Order traits by", choices, p_types[1])
   })
@@ -361,15 +361,6 @@ foundrServer <- function(input, output, session,
   # now store your current selection in the reactive value
   shiny::observeEvent(input$trait, {
     trait_selection(input$trait)
-  })
-  datatraits_selected <- shiny::reactive({
-    if(shiny::isTruthy(out <- trait_selection())) {
-      out <- purrr::transpose(stringr::str_split(out, ": "))
-      names(out) <- c("dataset", "trait")
-      out <- as.data.frame(lapply(out, unlist))
-    }
-    out
-    trait_selection()
   })
   
   # Output: Plots or Data
@@ -448,7 +439,7 @@ foundrServer <- function(input, output, session,
       DT::dataTableOutput("tablesum"))
   })
   effectsplot <- shiny::reactive({
-    print(effectplot(traitStatsSelectType(), datatraits_selected()))
+    print(effectplot(traitStatsSelectType(), trait_selection()))
   })
   output$effects <- shiny::renderPlot({
     effectsplot()
@@ -525,19 +516,19 @@ foundrServer <- function(input, output, session,
   
   output$filename <- renderUI({
     filename <- paste(shiny::req(datasets_selected()), collapse = ".")
-    if(shiny::isTruthy(datatraits_selected())) {
-      ltrait <- length(datatraits_selected())
+    if(shiny::isTruthy(trait_selection())) {
+      ltrait <- length(trait_selection())
       if(shiny::req(input$tabpanel) != "Volcano") {
         filename <- paste0(filename,
                            "_",
-                           paste(abbreviate(datatraits_selected(), ceiling(60 / ltrait)),
+                           paste(abbreviate(trait_selection(), ceiling(60 / ltrait)),
                                  collapse = "."))
       }
     }
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
   output$downloads <- renderUI({
-    shiny::req(datatraits_selected())
+    shiny::req(trait_selection())
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
@@ -659,10 +650,10 @@ foundrServer <- function(input, output, session,
   
   output$pair <- shiny::renderUI({
     # Somehow when input$height is changed this is reset.
-    shiny::req(datatraits_selected())
-    if(length(datatraits_selected()) < 2)
+    shiny::req(trait_selection())
+    if(length(trait_selection()) < 2)
       return(NULL)
-    choices <- trait_pairs(datatraits_selected())
+    choices <- trait_pairs(trait_selection())
     
     shiny::selectInput(
       "pair", "Select pairs for scatterplots",
@@ -670,7 +661,7 @@ foundrServer <- function(input, output, session,
       multiple = TRUE, width = '100%')
   })
   output$scatPlot <- shiny::renderUI({
-    shiny::req(datatraits_selected(), datasets_selected(), input$order)
+    shiny::req(trait_selection(), datasets_selected(), input$order)
     shiny::tagList(
       shiny::uiOutput("pair"),
       shiny::plotOutput("scatplot", height = paste0(input$height, "in"))
@@ -678,7 +669,7 @@ foundrServer <- function(input, output, session,
   })
   scatsplot <- reactive({
     ggplot_traitPairs(traitPairs(traitDataSelectTrait(),
-                      req(datatraits_selected()),
+                      req(trait_selection()),
                       req(input$pair)))
     
   })

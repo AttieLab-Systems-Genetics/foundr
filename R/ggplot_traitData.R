@@ -29,6 +29,9 @@ ggplot_traitData <- function(object,
   if(!("condition" %in% names(object)))
     return(ggplot_onetrait(object, ...))
   
+  if(is.null(object$dataset))
+    object$dataset <- "unknown"
+  
   # Find all condition groupings (including NA)
   object <- left_join(
     object,

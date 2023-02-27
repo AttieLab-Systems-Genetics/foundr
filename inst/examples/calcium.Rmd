@@ -19,9 +19,15 @@ datadir <- "../../../attie_alan/FounderCalciumStudy"
 ```
 
 ```{r}
-traitData <- readRDS(file.path(datadir, "traitData.rds"))
-traitStats<- readRDS(file.path(datadir, "traitStats.rds"))
-traitSignal <- readRDS(file.path(datadir, "traitSignal.rds"))
+traitData <- readRDS(file.path(datadir, "traitData.rds")) %>%
+  rename(dataset = "datatype") %>%
+  unite(datatraits, dataset, trait, sep = ": ", remove = FALSE)
+traitStats<- readRDS(file.path(datadir, "traitStats.rds")) %>%
+  rename(dataset = "datatype") %>%
+  unite(datatraits, dataset, trait, sep = ": ", remove = FALSE)
+traitSignal <- readRDS(file.path(datadir, "traitSignal.rds")) %>%
+  rename(dataset = "datatype") %>%
+  unite(datatraits, dataset, trait, sep = ": ", remove = FALSE)
 ```
 
 ```{r}
@@ -31,7 +37,7 @@ tsi <- traitSignal %>% filter(grepl("freq_8_2|Fbp1_PP_5480", trait))
 ```
 
 ```{r}
-(traitnames <- sort(unique(td$trait)))
+(traitnames <- sort(unique(tsi$datatraits)))
 ```
 
 Join the following with object 
@@ -61,22 +67,16 @@ ggplot_traitData(td8)
 
 ```{r height = 9}
 ggplot_traitData(td %>%
-                   filter(trait %in% traitnames[1:3]) %>%
+                   filter(datatraits %in% traitnames[1:3]) %>%
                    mutate(condition = ifelse(trait == "8G:freq_8_2",
                                              "8G", condition)))
 ```
 
 ```{r height = 9}
 ggplot_traitData(td %>%
-                   filter(trait %in% traitnames[1:3]))
+                   filter(datatraits %in% traitnames[1:3]))
 ```
-
-```{r height = 9}
-ggplot_traitData(td %>%
-                   filter(trait %in% traitnames[1:3]) %>%
-                   mutate(trait = factor(trait, traitnames[1:3])))
-```
-**Reorder trait names by using factor (want to do this in app)**
+**Reorder trait names by using factor (in app)**
 
 ```{r}
 tra <- selectTrait(td, tsi, traitnames[3:1])

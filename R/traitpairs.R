@@ -22,7 +22,11 @@ traitPairs <- function(traitData,
   
   traits <- unique(unlist(stringr::str_split(pair, sep)))
   
-  traitData <- tidyr::unite(traitData, datatraits, dataset, trait, sep = ": ", remove = FALSE)
+  traitData <- tidyr::unite(
+    traitData,
+    datatraits,
+    dataset, trait,
+    sep = ": ", remove = FALSE)
   
   if(!all(traits %in% traitData$datatraits)) {
     return(NULL)
@@ -126,7 +130,7 @@ pairplots <- function(object,
                       title = paste(pair[1], "vs", pair[2]),
                       ...) {
   # Get trait pair
-  pair <- attr(object, "pair")[2:1]
+  pair <- attr(object, "pair")
 
   # create plot
   p <- ggplot2::ggplot(object) +

@@ -25,12 +25,26 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
   
   if(is.null(traitSignal) | is.null(traitnames))
     return(NULL)
-  if(!all(traitnames %in% unique(traitSignal$trait)))
+
+  traitSignal <- tidyr::unite(
+    traitSignal,
+    datatraits,
+    dataset, trait,
+    sep = ": ", remove = FALSE)
+  
+  if(!all(traitnames %in% unique(traitSignal$datatraits)))
     return(NULL)
   
   proband <- dplyr::filter(
       traitSignal,
-      trait %in% traitnames)
+      datatraits %in% traitnames)
+  uproband <- dplyr::arrange(
+    dplyr::mutate(
+      dplyr::distinct(
+        proband,
+        datatraits, dataset, trait),
+      datatraits = factor(datatraits, traitnames)),
+    datatraits)
   
   # Figure out better way to do correlation by cond:trait if appropriate
   # Think calcium8G
@@ -109,12 +123,7 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
     
     if(!("dataset" %in% names(traitSignal)))
       traitSignal$dataset <- "unknown"
-    traitSignal <- tidyr::unite(
-      traitSignal,
-      dataset_trait,
-      dataset, trait,
-      sep = ";")
-
+    
     if(groupsex == "sex")
       conds <- c("strain", "sex")
     else
@@ -123,15 +132,17 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
     dplyr::select(
       tidyr::pivot_wider(
         dplyr::arrange(
-          traitSignal,
-          dataset_trait, dplyr::across(conds)),
-        names_from = "dataset_trait", values_from = term),
+          dplyr::select(
+            traitSignal,
+            -dataset, -trait),
+          datatraits, dplyr::across(conds)),
+        names_from = "datatraits", values_from = term),
       -tidyr::matches(conds))
   }
 
   proband <- myfun(proband, term, groupsex)
   traitSignal <- myfun(
-    dplyr::filter(traitSignal, !(trait %in% traitnames)),
+    dplyr::filter(traitSignal, !(datatraits %in% traitnames)),
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
@@ -144,7 +155,7 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
       trait, absmax, dplyr::everything()),
     dplyr::desc(absmax))
   
-  # Rearrange as dataframe with dataset, trait, absmax, probandtype, proband, cors
+  # Rearrange as dataframe with dataset, trait, absmax, probandset, proband, cors
   out <- 
     dplyr::mutate(
       tidyr::separate(
@@ -153,9 +164,10 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
             out,
             tidyr::all_of(names(proband)),
             names_to = "proband", values_to = "cors"),
-          trait, c("dataset", "trait"), sep = ";"),
-        proband, c("probandtype", "proband"), sep = ";"),
-      proband = factor(proband, traitnames))
+          trait, c("dataset", "trait"), sep = ": "),
+        proband, c("probandset", "proband"), sep = ": "),
+      proband = factor(proband, unique(uproband$trait)),
+      probandset = factor(probandset, unique(uproband$dataset)))
   
   class(out) <- c("bestcor", class(out))
   out
@@ -213,7 +225,7 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
   p <- ggplot2::ggplot(object) +
     ggplot2::aes(trait, cors, col = proband) +
     ggplot2::geom_point(size = 2) + 
-    ggplot2::facet_grid(probandtype + proband ~ .) +
+    ggplot2::facet_grid(probandset + proband ~ .) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
   if(!abscor) {
     p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")
