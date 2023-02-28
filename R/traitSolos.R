@@ -127,7 +127,7 @@ summary_traitSolos <- function(object,
                                customSettings = NULL,
                                ...) {
   
-  if(is.null(object))
+  if(is.null(object) || !nrow(object))
     return(NULL)
   
   traitnames <- attr(object, "traitnames")

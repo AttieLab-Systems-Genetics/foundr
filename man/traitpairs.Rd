@@ -2,28 +2,27 @@
 % Please edit documentation in R/traitPairs.R
 \name{traitPairs}
 \alias{traitPairs}
-\title{GGplot of pairs of traits}
+\title{Prepare pairs of traits for plotting}
 \usage{
 traitPairs(
   object,
-  traitnames = unique(unite_datatraits(object)),
-  pair = trait_pairs(traitnames, sep),
-  response = c("value", "mean", "signal"),
+  traitnames = attr(object, "traitnames"),
+  pair = paste(traitnames[1:2], collapse = sep),
   sep = " ON ",
   ...
 )
 }
 \arguments{
-\item{object}{}
+\item{object}{object of class `traitSolos`}
 
-\item{traitnames}{}
+\item{traitnames}{trait names as `dataset: trait`}
 
-\item{pair}{}
+\item{pair}{vector of trait name pairs, each joined by `sep`}
 
-\item{sep}{}
+\item{sep}{pair separator}
 
-\item{...}{}
+\item{...}{ignored}
 }
 \description{
-GGplot of pairs of traits
+Prepare pairs of traits for plotting
 }

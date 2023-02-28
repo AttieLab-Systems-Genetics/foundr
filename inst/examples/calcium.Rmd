@@ -95,49 +95,21 @@ tds <- traitSolos(td, tsi, traitnames[c(1,4)], response = "mean")
 Seems to mostly work. Hardwired response = value and mean. Need to fix that.
 
 ```{r}
-out <- traitPairs(tra, traitnames = unique(foundr:::unite_datatraits(tra)),
-                       pair = foundr:::trait_pairs(traitnames, " ON ")[1])
+out <- traitPairs(tra, traitnames = attr(tra, "traitnames"))
 ```
 
 ```{r}
-ggplot_traitPairs(out)
+ggplot_traitPairs(out[1:2])
 ```
 
 ```{r}
-tds <- selectTrait(td, tsi, traitnames[c(4,5)], response = "mean")
-```
-
-
-```{r}
-out <- traitPairs(tds, traitnames[c(4,5)], response = "mean")
+tmp <- traitSolos(td, tsi, traitnames[c(4,5)], response = "mean")
+tmp2 <- traitPairs(tmp)
+plot(tmp2)
 ```
 
 ```{r}
-ggplot_traitPairs(out)
-```
-
-```{r}
-out <- traitPairs(td, traitnames[c(1,5)], response = "mean")
-```
-
-```{r}
-ggplot_traitPairs(out)
-```
-
-```{r}
-foundr:::foundrScatplot(traitnames[c(1,5)], td, response = "mean")
-```
-
-```{r}
-foundr:::foundrScatplot(traitnames[c(5,1)], td, response = "mean")
-```
-
-```{r}
-foundr:::foundrScatplot(traitnames[c(1,4)], td, response = "mean")
-```
-
-```{r}
-foundr:::foundrScatplot(traitnames[c(5,4)], td, response = "mean")
+plot(traitPairs(traitSolos(td, tsi, traitnames[c(5,4)], response = "signal")))
 ```
 
 # Correlation
@@ -152,7 +124,7 @@ Error: 'x' must be numeric (when both protein and calcium8G used for 5,4)
 Error: Faceting variables must have at least one value
 
 ```{r}
-bestcor(tsi %>% filter(trait %in% traitnames[c(1,4)]), traitnames[4]) %>%
+bestcor(tsi, traitnames[4]) %>%
   select(-absmax)
 ```
 

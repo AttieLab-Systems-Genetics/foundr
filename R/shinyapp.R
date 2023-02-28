@@ -447,6 +447,7 @@ foundrServer <- function(input, output, session,
 
   # Plots
   distplot <- shiny::reactive({
+    shiny::req(traitDataSelectTrait())
     plot(traitDataSelectTrait(),
          facet_strain = input$facet,
          boxplot = TRUE)

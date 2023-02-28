@@ -26,17 +26,17 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
   if(is.null(traitSignal) | is.null(traitnames))
     return(NULL)
 
-  traitSignal <- tidyr::unite(
+  proband <- tidyr::unite(
     traitSignal,
     datatraits,
     dataset, trait,
     sep = ": ", remove = FALSE)
   
-  if(!all(traitnames %in% unique(traitSignal$datatraits)))
+  if(!all(traitnames %in% unique(proband$datatraits)))
     return(NULL)
   
   proband <- dplyr::filter(
-      traitSignal,
+      proband,
       datatraits %in% traitnames)
   uproband <- dplyr::arrange(
     dplyr::mutate(
@@ -142,7 +142,13 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
 
   proband <- myfun(proband, term, groupsex)
   traitSignal <- myfun(
-    dplyr::filter(traitSignal, !(datatraits %in% traitnames)),
+    dplyr::filter(
+      tidyr::unite(
+        traitSignal,
+        datatraits,
+        dataset, trait,
+        sep = ": ", remove = FALSE),
+      !(datatraits %in% traitnames)),
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
@@ -201,12 +207,9 @@ bestcorStats <- function(traitStats, traitnames = "") {
 #' @rdname bestcor
 #'
 ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
-  if(is.null(object))
-    return(NULL)
-  
-  if(!nrow(object))
-    return(NULL)
-  
+  if(is.null(object) || !nrow(object))
+    return(plot_null("No Correlations to Plot."))
+
   if(abscor) {
     object <- dplyr::mutate(object, cors = abs(cors))
   }
@@ -222,6 +225,9 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
         absmax >= mincor),
     -absmax)
 
+  if(!nrow(object))
+    return(plot_null(paste("No Correlations above", mincor)))
+  
   p <- ggplot2::ggplot(object) +
     ggplot2::aes(trait, cors, col = proband) +
     ggplot2::geom_point(size = 2) + 

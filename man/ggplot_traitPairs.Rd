@@ -2,9 +2,15 @@
 % Please edit documentation in R/traitPairs.R
 \name{ggplot_traitPairs}
 \alias{ggplot_traitPairs}
+\alias{autoplot.traitPairs}
+\alias{plot.traitPairs}
 \title{Title}
 \usage{
 ggplot_traitPairs(object, ...)
+
+\method{autoplot}{traitPairs}(object, ...)
+
+\method{plot}{traitPairs}(object, ...)
 }
 \arguments{
 \item{object}{}

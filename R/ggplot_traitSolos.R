@@ -22,6 +22,9 @@
 ggplot_traitSolos <- function(object,
                               ...) {
   
+  if(is.null(object) || !nrow(object))
+    return(plot_null("No Traits to Plot."))
+  
   if("condition" %in% names(object)) {
     if(all(is.na(object$condition)))
       object$condition <- NULL

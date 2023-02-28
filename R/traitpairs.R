@@ -1,24 +1,29 @@
-#' GGplot of pairs of traits
+#' Prepare pairs of traits for plotting
 #'
-#' @param object 
-#' @param traitnames 
-#' @param pair 
-#' @param sep 
-#' @param ... 
+#' @param object object of class `traitSolos`
+#' @param traitnames trait names as `dataset: trait`
+#' @param pair vector of trait name pairs, each joined by `sep`
+#' @param sep pair separator
+#' @param ... ignored
 #'
 #' @return
 #' @export
 #'
 #' @examples
 traitPairs <- function(object,
-                       traitnames = unique(unite_datatraits(object)),
-                       pair = trait_pairs(traitnames, sep),
-                       response = c("value","mean","signal"),
+                       traitnames = attr(object, "traitnames"),
+                       pair = paste(traitnames[1:2], collapse = sep),
                        sep = " ON ",
                        ...) {
   
   if(is.null(object))
     return(NULL)
+  if(length(traitnames) < 2)
+    return(NULL)
+  
+  response <- attr(object, "response")
+  
+  # Allow user to either enter trait pairs or a number of trait pairs
   
   traits <- unique(unlist(stringr::str_split(pair, sep)))
   
@@ -32,8 +37,6 @@ traitPairs <- function(object,
     return(NULL)
   }
   
-  response <- match.arg(response)
-  
   pairsetup <- function(x, object,
                         sep = " ON ",
                         ...) {
@@ -41,41 +44,37 @@ traitPairs <- function(object,
     x <- stringr::str_split(x, sep)[[1]][2:1]
     object <- dplyr::filter(object, datatraits %in% x)
     
-    if(response == "value") {
-      # Create columns for each trait pair with full data.
-      out <- pivot_pair(object, x)
-    } else {
-      out <- object
-    }
+    out <- pivot_pair(object, x)
     
-    if("sex_condition" %in% names(object)) {
-      groupsex <- "sex_condition"
-      conds <- c("sex", "condition")
-    } else {
-      groupsex <- "sex"
-      conds <- "sex"
-    }
-    
-    if(response != "value" | nrow(out) < 2) { # Reduce to mean.
+    is_indiv <- (response %in% c("individual", "ind_signal"))
+    if(is_indiv & nrow(out) < 2) {
       line_strain <- FALSE
       # Problem of nrow<2 likely from traits having different subjects.
       # Reduce to response
-      out <- selectSignal(object, traitnames, "mean")
+      if(response %in% c("signal", "ind_signal"))
+        response <- "signal"
+      else
+        response <- "mean"
+      out <- selectSignal(object, traitnames, response)
       out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
 
       # pivot_pair not working when misaligned sex_condition
       
       # Create columns for each trait pair with trait means.
       out <- pivot_pair(out, x)
-      if(groupsex == "sex_condition") {
-        out <- tidyr::unite(
-          out,
-          sex_condition, sex, condition,
-          remove = FALSE,
-          na.rm = TRUE)
-      }
     }
+    
+    if("condition" %in% names(out)) {
+      out <- tidyr::unite(
+        out,
+        sex_condition, sex, condition,
+        remove = FALSE,
+        na.rm = TRUE)
+    }
+    
     attr(out, "pair") <- x
+    attr(out, "response") <- response
+    
     out  
   }
   
@@ -84,7 +83,7 @@ traitPairs <- function(object,
     pairsetup, object, sep, ...)
   class(out) <- c("traitPairs", class(out))
   attr(out, "sep") <- sep
-  
+
   out
 }
 
@@ -112,8 +111,9 @@ trait_pairs <- function(traitnames, sep = " ON ") {
 #' @examples
 ggplot_traitPairs <- function(object, ...) {
 
-  if(is.null(object))
-    return(plot_null("No Trait Pairs Object."))
+  if(is.null(object) || !nrow(object[[1]]))
+    return(plot_null("No Trait Pairs to Plot."))
+
   plots <- purrr::map(object, pairplots, sep = attr(object, "sep"), ...)
   
   # Patch plots together by rows
@@ -122,11 +122,12 @@ ggplot_traitPairs <- function(object, ...) {
 pairplots <- function(object,
                       sep = attr(object, "sep"), 
                       shape_sex = TRUE,
-                      line_strain = TRUE,
+                      line_strain = (response %in% c("individual","ind_signal")),
                       title = paste(pair[1], "vs", pair[2]),
                       ...) {
   # Get trait pair
   pair <- attr(object, "pair")
+  response <- attr(object, "response")
 
   # create plot
   p <- ggplot2::ggplot(object) +
@@ -145,7 +146,9 @@ pairplots <- function(object,
   }
   p <- p +
     ggplot2::scale_fill_manual(values = CCcolors) +
-    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme(
+      legend.position = "none",
+      axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)) +
     ggplot2::ggtitle(title)
   
   if(shape_sex) {
@@ -169,5 +172,17 @@ pairplots <- function(object,
       p <- p + ggplot2::facet_grid(. ~ sex)
   }
   p
+}
+#' @export
+#' @rdname ggplot_traitPairs
+#' @method autoplot traitPairs
+autoplot.traitPairs <- function(object, ...) {
+  ggplot_traitPairs(object, ...)
+}
+#' @export
+#' @rdname ggplot_traitPairs
+#' @method plot traitPairs
+plot.traitPairs <- function(object, ...) {
+  ggplot_traitPairs(object, ...)
 }
 
