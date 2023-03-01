@@ -92,6 +92,10 @@ Want traitPairs etc. to have features of selectTrait. It does not appear to be w
 tds <- traitSolos(td, tsi, traitnames[c(1,4)], response = "mean")
 ```
 
+```{r}
+out <- traitPairs(tds)
+```
+
 Seems to mostly work. Hardwired response = value and mean. Need to fix that.
 
 ```{r}
@@ -99,7 +103,7 @@ out <- traitPairs(tra, traitnames = attr(tra, "traitnames"))
 ```
 
 ```{r}
-ggplot_traitPairs(out[1:2])
+ggplot_traitPairs(out)
 ```
 
 ```{r}
@@ -110,6 +114,12 @@ plot(tmp2)
 
 ```{r}
 plot(traitPairs(traitSolos(td, tsi, traitnames[c(5,4)], response = "signal")))
+```
+
+# Effects Plots
+
+```{r}
+effectplot(tst)
 ```
 
 # Correlation

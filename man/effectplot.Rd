@@ -4,7 +4,7 @@
 \alias{effectplot}
 \title{Effect Plots}
 \usage{
-effectplot(object, traitnames = unique(object$trait)[1:5])
+effectplot(object, traitnames = udatatraits)
 }
 \arguments{
 \item{object}{data frame with `trait` names, `term` names, `SD` and `p.value`}

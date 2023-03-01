@@ -93,13 +93,8 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
     groupsex <- "sex"
   }
   
-  # Need to first check subset of strain, sex, condition included.
-  if(groupsex == "sex")
-    conds <- c("strain", "sex")
-  else
-    conds <- c("strain", "sex", "condition")
-  
-  # 
+  # Identify subset of strain, sex, condition included.
+  conds <- condset(proband)
   factors <- unique(
     tidyr::unite(
       dplyr::distinct(

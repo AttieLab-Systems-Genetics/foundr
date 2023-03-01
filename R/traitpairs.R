@@ -37,54 +37,58 @@ traitPairs <- function(object,
     return(NULL)
   }
   
-  pairsetup <- function(x, object,
-                        sep = " ON ",
-                        ...) {
-    # Split trait pair by colon. Reduce to traits in x.
-    x <- stringr::str_split(x, sep)[[1]][2:1]
-    object <- dplyr::filter(object, datatraits %in% x)
-    
-    out <- pivot_pair(object, x)
-    
-    is_indiv <- (response %in% c("individual", "ind_signal"))
-    if(is_indiv & nrow(out) < 2) {
-      line_strain <- FALSE
-      # Problem of nrow<2 likely from traits having different subjects.
-      # Reduce to response
-      if(response %in% c("signal", "ind_signal"))
-        response <- "signal"
-      else
-        response <- "mean"
-      out <- selectSignal(object, traitnames, response)
-      out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
+  
+  out <- purrr::map(
+    purrr::set_names(pair),
+    pairsetup, object, response, sep, ...)
+  class(out) <- c("traitPairs", class(out))
+  attr(out, "sep") <- sep
 
-      # pivot_pair not working when misaligned sex_condition
-      
-      # Create columns for each trait pair with trait means.
-      out <- pivot_pair(out, x)
-    }
+  out
+}
+pairsetup <- function(x, object,
+                      response,
+                      sep = " ON ",
+                      ...) {
+  # Split trait pair by colon. Reduce to traits in x.
+  x <- stringr::str_split(x, sep)[[1]][2:1]
+  object <- dplyr::filter(object, datatraits %in% x)
+  
+  out <- pivot_pair(object, x)
+  
+  is_indiv <- (response %in% c("individual", "ind_signal"))
+  if(is_indiv & nrow(out) < 2) {
+    # Problem of nrow<2 likely from traits having different subjects.
+    # Reduce to response
+    if(response %in% c("signal", "ind_signal"))
+      response <- "signal"
+    else
+      response <- "mean"
+    out <- selectSignal(object, x, response)
+    out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
     
-    if("condition" %in% names(out)) {
+    # Create columns for each trait pair with trait means.
+    out <- pivot_pair(out, x)
+  } else {
+    
+  }
+  
+  if("condition" %in% names(out)) {
+    if(!all(is.na(out$condition))) {
       out <- tidyr::unite(
         out,
         sex_condition, sex, condition,
         remove = FALSE,
         na.rm = TRUE)
+    } else {
+      out$condition <- NULL
     }
-    
-    attr(out, "pair") <- x
-    attr(out, "response") <- response
-    
-    out  
   }
   
-  out <- purrr::map(
-    purrr::set_names(pair),
-    pairsetup, object, sep, ...)
-  class(out) <- c("traitPairs", class(out))
-  attr(out, "sep") <- sep
-
-  out
+  attr(out, "pair") <- x
+  attr(out, "response") <- response
+  
+  out  
 }
 
 trait_pairs <- function(traitnames, sep = " ON ") {
@@ -174,15 +178,14 @@ pairplots <- function(object,
   p
 }
 #' @export
-#' @rdname ggplot_traitPairs
+#' @rdname traitPairs
 #' @method autoplot traitPairs
 autoplot.traitPairs <- function(object, ...) {
   ggplot_traitPairs(object, ...)
 }
 #' @export
-#' @rdname ggplot_traitPairs
+#' @rdname traitPairs
 #' @method plot traitPairs
 plot.traitPairs <- function(object, ...) {
   ggplot_traitPairs(object, ...)
 }
-

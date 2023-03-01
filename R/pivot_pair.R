@@ -13,6 +13,10 @@ pivot_pair <- function(object, pair) {
   if(!all(pair %in% object$datatraits)) {
     return(NULL)
   }
+  if("mean" %in% names(object))
+    object$mean <- NULL
+  if("signal" %in% names(object))
+    object$signal <- NULL
   
   # Reduce to pair of traits.
   object <- dplyr::filter(object, datatraits %in% pair)
@@ -24,7 +28,7 @@ pivot_pair <- function(object, pair) {
   object <- split(dplyr::select(object, -datatraits, -dataset, -trait), object$datatraits)
   ntraits <- names(object)
   byvars <- names(object[[1]])
-  byvars <- byvars[byvars != "value"]
+  byvars <- byvars[!(byvars %in% c("value"))]
   
   # Take care of special case of condition column with some or all NAs
   if(!nocond) {

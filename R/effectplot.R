@@ -10,19 +10,27 @@
 #' @importFrom tidyr pivot_longer
 #'
 #' @examples
-effectplot <- function(object, traitnames = unique(object$trait)[1:5]) {
+effectplot <- function(object, traitnames = udatatraits) {
   
-  if(is.null(object) | is.null(traitnames))
+  if(is.null(object))
+    return(plot_null("No effect data."))
+
+  object <- tidyr::unite(
+    object,
+    datatraits,
+    dataset, trait,
+    sep = ": ", remove = FALSE)
+  udatatraits <- unique(object$datatraits)
+  
+  if(is.null(traitnames) || !length(traitnames))
     return(plot_null("Need to specify at least one trait."))
   
   object <- tidyr::pivot_longer(
     dplyr::mutate(
       dplyr::rename(
-        dplyr::mutate(
-          dplyr::filter(
-            object,
-            trait %in% traitnames),
-          trait = factor(trait, traitnames)),
+        dplyr::filter(
+          object,
+          datatraits %in% traitnames),
         terms = "term",
         log10pvalue = "p.value"),
       terms = factor(terms, unique(terms)),
@@ -34,7 +42,7 @@ effectplot <- function(object, traitnames = unique(object$trait)[1:5]) {
   ggplot2::ggplot(object) +
     ggplot2::aes(terms, value) +
     ggplot2::geom_point(size = 2) +
-    ggplot2::facet_grid(stats ~ trait, scales = "free") +
+    ggplot2::facet_grid(stats ~ dataset + trait, scales = "free") +
     ggplot2::ylab("") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
 }

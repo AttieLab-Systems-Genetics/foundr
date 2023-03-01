@@ -2,6 +2,8 @@
 % Please edit documentation in R/traitPairs.R
 \name{traitPairs}
 \alias{traitPairs}
+\alias{autoplot.traitPairs}
+\alias{plot.traitPairs}
 \title{Prepare pairs of traits for plotting}
 \usage{
 traitPairs(
@@ -11,6 +13,10 @@ traitPairs(
   sep = " ON ",
   ...
 )
+
+\method{autoplot}{traitPairs}(object, ...)
+
+\method{plot}{traitPairs}(object, ...)
 }
 \arguments{
 \item{object}{object of class `traitSolos`}
