@@ -4,10 +4,10 @@
 \alias{cor_compare}
 \title{Compare correlation matrices using upper triangle}
 \usage{
-cor_compare(traitsum, cor1, cor2, ...)
+cor_compare(traitStats, cor1, cor2, ...)
 }
 \arguments{
-\item{traitsum}{data frame with trait summaries}
+\item{traitStats}{data frame with trait summaries}
 
 \item{cor1, cor2}{correlation matrices to compare}
 

@@ -1,0 +1,62 @@
+---
+title: "Foundr Vignette"
+author: "Brian Yandell"
+date: "2023-03-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(foundr)
+```
+
+```{r}
+sampleSignal <- partition(sampleData)
+```
+
+## Scatterplots
+
+- C on A: mostly signal
+  + mean cor = 0.0107; signal cor = 0.90
+  + -10*log(p.value) = 1.97, 2.81
+- D on B: negligible signal
+  + mean cor = 0.8110; signal cor = 0.28
+  + -10*log(p.value) = 0.32, 2.73
+
+#### Plots of Means
+
+```{r}
+out <- traitSolos(sampleData, sampleSignal,
+                  response = "mean")
+plot(out)
+```
+
+```{r}
+out2 <- traitPairs(
+  out,
+  traitnames = attr(out, "traitnames"),
+  pair = c(
+    paste(attr(out, "traitnames")[1:2], collapse = " ON "),
+    paste(attr(out, "traitnames")[3:4], collapse = " ON ")))
+plot(out2)
+```
+
+```{r}
+out <- traitSolos(sampleData, sampleSignal,
+                  response = "signal")
+plot(out)
+```
+
+```{r}
+out2 <- traitPairs(
+  out,
+  traitnames = attr(out, "traitnames"),
+  pair = c(
+    paste(attr(out, "traitnames")[1:2], collapse = " ON "),
+    paste(attr(out, "traitnames")[3:4], collapse = " ON ")))
+plot(out2)
+```

@@ -5,15 +5,15 @@
 \title{Extreme correlation comparison summaries}
 \usage{
 cor_extreme(
-  traitsum,
-  object = cor_compare(traitsum, ...),
+  traitStats,
+  object = cor_compare(traitStats, ...),
   ...,
   cormin = 0.8,
   minlogp = 2
 )
 }
 \arguments{
-\item{traitsum}{data frame with trait summaries}
+\item{traitStats}{data frame with trait summaries}
 
 \item{object}{object from `cor_compare()`}
 

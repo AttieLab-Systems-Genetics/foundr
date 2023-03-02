@@ -1,6 +1,6 @@
 #' Compare correlation matrices using upper triangle
 #'
-#' @param traitsum data frame with trait summaries
+#' @param traitStats data frame with trait summaries
 #' @param cor1,cor2 correlation matrices to compare
 #' @param ... additional parameters (not used)
 #'
@@ -10,11 +10,13 @@
 
 #'
 #' @examples
-cor_compare <- function(traitsum, cor1, cor2, ...) {
-  # Typically traitsum will be summary across traits for a particular datatype.
+cor_compare <- function(traitStats, cor1, cor2, ...) {
+  # Typically traitStats will be summary across traits for a particular datatype.
   
   # Pull p-values for signal and organize by rows and columns of cor matrices.
-  tmp <- traitsum$p_signal
+  tmp <- dplyr::filter(
+    traitStats,
+    term == "signal")$p.value
   pvalr <- matrix(tmp, byrow = TRUE, nrow = length(tmp), ncol = length(tmp))
   pvalr <- -log10(pvalr[upper.tri(pvalr)])
   pvalc <- matrix(tmp, byrow = FALSE, nrow = length(tmp), ncol = length(tmp))
@@ -31,7 +33,7 @@ cor_compare <- function(traitsum, cor1, cor2, ...) {
 
 #' Extreme correlation comparison summaries
 #'
-#' @param traitsum data frame with trait summaries
+#' @param traitStats data frame with trait summaries
 #' @param object object from `cor_compare()`
 #' @param ... additional parameters
 #' @param cormin minimum correlation to keep
@@ -43,17 +45,17 @@ cor_compare <- function(traitsum, cor1, cor2, ...) {
 #' @importFrom purrr map transpose
 #'
 #' @examples
-cor_extreme <- function(traitsum,
-                        object = cor_compare(traitsum, ...),
+cor_extreme <- function(traitStats,
+                        object = cor_compare(traitStats, ...),
                         ...,
                         cormin = 0.8,
                         minlogp = 2) {
-  if(is.null(traitsum))
+  if(is.null(traitStats))
     return(NULL)
   if(is.null(object))
     retrun(NULL)
   
-  traits <- as.character(traitsum$trait)
+  traits <- as.character(traitStats$trait)
   
   object <- object %>%
     dplyr::mutate(
