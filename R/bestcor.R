@@ -174,17 +174,43 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
   out
 }
 
-bestcorStats <- function(traitStats, traitnames = "") {
-  if(any(traitnames == "") | is.null(traitnames) | is.null(traitStats))
-    return(traitStats)
+bestcorStats <- function(traitStats, traitnames = NULL,
+                         bestcorObject) {
+
+  if(is.null(traitStats))
+    return(NULL)
   
-  dplyr::mutate(
+  traitnames <- unique(c(
+    traitnames,
+    tidyr::unite(
+      bestcorObject,
+      datatraits,
+      dataset, trait,
+      sep = ": ")$datatraits
+  ))
+  
+  if(is.null(traitnames))
+    return(NULL)
+  
+  traitStats <- tidyr::unite(
+    traitStats,
+    datatraits,
+    dataset, trait,
+    sep = ": ", remove = FALSE)
+  
+  if(!all(m <- (traitnames %in% unique(traitStats$datatraits)))) {
+    traitnames <- traitnames[m]
+  }
+  if(!length(traitnames))
+    return(NULL)
+  
+  dplyr::select(
     dplyr::arrange(
       dplyr::mutate(
         traitStats,
-        trait = factor(trait, unique(traitnames))),
-      trait),
-    trait = as.character(trait))
+        datatraits = factor(datatraits, traitnames)),
+      datatraits),
+    -datatraits)
 }
 
 #' GGplot of bestcor object

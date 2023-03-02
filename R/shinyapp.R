@@ -251,7 +251,7 @@ foundrServer <- function(input, output, session,
       out <- dplyr::arrange(out, trait)
     } else {
       if(input$order == "correlation") {
-        out <- traitSignalBestCor()
+        out <- traitStatsBestCor()
       } else {
         if(input$order != "original") {
           # Order by p.value for termname
@@ -268,10 +268,12 @@ foundrServer <- function(input, output, session,
             trait_selection(),
             shiny::req(input$corterm))
   })
-  traitSignalBestCor <- shiny::reactive({
-    # Need to change this to include dataset.
+  traitStatsBestCor <- shiny::reactive({
+    shiny::req(traitStatsSelectType(),
+               corobject())
     bestcorStats(traitStatsSelectType(),
-                 c(trait_selection(), corobject()$trait))
+                 trait_selection(), 
+                 corobject())
   })
   traitNamesArranged <- shiny::reactive({
     shiny::req(traitStatsArranged())

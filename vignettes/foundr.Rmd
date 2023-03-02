@@ -18,7 +18,11 @@ library(foundr)
 sampleSignal <- partition(sampleData)
 ```
 
-## Scatterplots
+```{r}
+sampleStats <- strainstats(sampleData)
+sampleStats %>%
+  filter(term == "signal")
+```
 
 - C on A: mostly signal
   + mean cor = 0.0107; signal cor = 0.90
@@ -26,6 +30,8 @@ sampleSignal <- partition(sampleData)
 - D on B: negligible signal
   + mean cor = 0.8110; signal cor = 0.28
   + -10*log(p.value) = 0.32, 2.73
+
+## Scatterplots
 
 #### Plots of Means
 
@@ -60,3 +66,14 @@ out2 <- traitPairs(
     paste(attr(out, "traitnames")[3:4], collapse = " ON ")))
 plot(out2)
 ```
+
+# Correlations and Effects
+
+```{r}
+volcano(sampleStats, "signal")
+```
+
+```{r}
+effectplot(sampleStats, "sample: C")
+```
+

@@ -7,7 +7,7 @@
 effectplot(object, traitnames = udatatraits)
 }
 \arguments{
-\item{object}{data frame with `trait` names, `term` names, `SD` and `p.value`}
+\item{object}{data frame from `strainstats()`}
 
 \item{traitnames}{`traitnames` to show}
 }

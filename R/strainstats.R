@@ -1,8 +1,6 @@
 #' Use Broom to Find Stats for Model Summaries
 #'
 #' @param object data frame in long format with trait data
-#' @param trait name of column with trait names
-#' @param value name column with trait values
 #' @param signal signal factor combination as string for `formula`
 #' @param ancillary ancillary factor combination as string for `formula`
 #' @param calc_sd calculate SDs by `term` if `TRUE` (default)
@@ -22,8 +20,6 @@
 #' @examples
 #' strainstats(sampleData)
 strainstats <- function(object,
-                    trait = "trait",
-                    value = "value",
                     signal = ifelse(
                       is_condition,
                       "strain * sex * condition",
@@ -40,36 +36,49 @@ strainstats <- function(object,
     is_condition <- !all(is.na(object$condition))
   }
   
+  if(!("dataset" %in% names(object)))
+    object$dataset <- "unknown"
+  if(!("datatraits" %in% names(object)))
+    object <- tidyr::unite(
+      object,
+      datatraits,
+      dataset, trait,
+      sep = ": ")
+  
   out <- dplyr::bind_rows(
     purrr::map(
-      split(object, object[[trait]]),
-      function(traitdata) {
-        sig <- tryCatch(signalfit(traitdata, value, signal, ancillary),
-                       error = function(e) NULL)
-        if(is.null(sig))
-          return(NULL)
-        form <- stats::formula(paste(value, "~", signal))
-        fit <- stats::lm(form, traitdata)
-        rawSD <-  stats::sd(traitdata[[value]], na.rm = TRUE)
-        
-        dplyr::mutate(
-          dplyr::bind_rows(
-            sig,
-            strain_stats(stats::drop1(fit, fit, test = "F"))),
-          SD = SD / rawSD)
-      }),
-    .id = trait)
+      split(object, object$datatraits),
+      fitsplit, signal, ancillary),
+    .id = "datatraits")
   
   # Reorder to agree with data object
-  o <- dplyr::distinct(object, trait)$trait
-  dplyr::mutate(
+  o <- dplyr::distinct(object, datatraits)$datatraits
+  tidyr::separate_wider_delim(
     dplyr::arrange(
       dplyr::mutate(
         out,
-        trait = factor(trait, o)),
-      trait),
-    trait = as.character(trait))
+        datatraits = factor(datatraits, o)),
+      datatraits),
+    datatraits,
+    ": ",
+    names = c("dataset", "trait"))
 }
+fitsplit <- function(traitdata, signal, ancillary) {
+  sig <- tryCatch(signalfit(traitdata, "value", signal, ancillary),
+                  error = function(e) NULL)
+  if(is.null(sig))
+    return(NULL)
+  form <- stats::formula(paste("value", "~", signal))
+  fit <- stats::lm(form, traitdata)
+  rawSD <-  stats::sd(traitdata$value, na.rm = TRUE)
+  
+  dplyr::mutate(
+    dplyr::bind_rows(
+      sig,
+      strain_stats(stats::drop1(fit, fit, test = "F"))),
+    SD = SD / rawSD)
+}
+
 #' Order Stats by Selected term name
 #'
 #' @param object data frame from `strainstats`
@@ -124,7 +133,27 @@ signalfit <- function(traitdata, value, signal, ancillary) {
   fitful <- stats::lm(formful, traitdata)
   fitred <- stats::lm(formred, traitdata)
   
-  strain_stats(stats::anova(fitred, fitful), "signal")
+  # Get extra terms from full and reduced fits
+  sumful <- summary(fitful)
+  sumred <- summary(fitred)
+  Fful <- sumful$fstatistic
+  Fred <- sumred$fstatistic
+  extra <- data.frame(
+    term = c("cellmean", "rest", "noise"),
+    SD = c(sqrt(Fful[1]) * sumful$sigma,
+           sqrt(Fred[1]) * sumred$sigma,
+           sumful$sigma),
+    p.value = c(
+      stats::pf(Fful[1],
+                Fful[2], Fful[3],
+                lower.tail = FALSE),
+      stats::pf(Fred[1] * (sumred$sigma / sumful$sigma)^2,
+                Fred[2], Fful[3],
+                lower.tail = FALSE),
+      NA))
+  dplyr::bind_rows(
+    strain_stats(stats::anova(fitred, fitful), "signal"),
+    extra)
 }
 
 strain_stats <- function(fitsum, termname = "") {

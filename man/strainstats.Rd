@@ -6,8 +6,6 @@
 \usage{
 strainstats(
   object,
-  trait = "trait",
-  value = "value",
   signal = ifelse(is_condition, "strain * sex * condition", "strain * sex"),
   ancillary = ifelse(is_condition, "strain * sex + sex * condition", "sex"),
   calc_sd = TRUE
@@ -15,10 +13,6 @@ strainstats(
 }
 \arguments{
 \item{object}{data frame in long format with trait data}
-
-\item{trait}{name of column with trait names}
-
-\item{value}{name column with trait values}
 
 \item{signal}{signal factor combination as string for `formula`}
 
