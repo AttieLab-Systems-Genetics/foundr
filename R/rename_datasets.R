@@ -10,17 +10,13 @@ mutate_datasets <- function(object, datasets, undo = FALSE) {
                           names(datasets)[i], dataset))
     }
   } else {
-    for(i in seq_along(datasets)) {
-      object <- dplyr::mutate(
-        object,
-        dataset = ifelse(dataset == names(datasets)[i],
-                          datasets[[i]], dataset))
-      if("probandtype" %in% names(object)) {
-        object <- dplyr::mutate(
-          object,
-          probandtype = ifelse(probandtype == names(datasets)[i],
-                            datasets[[i]], probandtype))
-      }
+    object$dataset <- as.character(object$dataset)
+    m <- match(object$dataset, names(datasets), nomatch = 0)
+    object$dataset[m>0] <- datasets[m]
+    if("probandset" %in% names(object)) {
+      object$probandset <- as.character(object$probandset)
+      m <- match(object$probandset, names(datasets), nomatch = 0)
+      object$probandset[m>0] <- datasets[m]
     }
   }
   object
