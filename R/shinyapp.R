@@ -301,7 +301,7 @@ foundrServer <- function(input, output, session,
   output$dataset <- shiny::renderUI({
     shiny::req(datasets())
     shiny::selectInput(
-      "dataset", "Measurement set",
+      "dataset", "Dataset:",
       datasets(), datasets()[1],
       multiple = TRUE)
   })
@@ -484,7 +484,7 @@ foundrServer <- function(input, output, session,
     print(volcanoplot())
   )
   output$volcano <- shiny::renderUI({
-    trstats <- traitStatsSelectType()
+    trstats <- shiny::req(traitStatsSelectType())
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
@@ -507,14 +507,17 @@ foundrServer <- function(input, output, session,
         shiny::fluidRow(
           shiny::column(
             6,
-            shiny::sliderInput("volsd", "SD line:",
-                               0, signif(max(trstats$SD), 2),
-                               1, step = 0.1)),
+            shiny::sliderInput(
+              "volsd", "SD line:",
+              0, signif(max(trstats$SD, na.rm = TRUE), 2),
+              1, step = 0.1)),
           shiny::column(
             6,
-            shiny::sliderInput("volpval", "-log10(p.value) line:",
-                               0, min(10,round(-log10(min(trstats$p.value)), 1)),
-                               2, step = 0.5)))))
+            shiny::sliderInput(
+              "volpval", "-log10(p.value) line:",
+              0, min(10,
+                     round(-log10(min(trstats$p.value, na.rm = TRUE)), 1)),
+              2, step = 0.5)))))
   })
   
   output$filename <- renderUI({
@@ -701,9 +704,9 @@ foundrIntro <- function(helppath = NULL) {
       "and both sexes, possibly crossed with experimental conditions.",
       datainfo,
       shiny::br(),
-      "Select one or more traits after deciding measurement set(s) and trait order. Traits window supports partial matching to find desired traits.",
+      "Select one or more traits after deciding dataset(s) and trait order. Traits window supports partial matching to find desired traits.",
       "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
-      "Plots and data means (for selected traits) and data summaries (for whole measurement set) can be downloaded.",
+      "Plots and data means (for selected traits) and data summaries (for whole dataset) can be downloaded.",
       "See",
       "GitHub:", shiny::a(paste("byandell/foundr",
                                 paste0("(version ", utils::packageVersion("foundr"), ")")),

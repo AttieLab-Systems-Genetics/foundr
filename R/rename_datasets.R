@@ -39,7 +39,9 @@ rename_datasets <- function(object, datasets, undo = FALSE) {
     dtypes <- object
     
     # Short name of datasets = measurement sets
-    m <- match(dtypes, datasets, nomatch = 0)
+    m <- match(dtypes,
+               paste(names(datasets), datasets, sep = ": "),
+               nomatch = 0)
     dtypes[m>0] <- names(datasets)[m]
   } else {
     #unique(object$dataset)
@@ -52,7 +54,7 @@ rename_datasets <- function(object, datasets, undo = FALSE) {
     # Match up input datasets with custom settings. Should all match.
     m <- match(dtypes, names(datasets), nomatch = 0)
     # Replace datasets with long name for dataset
-    dtypes[m>0] <- datasets[m]
+    dtypes[m>0] <- paste(names(datasets)[m], datasets[m], sep = ": ")
   }
   # Return un-named vector
   as.vector(dtypes)
