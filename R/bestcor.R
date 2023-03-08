@@ -19,9 +19,8 @@
 #' ggplot_bestcor(out, 0, abscor = FALSE)
 bestcor <- function(traitSignal,
                     traitnames = NULL,
-                    term = c("signal", "cellmean", "mean")) {
+                    term = c("signal", "cellmean")) {
   term <- match.arg(term)
-  if(term == "mean") term <- "cellmean"
 
   # Check if traitSignal or traitnames are missing.
   if(is.null(traitSignal) | is.null(traitnames))

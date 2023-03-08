@@ -13,8 +13,8 @@ pivot_pair <- function(object, pair) {
   if(!all(pair %in% object$datatraits)) {
     return(NULL)
   }
-  if(any(c("cellmean", "mean") %in% names(object)))
-    object$mean <- object$cellmean <- NULL
+  if("cellmean" %in% names(object))
+    object$cellmean <- NULL
   if("signal" %in% names(object))
     object$signal <- NULL
   
