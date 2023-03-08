@@ -63,7 +63,7 @@ pairsetup <- function(x, object,
     if(response %in% c("signal", "ind_signal"))
       response <- "signal"
     else
-      response <- "mean"
+      response <- "cellmean"
     out <- selectSignal(object, x, response)
     out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
     

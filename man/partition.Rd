@@ -2,14 +2,14 @@
 % Please edit documentation in R/partition.R
 \name{partition}
 \alias{partition}
-\title{Partition Trait into Signal, Ancillary and Noise}
+\title{Partition Trait into Signal, Rest and Noise}
 \usage{
 partition(
   object,
   trait = "trait",
   value = "value",
   signal = ifelse(is_condition, "strain * sex * condition", "strain * sex"),
-  ancillary = ifelse(is_condition, "strain * sex + sex * condition", "sex")
+  rest = ifelse(is_condition, "strain * sex + sex * condition", "sex")
 )
 }
 \arguments{
@@ -21,17 +21,17 @@ partition(
 
 \item{signal}{signal factor combination as string for `formula`}
 
-\item{ancillary}{ancillary factor combination as string for `formula`}
+\item{rest}{rest factor combination as string for `formula`}
 }
 \value{
-data frame with added columns `ancillary`, `signal`, `noise`
+data frame with added columns `rest`, `signal`, `noise`
 }
 \description{
-Partition a trait value into three parts based on ancillary and signal factors.
-The signal is the main interest for comparison across traits, while the ancillary
+Partition a trait value into three parts based on rest and signal factors.
+The signal is the main interest for comparison across traits, while the rest
 concerns aspects of the experiment that are controlled. Noise is unexplained variation.
 The three parts will be orthogonal to each other.
-The `signal` factors, entered as terms for `formula`, are conditioned by the `ancillary` factors.
+The `signal` factors, entered as terms for `formula`, are conditioned by the `rest` factors.
 }
 \examples{
 partition(sampleData)

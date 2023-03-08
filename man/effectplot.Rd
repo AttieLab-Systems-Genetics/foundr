@@ -4,12 +4,16 @@
 \alias{effectplot}
 \title{Effect Plots}
 \usage{
-effectplot(object, traitnames = udatatraits)
+effectplot(object, traitnames = NULL, correlated = NULL, ...)
 }
 \arguments{
 \item{object}{data frame from `strainstats()`}
 
 \item{traitnames}{`traitnames` to show}
+
+\item{correlated}{correlated `traitnames` to overlay on boxplot}
+
+\item{...}{additional parameters}
 }
 \description{
 Effect Plots

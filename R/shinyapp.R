@@ -163,7 +163,7 @@ foundrServer <- function(input, output, session,
     #mutate_datasets(traitstats, customSettings$dataset)
     traitstats
   })
-  # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, mean
+  # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, cellmean
   traitSignalInput <- shiny::reactive({
     shiny::req(traitDataInput(), datasets())
     if(!is.null(traitsignal)) {
@@ -266,7 +266,7 @@ foundrServer <- function(input, output, session,
   corobject <- reactive({
     bestcor(traitSignalSelectType(),
             trait_selection(),
-            shiny::req(input$corterm))
+            input$corterm)
   })
   traitStatsBestCor <- shiny::reactive({
     shiny::req(traitStatsSelectType(),
@@ -377,7 +377,7 @@ foundrServer <- function(input, output, session,
         shiny::column(
           6,
           shiny::radioButtons("butresp", "Response",
-                              c("individual", "mean", "signal", "ind_signal"),
+                              c("individual", "cellmean", "signal", "ind_signal"),
                               "individual", inline = TRUE))),
       shiny::conditionalPanel(
         condition = "input.buttrait == 'Trait Plots'",
@@ -394,12 +394,12 @@ foundrServer <- function(input, output, session,
         shiny::column(
           6,
           shiny::selectInput("corterm", "Correlation Type",
-                             c("signal","mean"), "signal")),
+                             c("signal","cellmean"), "signal")),
         shiny::column(
           6,
           shiny::checkboxInput("abscor", "Absolute Correlation?", TRUE)
         )),
-      shiny::sliderInput("mincor", "Minimum", 0.5, 1, 0.7),
+      shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7),
       shiny::plotOutput("corplot", height = paste0(input$height, "in")),
       DT::dataTableOutput("cortable"))
 
@@ -441,7 +441,12 @@ foundrServer <- function(input, output, session,
       DT::dataTableOutput("tablesum"))
   })
   effectsplot <- shiny::reactive({
-    print(effectplot(traitStatsSelectType(), trait_selection()))
+    if(shiny::isTruthy(corobject()))
+      corobj <- corobject()
+    else
+      corobj <- NULL
+    print(effectplot(traitStatsSelectType(), trait_selection(),
+                     effecthelper(corobj, input$mincor)))
   })
   output$effects <- shiny::renderPlot({
     effectsplot()
@@ -706,7 +711,7 @@ foundrIntro <- function(helppath = NULL) {
       shiny::br(),
       "Select one or more traits after deciding dataset(s) and trait order. Traits window supports partial matching to find desired traits.",
       "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
-      "Plots and data means (for selected traits) and data summaries (for whole dataset) can be downloaded.",
+      "Plots and data summaries can be downloaded.",
       "See",
       "GitHub:", shiny::a(paste("byandell/foundr",
                                 paste0("(version ", utils::packageVersion("foundr"), ")")),

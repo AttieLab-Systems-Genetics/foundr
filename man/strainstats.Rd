@@ -7,7 +7,7 @@
 strainstats(
   object,
   signal = ifelse(is_condition, "strain * sex * condition", "strain * sex"),
-  ancillary = ifelse(is_condition, "strain * sex + sex * condition", "sex"),
+  rest = ifelse(is_condition, "strain * sex + sex * condition", "sex"),
   calc_sd = TRUE
 )
 }
@@ -16,7 +16,7 @@ strainstats(
 
 \item{signal}{signal factor combination as string for `formula`}
 
-\item{ancillary}{ancillary factor combination as string for `formula`}
+\item{rest}{rest factor combination as string for `formula`}
 
 \item{calc_sd}{calculate SDs by `term` if `TRUE` (default)}
 }

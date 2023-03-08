@@ -6,7 +6,7 @@
 \alias{autoplot.bestcor}
 \title{Traits with Best Correlation}
 \usage{
-bestcor(traitSignal, traitnames, term = c("signal", "mean"))
+bestcor(traitSignal, traitnames = NULL, term = c("signal", "cellmean", "mean"))
 
 ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 

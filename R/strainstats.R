@@ -2,7 +2,7 @@
 #'
 #' @param object data frame in long format with trait data
 #' @param signal signal factor combination as string for `formula`
-#' @param ancillary ancillary factor combination as string for `formula`
+#' @param rest rest factor combination as string for `formula`
 #' @param calc_sd calculate SDs by `term` if `TRUE` (default)
 #'
 #' @return data frame with summaries by trait
@@ -24,7 +24,7 @@ strainstats <- function(object,
                       is_condition,
                       "strain * sex * condition",
                       "strain * sex"),
-                    ancillary = ifelse(
+                    rest = ifelse(
                       is_condition,
                       "strain * sex + sex * condition",
                       "sex"),
@@ -48,7 +48,7 @@ strainstats <- function(object,
   out <- dplyr::bind_rows(
     purrr::map(
       split(object, object$datatraits),
-      fitsplit, signal, ancillary),
+      fitsplit, signal, rest),
     .id = "datatraits")
   
   # Reorder to agree with data object
@@ -63,8 +63,8 @@ strainstats <- function(object,
     ": ",
     names = c("dataset", "trait"))
 }
-fitsplit <- function(traitdata, signal, ancillary) {
-  sig <- tryCatch(signalfit(traitdata, "value", signal, ancillary),
+fitsplit <- function(traitdata, signal, rest) {
+  sig <- tryCatch(signalfit(traitdata, "value", signal, rest),
                   error = function(e) NULL)
   if(is.null(sig))
     return(NULL)
@@ -127,9 +127,9 @@ termStats <- function(object, signal = TRUE) {
   terms
 }
 
-signalfit <- function(traitdata, value, signal, ancillary) {
+signalfit <- function(traitdata, value, signal, rest) {
   formful <- stats::formula(paste(value, "~", signal))
-  formred <- stats::formula(paste(value, "~", ancillary))
+  formred <- stats::formula(paste(value, "~", rest))
   fitful <- stats::lm(formful, traitdata)
   fitred <- stats::lm(formred, traitdata)
   

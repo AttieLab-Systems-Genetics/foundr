@@ -1,18 +1,18 @@
-#' Partition Trait into Signal, Ancillary and Noise
+#' Partition Trait into Signal, Rest and Noise
 #'
-#' Partition a trait value into three parts based on ancillary and signal factors.
-#' The signal is the main interest for comparison across traits, while the ancillary
+#' Partition a trait value into three parts based on rest and signal factors.
+#' The signal is the main interest for comparison across traits, while the rest
 #' concerns aspects of the experiment that are controlled. Noise is unexplained variation.
 #' The three parts will be orthogonal to each other.
-#' The `signal` factors, entered as terms for `formula`, are conditioned by the `ancillary` factors.
+#' The `signal` factors, entered as terms for `formula`, are conditioned by the `rest` factors.
 #' 
 #' @param object data frame in long format with trait data
 #' @param trait name of column with trait names
 #' @param value name column with trait values
 #' @param signal signal factor combination as string for `formula`
-#' @param ancillary ancillary factor combination as string for `formula`
+#' @param rest rest factor combination as string for `formula`
 #'
-#' @return data frame with added columns `ancillary`, `signal`, `noise`
+#' @return data frame with added columns `rest`, `signal`, `noise`
 #' 
 #' @importFrom dplyr across arrange bind_rows distinct filter mutate select
 #' @importFrom purrr map
@@ -29,7 +29,7 @@ partition <- function(object,
                       is_condition,
                       "strain * sex * condition",
                       "strain * sex"),
-                    ancillary = ifelse(
+                    rest = ifelse(
                       is_condition,
                       "strain * sex + sex * condition",
                       "sex")) {
@@ -43,7 +43,7 @@ partition <- function(object,
   # Somehow this give extra entries when there are missing values.
   
   redfit <- function(object) {
-    formred <- stats::formula(paste(value, "~", ancillary))
+    formred <- stats::formula(paste(value, "~", rest))
     fitred <- stats::lm(formred, object)
     resids <- rep(NA, nrow(object))
     resids[!is.na(object[[value]])] <- resid(fitred)
@@ -53,7 +53,7 @@ partition <- function(object,
       dplyr::mutate(
         object,
         residred = resids,
-        ancillary = preds)
+        rest = preds)
     formful <- stats::formula(paste("residred", "~", signal))
     fitful <- stats::lm(formful, object)
     resids <- rep(NA, nrow(object))
@@ -97,9 +97,9 @@ partition <- function(object,
         dplyr::filter(
           out,
           !is.na(.data[[value]])),
-        dplyr::across(c(signal_terms, "trait", "signal", "ancillary"))),
-      mean = signal + ancillary),
-    -ancillary)
+        dplyr::across(c(signal_terms, "trait", "signal", "rest"))),
+      cellmean = signal + rest),
+    -rest)
   
   if(is_dataset) {
     # If dataset was in object, restore it from `dataset: trait`

@@ -17,26 +17,66 @@
 #' out <- bestcor(sampleSignal, "A")
 #' ggplot_bestcor(out, 0)
 #' ggplot_bestcor(out, 0, abscor = FALSE)
-bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
+bestcor <- function(traitSignal,
+                    traitnames = NULL,
+                    term = c("signal", "cellmean", "mean")) {
   term <- match.arg(term)
-  
-  # Need to check if condition is present.
-  # Need to check if traitnames are missing some combos
-  
+  if(term == "mean") term <- "cellmean"
+
+  # Check if traitSignal or traitnames are missing.
   if(is.null(traitSignal) | is.null(traitnames))
     return(NULL)
-
-  proband <- tidyr::unite(
+  if(!nrow(traitSignal))
+    return(NULL)
+  
+  traitSignal <- tidyr::unite(
     traitSignal,
     datatraits,
     dataset, trait,
     sep = ": ", remove = FALSE)
   
-  if(!all(traitnames %in% unique(proband$datatraits)))
+  if(!all(traitnames %in% unique(traitSignal$datatraits)))
     return(NULL)
   
+  # If condition is present, is it the same for all traits?
+  # If not, then need to combine condition and trait throughout
+  groupsex <- "sex"
+  if("condition" %in% names(traitSignal)) {
+    if(all(is_condition <- is.na(traitSignal$condition))) {
+      # traitSignal does not use condition, so drop condition column
+      traitSignal$condition <- NULL
+    } else {
+      # Adjust traitSignal 
+      is_condition <- !is_condition
+      if(all(is_condition)) {
+        # All traits have condition.
+        groupsex <- "sex_condition"
+      } else {
+        # Unite trait and condition for those with condition.
+        tmp1 <- tidyr::unite(
+          dplyr::filter(
+            traitSignal,
+            is_condition),
+          trait, condition, trait,
+          sep = ":")
+        # Keep trait as is for those without condtion
+        tmp2 <- dplyr::select(
+          dplyr::filter(
+            traitSignal,
+            !is_condition),
+          -condition)
+        # Drop any condition:trait entries in tmp2 already in tmp1
+        is_dup <- (tmp2$trait %in% tmp1$trait)
+        if(any(is_dup)) {
+          tmp2 <- tmp2[!is_dup,]
+        }
+        traitSignal <- dplyr::bind_rows(tmp1, tmp2)
+      }
+    }
+  }
+  
   proband <- dplyr::filter(
-      proband,
+      traitSignal,
       datatraits %in% traitnames)
   uproband <- dplyr::arrange(
     dplyr::mutate(
@@ -45,53 +85,6 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
         datatraits, dataset, trait),
       datatraits = factor(datatraits, traitnames)),
     datatraits)
-  
-  # Figure out better way to do correlation by cond:trait if appropriate
-  # Think calcium8G
-  # Following seems to work if proband has all condition = NA, but not for mix.
-  # But maybe computations are wrong?
-  
-  if("condition" %in% names(traitSignal)) {
-    if(all(is.na(proband$condition))) {
-      # proband does not use condition, so drop condition column
-      proband$condition <- NULL
-      
-      # Adjust traitSignal
-      is_condition <- !is.na(traitSignal$condition)
-      if(any(is_condition)) {
-        tmp1 <- tidyr::unite(
-          dplyr::filter(
-            traitSignal,
-            is_condition),
-          trait, condition, trait,
-          sep = ":")
-        tmp2 <- dplyr::select(
-          dplyr::filter(
-            traitSignal,
-            !is_condition),
-          -condition)
-        
-        # Drop any condition:trait entries in tmp2 already in tmp1
-        is_dup <- (tmp2$trait %in% tmp1$trait)
-        if(any(is_dup)) {
-          tmp2 <- tmp2[!is_dup,]
-        }
-        traitSignal <- dplyr::bind_rows(tmp1, tmp2)
-      } else {
-        # subset traitSignal to traitnames that agree and drop condition
-        traitSignal <- dplyr::filter(traitSignal, is.na(condition))
-        traitSignal$condition <- NULL
-      }
-      if(!nrow(traitSignal))
-        return(NULL)
-
-      groupsex <- "sex"
-    } else {
-      groupsex <- "sex_condition"
-    }
-  } else {
-    groupsex <- "sex"
-  }
   
   # Identify subset of strain, sex, condition included.
   conds <- condset(proband)
@@ -111,10 +104,10 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
   
   # Pivot wider to put each trait in its own column
   myfun <- function(traitSignal, term, groupsex) {
-    if(term == "mean")
-      traitSignal$signal <- NULL
+    if(term == "signal")
+      traitSignal$cellmean <- NULL
     else
-      traitSignal$mean <- NULL
+      traitSignal$signal <- NULL
     
     if(!("dataset" %in% names(traitSignal)))
       traitSignal$dataset <- "unknown"
@@ -124,12 +117,14 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
     else
       conds <- c("strain", "sex", "condition")
     
+    # Remake datatraits as trait may have changed.
+    
     dplyr::select(
       tidyr::pivot_wider(
         dplyr::arrange(
-          dplyr::select(
+          tidyr::unite(
             traitSignal,
-            -dataset, -trait),
+            datatraits, dataset, trait, sep = ": "),
           datatraits, dplyr::across(conds)),
         names_from = "datatraits", values_from = term),
       -tidyr::matches(conds))
@@ -138,11 +133,7 @@ bestcor <- function(traitSignal, traitnames, term = c("signal", "mean")) {
   proband <- myfun(proband, term, groupsex)
   traitSignal <- myfun(
     dplyr::filter(
-      tidyr::unite(
-        traitSignal,
-        datatraits,
-        dataset, trait,
-        sep = ": ", remove = FALSE),
+      traitSignal,
       !(datatraits %in% traitnames)),
     term, groupsex)
   

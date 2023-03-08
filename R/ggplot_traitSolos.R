@@ -99,7 +99,8 @@ ggplot_onetrait <- function(object,
   p <- ggplot2::ggplot(object)
   
   if(boxplot) {
-    p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA)
+    p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA,
+                                   outlier.shape = NA)
   }
   
   if(facet_strain) {

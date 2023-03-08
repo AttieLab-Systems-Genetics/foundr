@@ -16,7 +16,7 @@
 #' @examples
 traitSolos <- function(traitData, traitSignal,
                        traitnames = unique(unite_datatraits(traitSignal)),
-                       response = c("individual", "mean", "signal", "ind_signal"),
+                       response = c("individual", "cellmean", "signal", "ind_signal"),
                        strains = names(CCcolors),
                        abbrev = FALSE,
                        sep = ": ") {
@@ -30,7 +30,7 @@ traitSolos <- function(traitData, traitSignal,
   response <- match.arg(response)
   if(response %in% c("individual", "ind_signal")) {
     if(response == "ind_signal") {
-      # Include columns for signal and value = individual - mean + signal
+      # Include columns for signal and value = individual - cellmean + signal
       traitData <-
         dplyr::select(
           dplyr::mutate(
@@ -38,10 +38,10 @@ traitSolos <- function(traitData, traitSignal,
               traitData,
               traitSignal,
               by = bys),
-            value = value - mean + signal),
-          -mean)
+            value = value - cellmean + signal),
+          -cellmean)
     } else {
-      # Include columns for mean and value = individual
+      # Include columns for cellmean and value = individual
       traitData <-
         dplyr::select(
           dplyr::left_join(
@@ -92,7 +92,7 @@ traitSolos <- function(traitData, traitSignal,
 }
 selectSignal <- function(object, traitnames, response,
                          strains = names(CCcolors)) {
-  # The response must be either "mean" or "signal".
+  # The response must be either "cellmean" or "signal".
   
   if("condition" %in% names(object)) {
     bys <- c("dataset","strain","sex","condition","trait")
@@ -147,7 +147,7 @@ summary_traitSolos <- function(object,
   
   if(response %in% c("individual", "ind_signal")) {
     if(response == "individual")
-      response <- "mean"
+      response <- "cellmean"
     if(response == "ind_signal")
       response <- "signal"
     object <- dplyr::select(object, -value)
