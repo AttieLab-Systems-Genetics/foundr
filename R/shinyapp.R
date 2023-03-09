@@ -485,7 +485,7 @@ foundrServer <- function(input, output, session,
   output$volcanoly <- plotly::renderPlotly(
     plotly::ggplotly(
       volcanoplot() +
-        ggplot2::xlim(shiny::req(input$volsd), NA) +
+#        ggplot2::xlim(shiny::req(input$volsd), NA) +
         ggplot2::ylim(shiny::req(input$volpval), NA))
   )
   output$volcanopr <- shiny::renderPlot(
