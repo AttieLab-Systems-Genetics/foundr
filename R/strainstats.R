@@ -72,11 +72,24 @@ fitsplit <- function(traitdata, signal, rest) {
   fit <- stats::lm(form, traitdata)
   rawSD <-  stats::sd(traitdata$value, na.rm = TRUE)
   
-  dplyr::mutate(
+  # Find sign of coefficients for condition and sex
+  coefs <- coef(fit)
+  if("condition" %in% names(traitdata) && length(unique(traitdata$condition)) == 2) {
+    condsign <- sign(coefs[stringr::str_detect(names(coefs), "condition") &
+                             !stringr::str_detect(names(coefs), ":")])
+  } else
+    condsign <- 1
+  sexsign <- sign(coefs[stringr::str_detect(names(coefs), "sex") &
+                          !stringr::str_detect(names(coefs), ":")])
+  
+  out <- dplyr::mutate(
     dplyr::bind_rows(
       sig,
       strain_stats(stats::drop1(fit, fit, test = "F"))),
-    SD = SD / rawSD)
+    SD = SD / rawSD,
+    SD = ifelse(term == "condition", SD * condsign, SD),
+    SD = ifelse(term == "sex", SD * sexsign, SD))
+  out
 }
 
 #' Order Stats by p-value of selected term name

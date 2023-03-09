@@ -44,10 +44,18 @@ volcano <- function(object,
       foldchange = ifelse(
         SD > threshold["SD"] & p.value < threshold["p"],
         "UP", foldchange),
+      foldchange = ifelse(
+        -SD > threshold["SD"] & p.value < threshold["p"],
+        "DOWN", foldchange),
       label = ifelse(
         SD > threshold["SD"] & p.value < threshold["p"] &
           (SD > 2 * threshold["SD"] | p.value < threshold["p"] / 10),
         paste(dataset, trait, sep = ": "), NA))
+  
+  if(any(object$foldchange == "DOWN"))
+    SDT <- c(-1,1)
+  else
+    SDT <- 1
     
   # Convert directly in the aes()
   p <- ggplot2::ggplot(object) +
@@ -57,7 +65,7 @@ volcano <- function(object,
     ggplot2::theme_minimal() +
     ggplot2::theme(legend.position = "none") +
     # Add vertical lines for log2FoldChange thresholds, and one horizontal line for the p-value threshold 
-    ggplot2::geom_vline(xintercept = threshold["SD"], col = CB_colors[2]) +
+    ggplot2::geom_vline(xintercept = SDT * threshold["SD"], col = CB_colors[2]) +
     ggplot2::geom_hline(yintercept = -log10(threshold["p"]), col = CB_colors[2]) +
     # The significantly differentially expressed traits are in the upper quadrats.
     ggplot2::scale_color_manual(values=c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2]))
