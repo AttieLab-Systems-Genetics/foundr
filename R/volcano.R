@@ -48,8 +48,8 @@ volcano <- function(object,
         -SD > threshold["SD"] & p.value < threshold["p"],
         "DOWN", foldchange),
       label = ifelse(
-        SD > threshold["SD"] & p.value < threshold["p"] &
-          (SD > 2 * threshold["SD"] | p.value < threshold["p"] / 10),
+        (abs(SD) > threshold["SD"] & p.value < threshold["p"]) |
+          (abs(SD) > 2 * threshold["SD"] | p.value < threshold["p"] / 10),
         paste(dataset, trait, sep = ": "), NA))
   
   if(any(object$foldchange == "DOWN"))

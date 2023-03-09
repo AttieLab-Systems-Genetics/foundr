@@ -618,13 +618,16 @@ foundrServer <- function(input, output, session,
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   output$tablesum <- DT::renderDataTable(
+    {
+      shiny::req(traitStatsSelectType())
     dplyr::mutate(
       mutate_datasets(
-        traitStatsArranged(),
+        traitStatsSelectType(),
         customSettings$dataset),
       dplyr::across(
         tidyselect::where(is.numeric),
-        function(x) signif(x, 4))),
+        function(x) signif(x, 4)))
+    },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   
