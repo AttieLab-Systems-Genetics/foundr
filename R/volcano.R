@@ -24,6 +24,8 @@ volcano <- function(object,
                     traitnames = TRUE) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
+  CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
+  
   if(!("term" %in% names(object))) {
     object <- strainstats(object)
   }
@@ -55,10 +57,10 @@ volcano <- function(object,
     ggplot2::theme_minimal() +
     ggplot2::theme(legend.position = "none") +
     # Add vertical lines for log2FoldChange thresholds, and one horizontal line for the p-value threshold 
-    ggplot2::geom_vline(xintercept = threshold["SD"], col = "red") +
-    ggplot2::geom_hline(yintercept = -log10(threshold["p"]), col = "red") +
+    ggplot2::geom_vline(xintercept = threshold["SD"], col = CB_colors[2]) +
+    ggplot2::geom_hline(yintercept = -log10(threshold["p"]), col = CB_colors[2]) +
     # The significantly differentially expressed traits are in the upper quadrats.
-    ggplot2::scale_color_manual(values=c(DOWN = "blue", NO = "black", UP = "red"))
+    ggplot2::scale_color_manual(values=c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2]))
   
   if(traitnames) {
     if(interact) {
