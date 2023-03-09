@@ -1,6 +1,6 @@
 Package: foundr
-Version: 0.5.8
-Date: 2023-03-08
+Version: 0.5.9
+Date: 2023-03-09
 Title: Multiparent Founder Study Tools
 Description: Tools to study founders for multiparent genetic crosses.
 Authors@R: c(person("Brian S Yandell",

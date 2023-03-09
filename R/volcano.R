@@ -47,7 +47,7 @@ volcano <- function(object,
       label = ifelse(
         SD > threshold["SD"] & p.value < threshold["p"] &
           (SD > 2 * threshold["SD"] | p.value < threshold["p"] / 10),
-        trait, NA))
+        paste(dataset, trait, sep = ": "), NA))
     
   # Convert directly in the aes()
   p <- ggplot2::ggplot(object) +
