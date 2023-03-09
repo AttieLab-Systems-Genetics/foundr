@@ -79,7 +79,7 @@ fitsplit <- function(traitdata, signal, rest) {
     SD = SD / rawSD)
 }
 
-#' Order Stats by Selected term name
+#' Order Stats by p-value of selected term name
 #'
 #' @param object data frame from `strainstats`
 #' @param termname name of element in `term` column to order by
@@ -89,19 +89,11 @@ fitsplit <- function(traitdata, signal, rest) {
 #' @importFrom dplyr arrange filter mutate
 #'
 traitOrderStats <- function(object, termname) {
-  o <- dplyr::arrange(
+  dplyr::arrange(
     dplyr::filter(
       object,
       term == termname),
-    p.value)$trait
-  # Arrange traits in this order
-  object <- dplyr::mutate(
-    dplyr::arrange(
-      dplyr::mutate(
-        object,
-        trait = factor(trait, o)),
-      trait),
-    trait = as.character(trait))
+    p.value)
 }
 
 
