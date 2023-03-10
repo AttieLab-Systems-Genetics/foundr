@@ -418,12 +418,14 @@ foundrServer <- function(input, output, session,
   })
   output$cortable <- DT::renderDataTable(
     {
-      shiny::req(corobject())
+      shiny::req(corobject(), input$mincor)
       dplyr::mutate(
         dplyr::select(
-          mutate_datasets(
-            corobject(),
-            customSettings$dataset),
+          dplyr::filter(
+            mutate_datasets(
+              corobject(),
+              customSettings$dataset),
+            absmax >= input$mincor),
           -absmax),
         cors = signif(cors, 4))
     },
