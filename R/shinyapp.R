@@ -418,7 +418,7 @@ foundrServer <- function(input, output, session,
   })
   output$cortable <- DT::renderDataTable(
     {
-      shiny::req(corobject(), input$mincor)
+      shiny::req(corobject(), input$mincor, input$corterm)
       dplyr::mutate(
         dplyr::select(
           dplyr::filter(
@@ -621,14 +621,15 @@ foundrServer <- function(input, output, session,
     options = list(scrollX = TRUE, pageLength = 10))
   output$tablesum <- DT::renderDataTable(
     {
-      shiny::req(traitStatsSelectType(), input$volsd, input$volpval)
+      shiny::req(traitStatsSelectType(), input$volsd, input$volpval, input$term)
       dplyr::mutate(
         dplyr::filter(
           mutate_datasets(
             traitStatsSelectType(),
             customSettings$dataset),
           abs(SD) >= input$volsd,
-          -log10(p.value) >= input$volpval),
+          -log10(p.value) >= input$volpval,
+          term == input$term),
         dplyr::across(
           tidyselect::where(is.numeric),
           function(x) signif(x, 4)))
