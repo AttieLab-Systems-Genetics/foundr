@@ -619,14 +619,17 @@ foundrServer <- function(input, output, session,
     options = list(scrollX = TRUE, pageLength = 10))
   output$tablesum <- DT::renderDataTable(
     {
-      shiny::req(traitStatsSelectType())
-    dplyr::mutate(
-      mutate_datasets(
-        traitStatsSelectType(),
-        customSettings$dataset),
-      dplyr::across(
-        tidyselect::where(is.numeric),
-        function(x) signif(x, 4)))
+      shiny::req(traitStatsSelectType(), input$volsd, input$volpval)
+      dplyr::mutate(
+        dplyr::filter(
+          mutate_datasets(
+            traitStatsSelectType(),
+            customSettings$dataset),
+          abs(SD) >= input$volsd,
+          -log10(p.value) >= input$volpval),
+        dplyr::across(
+          tidyselect::where(is.numeric),
+          function(x) signif(x, 4)))
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
