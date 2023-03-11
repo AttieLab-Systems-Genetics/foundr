@@ -9,9 +9,12 @@ linkpath(dataset, links, datadir = "data")
 \arguments{
 \item{dataset}{name of dataset desired}
 
-\item{links}{data frame with links to files}
+\item{links}{data frame with `shortname`, `address`, `longname`}
 
 \item{datadir}{data directory (default is "data")}
+}
+\value{
+data frame with
 }
 \description{
 Title

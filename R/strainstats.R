@@ -92,15 +92,6 @@ fitsplit <- function(traitdata, signal, rest) {
   out
 }
 
-#' Order Stats by p-value of selected term name
-#'
-#' @param object data frame from `strainstats`
-#' @param termname name of element in `term` column to order by
-#'
-#' @return
-#' @export
-#' @importFrom dplyr arrange filter mutate
-#'
 traitOrderStats <- function(object, termname) {
   dplyr::arrange(
     dplyr::filter(
