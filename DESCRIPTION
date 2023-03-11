@@ -11,7 +11,7 @@ Depends:
 Imports:
     dplyr, tidyr, purrr, tibble, tidyselect, rlang, ggplot2, broom,
     stats, ordr, RColorBrewer, shiny, utils, DT, grDevices, stringr,
-    readxl, tools, cowplot, patchwork
+    readxl, tools, cowplot, patchwork, readr
 LazyData: true
 License: GPL-3
 Encoding: UTF-8
