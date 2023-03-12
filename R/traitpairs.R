@@ -126,27 +126,70 @@ ggplot_traitPairs <- function(object, ...) {
 pairplots <- function(object,
                       sep = attr(object, "sep"), 
                       shape_sex = TRUE,
+                      parallel_lines = FALSE,
                       line_strain = (response %in% c("individual","ind_signal")),
                       title = paste(pair[1], "vs", pair[2]),
                       ...) {
   # Get trait pair
   pair <- attr(object, "pair")
   response <- attr(object, "response")
+  
+  if(parallel_lines) {
+    if("sex_condition" %in% names(object)) {
+      groupsex <- "sex_condition"
+    } else {
+      groupsex <- "sex"
+    }
+    if(line_strain) {
+      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
+                             "` + strain * `", groupsex, "`"))
+      bys <- c(pair, "strain", groupsex)
+    } else {
+      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
+                             "` + `", groupsex, "`"))
+      bys <- c(pair, groupsex)
+    }
+    mod <- lm(form, object)
+    object <- 
+      dplyr::left_join(
+        object,
+        broom::augment(mod),
+        by = bys)
+  }
 
   # create plot
   p <- ggplot2::ggplot(object) +
-    ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]], fill = strain)
+    ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
   if(line_strain) {
-    p <- p +
-      ggplot2::geom_smooth(
-        method = "lm", se = FALSE, formula = 'y ~ x',
-        aes(group = strain, col = strain))
+    if(parallel_lines) {
+      p <- p +
+        ggplot2::geom_line(
+          ggplot2::aes(
+            fill = strain, group = strain, col = strain,
+            y = .fitted),
+          size = 1)
+    } else {
+      p <- p +
+        ggplot2::geom_smooth(
+          ggplot2::aes(
+            fill = strain, group = strain, col = strain),
+          method = "lm", se = FALSE, formula = "y ~ x",
+          size = 1)
+    }
   } else {
     # Because we specify fill in aes, we need to include it here.
-    p <- p +
-      ggplot2::geom_smooth(
-        method = "lm", se = FALSE, formula = 'y ~ x',
-        fill = "darkgrey", col = "darkgrey")
+    if(parallel_lines) {
+      p <- p +
+        ggplot2::geom_line(
+          ggplot2::aes(y = .fitted),
+          size = 1, col = "darkgrey")
+      
+    } else {
+      p <- p +
+        ggplot2::geom_smooth(
+          method = "lm", se = FALSE, formula = "y ~ x",
+          size = 1, fill = "darkgrey", col = "darkgrey")
+    }
   }
   p <- p +
     ggplot2::scale_fill_manual(values = CCcolors) +
@@ -158,11 +201,14 @@ pairplots <- function(object,
   if(shape_sex) {
     p <- p +
       ggplot2::geom_point(
-        ggplot2::aes(shape = sex), size = 3, color = "black", alpha = 0.65) +
+        ggplot2::aes(fill = strain, shape = sex),
+        size = 3, color = "black", alpha = 0.65) +
       ggplot2::scale_shape_manual(values = c(23, 22))
   } else {
     p <- p +
-      ggplot2::geom_point(size = 3, shape = 21, color = "black", alpha = 0.65)
+      ggplot2::geom_point(
+        ggplot2::aes(fill = strain),
+        size = 3, shape = 21, color = "black", alpha = 0.65)
   }
   
   # Facet if there are data

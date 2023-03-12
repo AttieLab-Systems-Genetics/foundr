@@ -685,9 +685,12 @@ foundrServer <- function(input, output, session,
   })
   scatsplot <- reactive({
     shiny::req(traitDataSelectTrait(), trait_selection(), input$pair)
-    ggplot_traitPairs(traitPairs(traitDataSelectTrait(),
-                      trait_selection(),
-                      input$pair))
+    ggplot_traitPairs(
+      traitPairs(
+        traitDataSelectTrait(),
+        trait_selection(),
+        input$pair),
+      parallel_lines = TRUE)
     
   })
   output$scatplot <- shiny::renderPlot({

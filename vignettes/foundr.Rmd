@@ -38,7 +38,7 @@ sampleStats %>%
 
 ```{r}
 out <- traitSolos(sampleData, sampleSignal,
-                  response = "mean")
+                  response = "cellmean")
 plot(out)
 ```
 
@@ -49,7 +49,7 @@ out2 <- traitPairs(
   pair = c(
     paste(attr(out, "traitnames")[1:2], collapse = " ON "),
     paste(attr(out, "traitnames")[3:4], collapse = " ON ")))
-plot(out2)
+plot(out2, parallel_lines = TRUE)
 ```
 
 ```{r}
