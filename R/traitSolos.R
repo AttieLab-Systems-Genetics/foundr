@@ -30,16 +30,9 @@ traitSolos <- function(traitData, traitSignal,
   response <- match.arg(response)
   if(response %in% c("individual", "ind_signal")) {
     if(response == "ind_signal") {
+      
       # Include columns for signal and value = individual - cellmean + signal
-      traitData <-
-        dplyr::select(
-          dplyr::mutate(
-            dplyr::left_join(
-              traitData,
-              traitSignal,
-              by = bys),
-            value = value - cellmean + signal),
-          -cellmean)
+      traitData <- calc_ind_signal(traitData, traitSignal)
     } else {
       # Include columns for cellmean and value = individual
       traitData <-

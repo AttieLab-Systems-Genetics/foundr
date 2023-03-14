@@ -162,7 +162,8 @@ strain_stats <- function(fitsum, termname = "") {
     dplyr::rename(
       dplyr::mutate(
         broom::tidy(fitsum)[-1,],
-        sumsq = sqrt(sumsq / df),
+        sumsq = ifelse(df > 0, sumsq / df, 0),
+        sumsq = sqrt(sumsq),
         term = termfn(term)),
       SD = "sumsq"),
     term, SD, p.value)
