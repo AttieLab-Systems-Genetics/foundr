@@ -14,7 +14,7 @@ harmonize <- function(dataset, links, userHarmony, ...) {
   # Harmonize data with user-supplied harmony function.
   # Function must have `dataset` as first argument and include `...` argument.
   cat("Harmonizing raw data ...\n", stderr())
-  traitData <- userHarmony(dataset, links, ...)
+  traitData <- normalscores(userHarmony(dataset, links, ...))
   
   cat("Running statistics on traits ...\n", stderr())
   traitStats <- strainstats(traitData)
@@ -28,19 +28,26 @@ harmonize <- function(dataset, links, userHarmony, ...) {
         traitStats,
         term != "noise"),
       is.na(p.value)))$trait
-  traitStats <- dplyr::filter(traitStats, !(trait %in% dropTraits))
+  traitStats <-
+    dplyr::filter(
+      traitStats,
+      !(trait %in% dropTraits))
   # Additional traits were dropped due to failed fit. Keep what is left.
   keepTraits <- unique(traitStats$trait)
   
   saveRDS(traitStats, paste0(dataset, "Stats.rds"))
   
-  traitData <- traitData %>%
-    dplyr::filter(trait %in% keepTraits)
+  traitData <-
+    dplyr::filter(
+      traitData,
+      trait %in% keepTraits)
   saveRDS(traitData, paste0(dataset, "Data.rds"))
   
   cat("Running partition of traits ...\n", stderr())
-  traitSignal <- partition(traitData) %>%
-    dplyr::filter(trait %in% keepTraits)
+  traitSignal <- 
+    dplyr::filter(
+      partition(traitData),
+      trait %in% keepTraits)
   saveRDS(traitSignal, paste0(dataset, "Signal.rds"))
   
   invisible()
