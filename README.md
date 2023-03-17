@@ -1,18 +1,13 @@
 # foundr
+
 Multiparent Founder Study Tools
 
+This package can be used on its own for analysis and visualization of founder data, or to build a web app. The default app ([inst/shinyApp/app.R](https://github.com/byandell/foundr/blob/main/inst/shinyApp/app.R)) is publicly installed at
+<https://data-viz.it.wisc.edu/FounderStudy> (and soon moving to
+<https://rstudio.it.wisc.edu/FounderStudy>).
 
-Issues to address
+Specialized instances are being developed for particular studies. See code in
 
-- fileInput
-  + data only, generate pvalue, signal
-  + allow pvalue, signal
-- apps
-  + calcium app
-  + public app with dropin
-- missing condition for protein
-  + pivot_pair using join?
-  + just use cond_sex with the NA handling always?
-
-how to prepare for wgcna?
+- <https://github.com/byandell/FounderCalciumStudy>
+- <https://github.com/byandell/FounderDietStudy>
 
