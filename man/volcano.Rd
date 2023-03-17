@@ -13,7 +13,7 @@ volcano(
 )
 }
 \arguments{
-\item{object}{data frame}
+\item{object}{data frame from `strainstats`}
 
 \item{termname}{name of `term` to show}
 

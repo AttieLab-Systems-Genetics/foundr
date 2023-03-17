@@ -1,6 +1,6 @@
 #' One-sided Volcano Plot
 #'
-#' @param object data frame 
+#' @param object data frame from `strainstats`
 #' @param termname name of `term` to show
 #' @param threshold named vector for `SD` and `p.value`
 #' @param interact prepare for interactive if `TRUE`
@@ -56,6 +56,11 @@ volcano <- function(object,
     SDT <- c(-1,1)
   else
     SDT <- 1
+  
+  # Prettify x label
+  xlab <- paste("deviations for", termname)
+  if(termname == "sex")
+    xlab <- "Female - deviations + Male"
     
   # Convert directly in the aes()
   p <- ggplot2::ggplot(object) +
@@ -64,6 +69,7 @@ volcano <- function(object,
     # Add more simple "theme"
     ggplot2::theme_minimal() +
     ggplot2::theme(legend.position = "none") +
+    ggplot2::xlab(xlab) +
     # Add vertical lines for log2FoldChange thresholds, and one horizontal line for the p-value threshold 
     ggplot2::geom_vline(xintercept = SDT * threshold["SD"], col = CB_colors[2]) +
     ggplot2::geom_hline(yintercept = -log10(threshold["p"]), col = CB_colors[2]) +
