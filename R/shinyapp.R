@@ -718,19 +718,15 @@ foundrIntro <- function(helppath = NULL) {
   
   renderUI({
     tagList(
-      "Founder dataset consists of",
-      shiny::a("8 CC mice strains,",
-               href = "https://www.jax.org/news-and-insights/2009/april/the-collaborative-cross-a-powerful-systems-genetics-tool"),
-      "and both sexes, possibly crossed with experimental conditions.",
-      datainfo,
+      shiny::includeMarkdown(
+        system.file(file.path("shinyApp", "intro.md"), package='foundr')),
+      "See GitHub:",
+      shiny::a(paste("byandell/foundr",
+                     paste0("(version ", utils::packageVersion("foundr"), ")")),
+               href = "https://github.com/byandell/foundr"),
       shiny::br(),
-      "Select one or more traits after deciding dataset(s) and trait order. Traits window supports partial matching to find desired traits.",
-      "Facet plots by strain or `sex` or `sex_condition` and subset `strain`s if desired.",
-      "Plots and data summaries can be downloaded.",
-      "See",
-      "GitHub:", shiny::a(paste("byandell/foundr",
-                                paste0("(version ", utils::packageVersion("foundr"), ")")),
-                          href = "https://github.com/byandell/foundr"))
+      shiny::br(),
+      datainfo)
     
     # Maybe eventually add this, but too confusing for now.
     #   shiny::tags$div(
