@@ -32,7 +32,7 @@ traitSolos <- function(traitData, traitSignal,
     if(response == "ind_signal") {
       
       # Include columns for signal and value = individual - cellmean + signal
-      traitData <- calc_ind_signal(traitData, traitSignal)
+      traitData <- join_signal(traitData, traitSignal)
     } else {
       # Include columns for cellmean and value = individual
       traitData <-
