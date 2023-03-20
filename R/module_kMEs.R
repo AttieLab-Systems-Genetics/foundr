@@ -29,8 +29,8 @@ module_kMEs <- function(object) {
 #' GGplot of Module kMEs
 #'
 #' @param object object of class `module_kMEs`
-#' @param x name of x response
-#' @param y name of y response
+#' @param facetname name of facet response
+#' @param colorname name of color response
 #' @param abskME plot absolute values if `TRUE`
 #' @param title title of plot
 #' @param ... additional parameters
@@ -43,35 +43,38 @@ module_kMEs <- function(object) {
 #' @importFrom rlang .data
 #' @rdname module_kMEs
 #'
-ggplot_module_kMEs <- function(object, x, y,
+ggplot_module_kMEs <- function(object, facetname, colorname, 
                                abskME = FALSE,
-                               title = paste("facet by", y, "with", x, "color"),
+                               title = paste("facet by", facetname, "with", colorname, "color"),
                                ...) {
-  xcol <- paste0(x, "_col")
-  ycol <- paste0(y, "_col")
-  xkME <- paste0(x, "_kME")
-  ykME <- paste0(y, "_kME")
+
+  object <- subset(object, facetname, colorname, ...)
+  if(is.null(object))
+    return(plot_null())
+
+  colorcol <- paste0(colorname, "_col")
+  facetcol <- paste0(facetname, "_col")
+  colorkME <- paste0(colorname, "_kME")
+  facetkME <- paste0(facetname, "_kME")
   
   if(abskME) {
-    for(i in c(xkME, ykME))
+    for(i in c(colorkME, facetkME))
       object[[i]] <- abs(object[[i]])
   }
   
   # Module colors are factors ordered by count.
-  modcolors <- levels(object[[xcol]])
+  modcolors <- levels(object[[colorcol]])
   names(modcolors) <- modcolors
   
   ggplot2::ggplot(object) +
-    ggplot2::aes(.data[[xkME]], .data[[ykME]], col = .data[[xcol]],
+    ggplot2::aes(.data[[colorkME]], .data[[facetkME]], col = .data[[colorcol]],
                  trait = trait) +
     ggplot2::geom_abline(slope = 1, intercept = 0, col = "darkgrey") +
     ggplot2::geom_point(shape = 1) +
     ggplot2::scale_color_manual(values = modcolors) +
-    ggplot2::facet_wrap(~ .data[[ycol]]) +
+    ggplot2::facet_wrap(~ .data[[facetcol]]) +
     ggplot2::ggtitle(title) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-  
-  
 }
 
 module_factors <- function(object, module) {
@@ -91,3 +94,55 @@ module_factors <- function(object, module) {
 autoplot.module_kMEs <- function(object, ...) {
   ggplot_module_kMEs(object, ...)
 }
+
+#' Subset module and kMEs
+#' 
+#' @param x 
+#' @param facetname name of facet response
+#' @param colorname name of color response
+#' @param facetmodules names of color modules to keep
+#' @param colormodules names of color modules to keep
+#' @param ... 
+#'
+#' @return data frame 
+#' 
+#' @export
+#' @importFrom rlang .data
+#' @importFrom dplyr filter mutate select
+#' @rdname module_kMEs
+#'
+subset_module_kMEs <- function(x,
+                               facetname,
+                               colorname,
+                               facetmodules = flev,
+                               colormodules = clev,
+                               ...) {
+  if(is.null(x) || !is.data.frame(x))
+    return(NULL)
+  
+  x <- x[c("trait",
+           names(x)[grep(paste(facetname, colorname, sep = "|"), names(x))])]
+  
+  fcol <- paste0(facetname, "_col")
+  ccol <- paste0(colorname, "_col")
+  flev <- levels(x[[fcol]])
+  clev <- levels(x[[ccol]])
+  
+  x <- dplyr::select(
+    dplyr::filter(
+      x,
+      .data[[fcol]] %in% facetmodules,
+      .data[[ccol]] %in% colormodules),
+    trait, dplyr::everything())
+  
+  x[[fcol]] <- factor(x[[fcol]], flev[flev %in% x[[fcol]]])
+  x[[ccol]] <- factor(x[[ccol]], clev[clev %in% x[[ccol]]])
+
+  x
+}
+#' @export
+#' @rdname module_kMEs
+#' @method subset module_kMEs
+#'
+subset.module_kMEs <- function(x, ...)
+  subset_module_kMEs(x, ...)

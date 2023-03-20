@@ -4,41 +4,64 @@
 \alias{module_kMEs}
 \alias{ggplot_module_kMEs}
 \alias{autoplot.module_kMEs}
+\alias{subset_module_kMEs}
+\alias{subset.module_kMEs}
 \title{Extract Modules and kMEs}
 \usage{
 module_kMEs(object)
 
 ggplot_module_kMEs(
   object,
-  x,
-  y,
+  facetname,
+  colorname,
   abskME = FALSE,
-  title = paste("facet by", y, "with", x, "color"),
+  title = paste("facet by", facetname, "with", colorname, "color"),
   ...
 )
 
 \method{autoplot}{module_kMEs}(object, ...)
+
+subset_module_kMEs(
+  x,
+  facetname,
+  colorname,
+  facetmodules = flev,
+  colormodules = clev,
+  ...
+)
+
+\method{subset}{module_kMEs}(x, ...)
 }
 \arguments{
 \item{object}{object of class `module_kMEs`}
 
-\item{x}{name of x response}
+\item{facetname}{name of facet response}
 
-\item{y}{name of y response}
+\item{colorname}{name of color response}
 
 \item{abskME}{plot absolute values if `TRUE`}
 
 \item{title}{title of plot}
 
-\item{...}{additional parameters}
+\item{...}{}
+
+\item{x}{}
+
+\item{facetmodules}{names of color modules to keep}
+
+\item{colormodules}{names of color modules to keep}
 }
 \value{
 object of class `module_kMEs`
 
 ggplot object
+
+data frame
 }
 \description{
 Extract Modules and kMEs
 
 GGplot of Module kMEs
+
+Subset module and kMEs
 }

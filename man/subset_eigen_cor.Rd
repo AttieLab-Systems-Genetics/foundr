@@ -4,10 +4,10 @@
 \alias{subset_eigen_cor}
 \title{Subset of eigen_cor object}
 \usage{
-subset_eigen_cor(object, colorname, facetname, ...)
+subset_eigen_cor(x, colorname, facetname, ...)
 }
 \arguments{
-\item{object}{of class `eigen_cor`}
+\item{x}{of class `eigen_cor`}
 
 \item{colorname}{color name}
 

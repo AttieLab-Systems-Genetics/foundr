@@ -124,7 +124,7 @@ autoplot.eigen_cor <- function(object, ...)
 
 #' Subset of eigen_cor object
 #'
-#' @param object of class `eigen_cor`
+#' @param x of class `eigen_cor`
 #' @param colorname color name
 #' @param facetname facet name
 #'
@@ -132,41 +132,41 @@ autoplot.eigen_cor <- function(object, ...)
 #' @export
 #' @importFrom dplyr filter
 #'
-subset_eigen_cor <- function(object, colorname, facetname, ...) {
-  if(is.null(object))
+subset_eigen_cor <- function(x, colorname, facetname, ...) {
+  if(is.null(x))
     return(NULL)
   if(colorname == facetname)
     return(NULL)
   
-  modules <- attr(object, "modules")
-  xes <- c(colorname, facetname)
+  modules <- attr(x, "modules")
+  fcnames <- c(colorname, facetname)
   
-  if(!(all(xes %in% names(modules))))
+  if(!(all(fcnames %in% names(modules))))
     return(NULL)
   
   # Restrict to the two responses colorname, facetname
-  object <- dplyr::filter(
-    object,
-    response1 %in% xes & response2 %in% xes)
+  x <- dplyr::filter(
+    x,
+    response1 %in% fcnames & response2 %in% fcnames)
   
-  if(!(colorname %in% object$response1)) {
+  if(!(colorname %in% x$response1)) {
     # Need to switch 1 and 2.
-    names(object) <- names(object)[c(2,1,4,3,5)]
-    object <- object[c(4,3,5)]
+    names(x) <- names(x)[c(2,1,4,3,5)]
+    x <- x[c(4,3,5)]
   } else
-    object <- object[3:5]
-  names(object)[1:2] <- xes
+    x <- x[3:5]
+  names(x)[1:2] <- fcnames
   
   # Significant digits for correlations
-  object[3] <- signif(object[3], 4)
+  x[3] <- signif(x[3], 4)
   
   # Turn module colors into factors ordered by count
-  for(i in xes) {
-    object[[i]] <- factor(
-      object[[i]],
+  for(i in fcnames) {
+    x[[i]] <- factor(
+      x[[i]],
       modules[[i]])
   }
-  object
+  x
 }
 #' @export
 #' @rdname eigen_cor
