@@ -69,8 +69,6 @@ pairsetup <- function(x, object,
     
     # Create columns for each trait pair with trait means.
     out <- pivot_pair(out, x)
-  } else {
-    
   }
   
   if("condition" %in% names(out)) {
@@ -104,15 +102,14 @@ trait_pairs <- function(traitnames, sep = " ON ") {
           }))))
 }
 
-#' Title
+#' GGplot of trait pairs
 #'
-#' @param object 
+#' @param object,x object of class `traitPairs`
 #' @param ... 
 #'
 #' @return
 #' @export
 #'
-#' @examples
 ggplot_traitPairs <- function(object, ...) {
 
   if(is.null(object) || !nrow(object[[1]]))
@@ -232,6 +229,6 @@ autoplot.traitPairs <- function(object, ...) {
 #' @export
 #' @rdname traitPairs
 #' @method plot traitPairs
-plot.traitPairs <- function(object, ...) {
-  ggplot_traitPairs(object, ...)
+plot.traitPairs <- function(x, ...) {
+  ggplot_traitPairs(x, ...)
 }
