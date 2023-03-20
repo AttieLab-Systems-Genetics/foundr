@@ -15,8 +15,8 @@ module_kMEs <- function(object) {
     dplyr::as_tibble)
   
   # Add column for trait names.
-  mods$module$trait <- mods$trait$individual
-  mods$kME$trait <- mods$trait$individual
+  mods$module$trait <- mods$trait[[1]]
+  mods$kME$trait <- mods$trait[[1]]
   
   out <- dplyr::full_join(
     mods$module,
@@ -45,7 +45,7 @@ module_kMEs <- function(object) {
 #'
 ggplot_module_kMEs <- function(object, x, y,
                                abskME = FALSE,
-                               title = paste("facet by", y, "with color by", x),
+                               title = paste("facet by", y, "with", x, "color"),
                                ...) {
   xcol <- paste0(x, "_col")
   ycol <- paste0(y, "_col")

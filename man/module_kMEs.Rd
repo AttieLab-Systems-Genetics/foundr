@@ -13,7 +13,7 @@ ggplot_module_kMEs(
   x,
   y,
   abskME = FALSE,
-  title = paste("facet by", y, "with color by", x),
+  title = paste("facet by", y, "with", x, "color"),
   ...
 )
 

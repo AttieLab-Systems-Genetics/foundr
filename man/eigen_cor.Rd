@@ -4,26 +4,29 @@
 \alias{eigen_cor}
 \alias{ggplot_eigen_cor}
 \alias{autoplot.eigen_cor}
+\alias{subset.eigen_cor}
 \title{Correlation of eigentraits across responses}
 \usage{
 eigen_cor(object)
 
 ggplot_eigen_cor(
   object,
-  x,
-  y,
-  main = paste("facet by", y, "with color", x),
+  colorname,
+  facetname,
+  main = paste("facet by", facetname, "with", colorname, "color"),
   ...
 )
 
 \method{autoplot}{eigen_cor}(object, ...)
+
+\method{subset}{eigen_cor}(x, ...)
 }
 \arguments{
 \item{object}{object of class `eigen_cor`}
 
-\item{x}{facet name}
+\item{colorname}{color name}
 
-\item{y}{color name}
+\item{facetname}{facet name}
 
 \item{main}{title}
 

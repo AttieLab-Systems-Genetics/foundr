@@ -8,29 +8,40 @@
 #' @importFrom tidyr pivot_longer
 #'
 eigen_cor <- function(object) {
-  # Get ID from individual response
+  if(is.null(object))
+    return(NULL)
+  
+  # Get ID from first response.
+  # Assume these agree across elements of object.
   ID <- dplyr::arrange(
-    object$individual$ID,
+    object[[1]]$ID,
     ID)
   
   # Get eigen data frames.
   object <- purrr::transpose(object)$eigen
   
-  for(i in c("cellmean","signal")) {
-    object[[i]] <- 
-      as.data.frame(
-        tidyr::unite(
-          dplyr::left_join(
-            ID,
-            dplyr::mutate(
-              object[[i]],
-              ID = rownames(object[[i]])),
-            by = "ID"),
-          ID, ID, animal))
-    
-    # Put row names back and remove ID column.
-    rownames(object[[i]]) <- object[[i]]$ID
-    object[[i]]$ID <- NULL
+  if("animal" %in% names(ID)) {
+    reduced_response <- c("cellmean","signal")
+    m <- match(reduced_response, names(object), nomatch = 0)
+    if(any(m > 0)) {
+      reduced_response <- reduced_response[m > 0]  
+      for(i in reduced_response) {
+        object[[i]] <- 
+          as.data.frame(
+            tidyr::unite(
+              dplyr::left_join(
+                ID,
+                dplyr::mutate(
+                  object[[i]],
+                  ID = rownames(object[[i]])),
+                by = "ID"),
+              ID, ID, animal))
+        
+        # Put row names back and remove ID column.
+        rownames(object[[i]]) <- object[[i]]$ID
+        object[[i]]$ID <- NULL
+      }
+    }
   }
   
   responses <- names(object)
@@ -65,8 +76,8 @@ eigen_cor <- function(object) {
 #' GGplot of Eigentrait Correlations
 #'
 #' @param object object of class `eigen_cor`
-#' @param x facet name
-#' @param y color name
+#' @param colorname color name
+#' @param facetname facet name
 #' @param main title
 #' @param ... additional parameters
 #'
@@ -77,46 +88,30 @@ eigen_cor <- function(object) {
 #'             scale_color_manual scale_y_discrete theme ylab
 #' @importFrom dplyr filter
 #'
-ggplot_eigen_cor <- function(object, x, y,
-                             main = paste("facet by", y, "with color", x),
+ggplot_eigen_cor <- function(object, colorname, facetname,
+                             main = paste("facet by", facetname,
+                                          "with", colorname, "color"),
                              ...) {
   modules <- attr(object, "modules")
   
-  if(!(all(c(x,y) %in% names(modules))))
-    return(plot_null(paste(x, "and", y, "must be valid responses")))
+  object <- subset(object, colorname, facetname)
   
-  # Restrict to two responses
-  object <- dplyr::filter(
-    object,
-    response1 %in% c(x,y) & response2 %in% c(x,y))
-  
-  if(!(x %in% object$response1)) {
-    # Need to switch 1 and 2.
-    names(object) <- names(object)[c(2,1,4,3,5)]
-  }
-  
-  # Turn module colors into factors ordered by count
-  xes <- c(x,y)
-  for(i in 1:2) {
-    object[[paste0("module", i)]] <- factor(
-      object[[paste0("module", i)]],
-      modules[[xes[i]]])
-  }
-
+  if(is.null(object))
+    return(plot_null("no eigen_cor object"))
   
   # Module colors are factors ordered by count.
-  modcolors <- modules[[x]]
+  modcolors <- modules[[colorname]]
   names(modcolors) <- modcolors
   
   ggplot2::ggplot(object) +
-    ggplot2::aes(corr, module1, col = module1) +
+    ggplot2::aes(corr, .data[[colorname]], col = .data[[colorname]]) +
     ggplot2::geom_vline(xintercept = 0, col = "gray") +
     ggplot2::geom_point() +
-    ggplot2::facet_wrap(~ module2) +
+    ggplot2::facet_wrap(~ .data[[facetname]]) +
     ggplot2::scale_y_discrete(limits = rev) +
-    ggplot2::scale_color_manual(values = modcolors, name = x) +
-    ggplot2::ylab(x) +
+    ggplot2::scale_color_manual(values = modcolors, name = colorname) +
     ggplot2::xlab("correlation") +
+    ggplot2::ylab(colorname) +
     ggplot2::ggtitle(main) +
     ggplot2::theme(axis.text.y = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank())
@@ -126,3 +121,57 @@ ggplot_eigen_cor <- function(object, x, y,
 #' @method autoplot eigen_cor
 autoplot.eigen_cor <- function(object, ...)
   ggplot_eigen_cor(object, ...)
+
+#' Subset of eigen_cor object
+#'
+#' @param object of class `eigen_cor`
+#' @param colorname color name
+#' @param facetname facet name
+#'
+#' @return data frame with colorname, facetname, correlation
+#' @export
+#' @importFrom dplyr filter
+#'
+subset_eigen_cor <- function(object, colorname, facetname, ...) {
+  if(is.null(object))
+    return(NULL)
+  if(colorname == facetname)
+    return(NULL)
+  
+  modules <- attr(object, "modules")
+  xes <- c(colorname, facetname)
+  
+  if(!(all(xes %in% names(modules))))
+    return(NULL)
+  
+  # Restrict to the two responses colorname, facetname
+  object <- dplyr::filter(
+    object,
+    response1 %in% xes & response2 %in% xes)
+  
+  if(!(colorname %in% object$response1)) {
+    # Need to switch 1 and 2.
+    names(object) <- names(object)[c(2,1,4,3,5)]
+    object <- object[c(4,3,5)]
+  } else
+    object <- object[3:5]
+  names(object)[1:2] <- xes
+  
+  # Significant digits for correlations
+  object[3] <- signif(object[3], 4)
+  
+  # Turn module colors into factors ordered by count
+  for(i in xes) {
+    object[[i]] <- factor(
+      object[[i]],
+      modules[[i]])
+  }
+  object
+}
+#' @export
+#' @rdname eigen_cor
+#' @method subset eigen_cor
+#'
+subset.eigen_cor <- function(x, ...)
+  subset_eigen_cor(x, ...)
+  
