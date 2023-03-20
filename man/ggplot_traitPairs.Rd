@@ -2,15 +2,15 @@
 % Please edit documentation in R/traitPairs.R
 \name{ggplot_traitPairs}
 \alias{ggplot_traitPairs}
-\title{Title}
+\title{GGplot of trait pairs}
 \usage{
 ggplot_traitPairs(object, ...)
 }
 \arguments{
-\item{object}{}
+\item{object, x}{object of class `traitPairs`}
 
 \item{...}{}
 }
 \description{
-Title
+GGplot of trait pairs
 }

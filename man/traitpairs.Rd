@@ -16,7 +16,7 @@ traitPairs(
 
 \method{autoplot}{traitPairs}(object, ...)
 
-\method{plot}{traitPairs}(object, ...)
+\method{plot}{traitPairs}(x, ...)
 }
 \arguments{
 \item{object}{object of class `traitSolos`}
