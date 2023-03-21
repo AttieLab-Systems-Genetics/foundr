@@ -7,9 +7,15 @@
 #' @export
 #'
 join_dataset_modules <- function(dmods, response) {
+  if(is.null(dmods))
+    return(NULL)
+  
   eclass <- class(dmods[[1]])
   lclass <- class(dmods)
   dmods <- purrr::transpose(dmods)[[response]]
+  if(is.null(dmods))
+    return(NULL)
+  
   dmods <- purrr::transpose(dmods)
   
   # Cannot combine trees, so drop them.

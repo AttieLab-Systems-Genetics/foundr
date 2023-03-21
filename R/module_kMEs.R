@@ -5,24 +5,49 @@
 #' @return object of class `module_kMEs`
 #' @export
 #' @importFrom purrr transpose
-#' @importFrom dplyr as_tibble full_join
+#' @importFrom dplyr as_tibble bind_cols everything full_join select
 #'
 module_kMEs <- function(object) {
-  # Transpose twice to get module and kME with respect to responses.
+  if(is.null(object))
+    return(NULL)
+  
+  object <- transpose(object)
+  if(is.null(object))
+    return(NULL)
+  
+  # Transpose to get module and kME with respect to responses.
   mods <- lapply(
     purrr::transpose(
-      purrr::transpose(object)$modules),
+      object$modules),
     dplyr::as_tibble)
-  
+
+  if(is_tree <- !is.null(object$geneTree)) {
+    # Transpose to get order from module tree.
+    ords <- 
+      dplyr::as_tibble(
+        purrr::transpose(
+          object$geneTree)$order)
+    names(ords) <- paste0(names(ords), "_ord")
+  }
+
   # Add column for trait names.
   mods$module$trait <- mods$trait[[1]]
   mods$kME$trait <- mods$trait[[1]]
-  
+
   out <- dplyr::full_join(
     mods$module,
     mods$kME,
     by = "trait",
     suffix = c("_col","_kME"))
+  
+  if(is_tree) {
+    out <- dplyr::bind_cols(out, ords)
+  }
+  
+  out <- dplyr::select(
+    out,
+    trait, dplyr::everything())
+  
   class(out) <- c("module_kMEs", class(out))
   out
 }
@@ -108,7 +133,7 @@ autoplot.module_kMEs <- function(object, ...) {
 #' 
 #' @export
 #' @importFrom rlang .data
-#' @importFrom dplyr filter mutate select
+#' @importFrom dplyr all_of filter mutate select
 #' @rdname module_kMEs
 #'
 subset_module_kMEs <- function(x,
@@ -127,13 +152,22 @@ subset_module_kMEs <- function(x,
   ccol <- paste0(colorname, "_col")
   flev <- levels(x[[fcol]])
   clev <- levels(x[[ccol]])
+  fkme <- paste0(facetname, "_kME")
+  ford <- paste0(facetname, "_ord")
+  fsel <- c(fcol, fkme)
+  if(is_ord <- (ford %in% names(x)))
+    fsel <- c(fsel, ford)
   
   x <- dplyr::select(
     dplyr::filter(
       x,
       .data[[fcol]] %in% facetmodules,
       .data[[ccol]] %in% colormodules),
-    trait, dplyr::everything())
+    trait, dplyr::all_of(fsel), dplyr::everything())
+  
+  if(is_ord) {
+    x <- dplyr::arrange(x, .data[[ford]])
+  }
   
   x[[fcol]] <- factor(x[[fcol]], flev[flev %in% x[[fcol]]])
   x[[ccol]] <- factor(x[[ccol]], clev[clev %in% x[[ccol]]])

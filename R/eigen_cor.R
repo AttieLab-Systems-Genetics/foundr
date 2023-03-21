@@ -19,7 +19,7 @@ eigen_cor <- function(object) {
   
   # Get eigen data frames.
   object <- purrr::transpose(object)$eigen
-  
+
   if("animal" %in% names(ID)) {
     reduced_response <- c("cellmean","signal")
     m <- match(reduced_response, names(object), nomatch = 0)

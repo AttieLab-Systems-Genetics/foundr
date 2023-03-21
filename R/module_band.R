@@ -8,26 +8,24 @@
 #' @export
 #'
 module_band <- function(traitModule, response = responses[1], solo = FALSE) {
+  if(is.null(traitModule))
+    return(NULL)
+  
   # Responses in module; put `response` first.
   responses <- names(traitModule)
   responses <- unique(c(response, responses))
   
-  out <- purrr::set_names(
-    purrr::map(
-      responses,
-      module_band1,
-      traitModule),
-    responses)
-  
-  out <- purrr::transpose(out)
-    
-  # Extract moduleColors.
-  moduleColors <- sort(unique(as.character(out$moduleColors)))
-  
   out <- 
     dplyr::mutate(
+      # Bind rows together across reponses
       dplyr::bind_rows(
-        out$moduleOrder,
+        # Determine module bands for each response.
+        purrr::set_names(
+          purrr::map(
+            responses,
+            module_band1,
+            traitModule),
+          responses),
         .id = "response"),
       response = factor(response, responses))
 
@@ -44,18 +42,12 @@ module_band1 <- function(response, traitModule) {
   # Modules in order of traits on traitTree
   module <- tModule$modules$module[order]
   
-  # Module colors for plotting.
-  moduleColors <- levels(tModule$modules$module)
-  names(moduleColors) <- moduleColors
-  
   # Count contingent module traits.
   mle <- rle(as.character(module))
-  mle <- dplyr::tibble(
+  dplyr::tibble(
     lengths = mle$lengths,
     color = mle$values,
     group = seq_along(mle$values))
-  
-  list(moduleOrder = mle, moduleColors = moduleColors)
 }
 
 #' GGplot of module bands
