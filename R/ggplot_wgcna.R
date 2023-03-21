@@ -23,7 +23,7 @@ ggplot_wgcnaModules <- function(object,
   miny <- min(object[[response]]$geneTree$height)
   p[[1]] <- 
     cowplot::plot_grid(
-      plot_null(""),
+      plot_null("Height = Dissimilarity", angle = 90),
       ggdendro::ggdendrogram(object[[response]]$geneTree, labels = FALSE, ...) +
         ggplot2::ylim(c(miny, 1)) +
         ggplot2::ggtitle(main), # This causes message; how to pass as arg?
@@ -57,7 +57,7 @@ autoplot.wgcnaModules <- function(object, ...) {
 #'
 #' @return ggplot2 object
 #' @importFrom ggdendro ggdendrogram
-#' @importFrom ggplot2 autoplot ylim
+#' @importFrom ggplot2 autoplot element_text theme ylim
 #' @importFrom cowplot plot_grid
 #' 
 #' @export
@@ -74,11 +74,12 @@ ggplot_listof_wgcnaModules <- function(object,
   miny <- min(object[[response]]$geneTree$height)
   p[[1]] <- 
     cowplot::plot_grid(
-      plot_null(""),
+      plot_null("Height = Dissimilarity", size = 3, angle = 90),
       ggdendro::ggdendrogram(object[[response]]$geneTree, labels = FALSE, ...) +
         ggplot2::ylim(c(miny, 1)) +
-        ggplot2::ggtitle(main), # This causes message; how to pass as arg?
-      rel_widths = c(1,12))
+        ggplot2::ggtitle(main) +
+        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)),
+      rel_widths = c(1,15))
 
   modband <- module_band(object, response)
   
