@@ -94,7 +94,7 @@ ggplot_onetrait <- function(object,
   }
   
   # Make sure strain is in proper order
-  object <- dplyr::mutate(object, strain = factor(strain, names(CCcolors)))
+  object <- dplyr::mutate(object, strain = factor(strain, names(foundr::CCcolors)))
   
   p <- ggplot2::ggplot(object)
   
@@ -145,7 +145,7 @@ ggplot_onetrait <- function(object,
     }
     
     p <- p +
-      ggplot2::scale_fill_manual(values = CCcolors)
+      ggplot2::scale_fill_manual(values = foundr::CCcolors)
     
     form <- stats::formula(paste(form, condition))
     p <- p + ggplot2::facet_grid(form, scales = "free_y")

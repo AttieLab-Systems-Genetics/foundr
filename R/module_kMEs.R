@@ -75,7 +75,7 @@ ggplot_module_kMEs <- function(object, facetname, colorname,
 
   object <- subset(object, facetname, colorname, ...)
   if(is.null(object))
-    return(plot_null())
+    return(plot_null("no module_kMEs object"))
 
   colorcol <- paste0(colorname, "_col")
   facetcol <- paste0(facetname, "_col")
@@ -93,7 +93,7 @@ ggplot_module_kMEs <- function(object, facetname, colorname,
   
   ggplot2::ggplot(object) +
     ggplot2::aes(.data[[colorkME]], .data[[facetkME]], col = .data[[colorcol]],
-                 trait = trait) +
+                 key = trait) +
     ggplot2::geom_abline(slope = 1, intercept = 0, col = "darkgrey") +
     ggplot2::geom_point(shape = 1) +
     ggplot2::scale_color_manual(values = modcolors) +

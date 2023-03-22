@@ -17,7 +17,7 @@
 traitSolos <- function(traitData, traitSignal,
                        traitnames = unique(unite_datatraits(traitSignal)),
                        response = c("individual", "cellmean", "signal", "ind_signal"),
-                       strains = names(CCcolors),
+                       strains = names(foundr::CCcolors),
                        abbrev = FALSE,
                        sep = ": ") {
   
@@ -84,7 +84,7 @@ traitSolos <- function(traitData, traitSignal,
   traitData
 }
 selectSignal <- function(object, traitnames, response,
-                         strains = names(CCcolors)) {
+                         strains = names(foundr::CCcolors)) {
   # The response must be either "cellmean" or "signal".
   
   if("condition" %in% names(object)) {
@@ -103,7 +103,7 @@ selectSignal <- function(object, traitnames, response,
           value = .data[[response]]),
         dplyr::all_of(c(bys, "value"))),
       .keep_all = TRUE),
-    strain = factor(strain, names(CCcolors)),
+    strain = factor(strain, names(foundr::CCcolors)),
     value = signif(value, 4))
 }
 #' Summary of traitSolos object

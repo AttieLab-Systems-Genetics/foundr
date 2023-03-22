@@ -11,8 +11,8 @@ eigen_cor(object)
 
 ggplot_eigen_cor(
   object,
-  colorname,
   facetname,
+  colorname,
   main = paste("facet by", facetname, "with", colorname, "color"),
   ...
 )
@@ -24,9 +24,9 @@ ggplot_eigen_cor(
 \arguments{
 \item{object}{object of class `eigen_cor`}
 
-\item{colorname}{color name}
-
 \item{facetname}{facet name}
+
+\item{colorname}{color name}
 
 \item{main}{title}
 

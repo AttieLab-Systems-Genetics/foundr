@@ -4,14 +4,25 @@
 \alias{subset_eigen_cor}
 \title{Subset of eigen_cor object}
 \usage{
-subset_eigen_cor(x, colorname, facetname, ...)
+subset_eigen_cor(
+  x,
+  facetname,
+  colorname,
+  facetmodules = flev,
+  colormodules = clev,
+  ...
+)
 }
 \arguments{
 \item{x}{of class `eigen_cor`}
 
+\item{facetname}{facet name}
+
 \item{colorname}{color name}
 
-\item{facetname}{facet name}
+\item{facetmodules}{names of color modules to keep}
+
+\item{colormodules}{names of color modules to keep}
 }
 \value{
 data frame with colorname, facetname, correlation

@@ -333,7 +333,7 @@ foundrServer <- function(input, output, session,
   })
   
   output$strains <- shiny::renderUI({
-    choices <- names(CCcolors)
+    choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
                        choices = choices, selected = choices, inline = TRUE)
   })

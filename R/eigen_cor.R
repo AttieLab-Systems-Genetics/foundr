@@ -76,8 +76,8 @@ eigen_cor <- function(object) {
 #' GGplot of Eigentrait Correlations
 #'
 #' @param object object of class `eigen_cor`
-#' @param colorname color name
 #' @param facetname facet name
+#' @param colorname color name
 #' @param main title
 #' @param ... additional parameters
 #'
@@ -88,13 +88,13 @@ eigen_cor <- function(object) {
 #'             scale_color_manual scale_y_discrete theme ylab
 #' @importFrom dplyr filter
 #'
-ggplot_eigen_cor <- function(object, colorname, facetname,
+ggplot_eigen_cor <- function(object, facetname, colorname,
                              main = paste("facet by", facetname,
                                           "with", colorname, "color"),
                              ...) {
   modules <- attr(object, "modules")
   
-  object <- subset(object, colorname, facetname)
+  object <- subset(object, facetname, colorname, ...)
   
   if(is.null(object))
     return(plot_null("no eigen_cor object"))
@@ -104,7 +104,8 @@ ggplot_eigen_cor <- function(object, colorname, facetname,
   names(modcolors) <- modcolors
   
   ggplot2::ggplot(object) +
-    ggplot2::aes(corr, .data[[colorname]], col = .data[[colorname]]) +
+    ggplot2::aes(corr, .data[[colorname]], col = .data[[colorname]],
+                 facet = .data[[facetname]]) +
     ggplot2::geom_vline(xintercept = 0, col = "gray") +
     ggplot2::geom_point() +
     ggplot2::facet_wrap(~ .data[[facetname]]) +
@@ -125,30 +126,41 @@ autoplot.eigen_cor <- function(object, ...)
 #' Subset of eigen_cor object
 #'
 #' @param x of class `eigen_cor`
-#' @param colorname color name
 #' @param facetname facet name
+#' @param colorname color name
+#' @param facetmodules names of color modules to keep
+#' @param colormodules names of color modules to keep
 #'
 #' @return data frame with colorname, facetname, correlation
 #' @export
 #' @importFrom dplyr filter
 #'
-subset_eigen_cor <- function(x, colorname, facetname, ...) {
+subset_eigen_cor <- function(x,
+                             facetname,
+                             colorname,
+                             facetmodules = flev,
+                             colormodules = clev,
+                             ...) {
   if(is.null(x))
     return(NULL)
   if(colorname == facetname)
     return(NULL)
   
   modules <- attr(x, "modules")
-  fcnames <- c(colorname, facetname)
+  fcnames <- c(facetname, colorname)
   
   if(!(all(fcnames %in% names(modules))))
     return(NULL)
   
-  # Restrict to the two responses colorname, facetname
+  flev <- modules[[facetname]]
+  clev <- modules[[colorname]]
+  
+  # Restrict to the two responses colorname, facetname.
   x <- dplyr::filter(
     x,
-    response1 %in% fcnames & response2 %in% fcnames)
-  
+    response1 %in% fcnames,
+    response2 %in% fcnames)
+
   if(!(colorname %in% x$response1)) {
     # Need to switch 1 and 2.
     names(x) <- names(x)[c(2,1,4,3,5)]
@@ -156,16 +168,16 @@ subset_eigen_cor <- function(x, colorname, facetname, ...) {
   } else
     x <- x[3:5]
   names(x)[1:2] <- fcnames
+
+  # Restrict to  selected modules.
+  x <- dplyr::filter(
+    x,
+    .data[[facetname]] %in% facetmodules,
+    .data[[colorname]] %in% colormodules)
   
   # Significant digits for correlations
   x[3] <- signif(x[3], 4)
-  
-  # Turn module colors into factors ordered by count
-  for(i in fcnames) {
-    x[[i]] <- factor(
-      x[[i]],
-      modules[[i]])
-  }
+
   x
 }
 #' @export

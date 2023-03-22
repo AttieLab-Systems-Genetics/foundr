@@ -15,7 +15,7 @@ ggplot_time <- function(object) {
     ggplot2::geom_jitter(shape = 21, size = 2, color = "black") +
     ggplot2::geom_smooth(se = FALSE) +
     ggplot2::facet_wrap(sex ~ condition) +
-    ggplot2::scale_color_manual(values = CCcolors) +
-    ggplot2::scale_fill_manual(values = CCcolors)
+    ggplot2::scale_color_manual(values = foundr::CCcolors) +
+    ggplot2::scale_fill_manual(values = foundr::CCcolors)
   
 }

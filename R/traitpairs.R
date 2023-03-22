@@ -189,7 +189,7 @@ pairplots <- function(object,
     }
   }
   p <- p +
-    ggplot2::scale_fill_manual(values = CCcolors) +
+    ggplot2::scale_fill_manual(values = foundr::CCcolors) +
     ggplot2::theme(
       legend.position = "none",
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1)) +
