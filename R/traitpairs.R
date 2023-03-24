@@ -164,14 +164,16 @@ pairplots <- function(object,
           ggplot2::aes(
             fill = strain, group = strain, col = strain,
             y = .fitted),
-          size = 1)
+          linewidth = 1) +
+        ggplot2::scale_color_manual(values = foundr::CCcolors)
     } else {
       p <- p +
         ggplot2::geom_smooth(
           ggplot2::aes(
             fill = strain, group = strain, col = strain),
           method = "lm", se = FALSE, formula = "y ~ x",
-          size = 1)
+          linewidth = 1) +
+        ggplot2::scale_color_manual(values = foundr::CCcolors)
     }
   } else {
     # Because we specify fill in aes, we need to include it here.
@@ -179,13 +181,13 @@ pairplots <- function(object,
       p <- p +
         ggplot2::geom_line(
           ggplot2::aes(y = .fitted),
-          size = 1, col = "darkgrey")
+          linewidth = 1, col = "darkgrey")
       
     } else {
       p <- p +
         ggplot2::geom_smooth(
           method = "lm", se = FALSE, formula = "y ~ x",
-          size = 1, fill = "darkgrey", col = "darkgrey")
+          linewidth = 1, fill = "darkgrey", col = "darkgrey")
     }
   }
   p <- p +
