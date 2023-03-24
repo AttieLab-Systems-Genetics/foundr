@@ -4,11 +4,7 @@
 \alias{join_signal}
 \title{Join trait data and signal}
 \usage{
-join_signal(
-  traitData,
-  traitSignal,
-  response = c("ind_signal", "rest", "noise")
-)
+join_signal(traitData, traitSignal, response = c("rest", "noise"))
 }
 \arguments{
 \item{traitData}{data frame with harmonized data}

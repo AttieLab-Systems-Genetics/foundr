@@ -8,7 +8,7 @@
 #' @export
 #' @importFrom dplyr left_join mutate select
 #'
-join_signal <- function(traitData, traitSignal, response = c("ind_signal", "rest", "noise")) {
+join_signal <- function(traitData, traitSignal, response = c("rest", "noise")) {
   response <- match.arg(response)
   
   if("condition" %in% names(traitData)) {
@@ -26,13 +26,6 @@ join_signal <- function(traitData, traitSignal, response = c("ind_signal", "rest
       by = bys)
   
   switch(response,
-         ind_signal = {
-           dplyr::select(
-             dplyr::mutate(
-               out,
-               value = value - cellmean + signal),
-             -cellmean)
-         },
          rest = {
            dplyr::select(
              dplyr::mutate(

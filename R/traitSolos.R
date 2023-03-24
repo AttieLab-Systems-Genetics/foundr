@@ -16,7 +16,7 @@
 #' @examples
 traitSolos <- function(traitData, traitSignal,
                        traitnames = unique(unite_datatraits(traitSignal)),
-                       response = c("individual", "cellmean", "signal", "ind_signal"),
+                       response = c("value", "cellmean", "signal", "individual"),
                        strains = names(foundr::CCcolors),
                        abbrev = FALSE,
                        sep = ": ") {
@@ -28,21 +28,15 @@ traitSolos <- function(traitData, traitSignal,
   }
   
   response <- match.arg(response)
-  if(response %in% c("individual", "ind_signal")) {
-    if(response == "ind_signal") {
-      
-      # Include columns for signal and value = individual - cellmean + signal
-      traitData <- join_signal(traitData, traitSignal)
-    } else {
-      # Include columns for cellmean and value = individual
-      traitData <-
-        dplyr::select(
-          dplyr::left_join(
-            traitData,
-            traitSignal,
-            by = bys),
-          -signal)
-    }
+  if(response %in% c("individual")) {
+    # Include columns for cellmean and value = individual
+    traitData <-
+      dplyr::select(
+        dplyr::left_join(
+          traitData,
+          traitSignal,
+          by = bys),
+        -signal)
     
     traitData <- 
       dplyr::filter(
@@ -138,11 +132,8 @@ summary_traitSolos <- function(object,
     datatraits)
   
   
-  if(response %in% c("individual", "ind_signal")) {
-    if(response == "individual")
-      response <- "cellmean"
-    if(response == "ind_signal")
-      response <- "signal"
+  if(response %in% c("individual")) {
+    response <- "cellmean"
     object <- dplyr::select(object, -value)
 
     object <- selectSignal(object,

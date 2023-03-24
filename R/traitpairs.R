@@ -56,14 +56,11 @@ pairsetup <- function(x, object,
   
   out <- pivot_pair(object, x)
   
-  is_indiv <- (response %in% c("individual", "ind_signal"))
+  is_indiv <- (response %in% c("individual"))
   if(is_indiv & nrow(out) < 2) {
     # Problem of nrow<2 likely from traits having different subjects.
     # Reduce to response
-    if(response %in% c("signal", "ind_signal"))
-      response <- "signal"
-    else
-      response <- "cellmean"
+    response <- "cellmean"
     out <- selectSignal(object, x, response)
     out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
     
@@ -124,7 +121,7 @@ pairplots <- function(object,
                       sep = attr(object, "sep"), 
                       shape_sex = TRUE,
                       parallel_lines = FALSE,
-                      line_strain = (response %in% c("individual","ind_signal")),
+                      line_strain = (response %in% c("individual")),
                       title = paste(pair[1], "vs", pair[2]),
                       ...) {
   # Get trait pair
