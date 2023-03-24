@@ -52,6 +52,7 @@ bind_traits <- function(datasets, dirname = ".") {
   invisible()
 }
 bind_traits_object <- function(datasets, filetype, dirname = ".") {
+  # This assumes columns are in right order.
   dplyr::bind_rows(
     purrr::set_names(
       purrr::map(

@@ -4,18 +4,22 @@
 #' @param links data frame with `shortname`, `address`, `longname`
 #' @param userHarmony function provided by user
 #' @param ... additional optional parameters to `userHarmony()`
+#' @param normalize apply `normalscores` if `TRUE`
 #'
 #' @return side action to save RDS files locally
 #' @export
 #' @importFrom dplyr filter
 #'
 #' @examples
-harmonize <- function(dataset, links, userHarmony, ...) {
+harmonize <- function(dataset, links, userHarmony, ...,
+                      normalize = TRUE) {
   # Harmonize data with user-supplied harmony function.
   # Function must have `dataset` as first argument and include `...` argument.
   cat("Harmonizing raw data ...\n", stderr())
-  traitData <- normalscores(userHarmony(dataset, links, ...))
-  
+  traitData <- userHarmony(dataset, links, ...)
+  if(normalize)
+    traitData <- normalscores(traitData)
+    
   cat("Running statistics on traits ...\n", stderr())
   traitStats <- strainstats(traitData)
   
