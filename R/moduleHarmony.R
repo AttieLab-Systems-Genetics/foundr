@@ -43,7 +43,7 @@ moduleHarmony <- function(object, response = names(object)) {
           names = c("strain", "sex", "carb", "fat", "animal"),
           # Responses cellmean and signal do not have `animal`.
           too_few = "align_start"),
-        condition, carb, fat)
+        condition, carb, fat),
       response == "individual"),
     -response)
 }

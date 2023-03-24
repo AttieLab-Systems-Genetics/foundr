@@ -35,6 +35,8 @@ object of class ggplot
 GGplot by strain and condition
 }
 \examples{
-ggplot_traitSolos(sampleData)
+sampleSignal <- partition(sampleData)
+sampleSolo <- traitSolos(sampleData, sampleSignal)
+ggplot_traitSolos(sampleSolo)
 
 }
