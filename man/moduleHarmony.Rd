@@ -4,14 +4,22 @@
 \alias{moduleHarmony}
 \title{Harmonize module object}
 \usage{
-moduleHarmony(datasetname, links, object, response = names(object), ...)
+moduleHarmony(
+  datasetname,
+  links,
+  object,
+  responsename = names(object[[1]]),
+  ...
+)
 }
 \arguments{
+\item{datasetname}{name to give to dataset (here for compatibility)}
+
 \item{links}{data frame with links (not used yet)}
 
 \item{object}{object of class traitModule}
 
-\item{response}{name of response to extract}
+\item{responsename}{name of response to extract}
 
 \item{...}{additional parameters ignored}
 }

@@ -4,7 +4,7 @@
 #' @param traitSignal data frame with `signal` and `cellmean`
 #' @param response name of response to create through joining
 #'
-#' @return data frame with `value` as individual signal, plus `signal` column
+#' @return data frame with `value` as `rest` or `noise` column
 #' @export
 #' @importFrom dplyr left_join mutate select
 #'

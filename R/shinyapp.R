@@ -377,8 +377,8 @@ foundrServer <- function(input, output, session,
         shiny::column(
           6,
           shiny::radioButtons("butresp", "Response",
-                              c("individual", "cellmean", "signal"),
-                              "individual", inline = TRUE))),
+                              c("value", "cellmean", "signal"),
+                              "value", inline = TRUE))),
       shiny::conditionalPanel(
         condition = "input.buttrait == 'Trait Plots'",
         shiny::uiOutput("plots")),

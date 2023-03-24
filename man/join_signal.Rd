@@ -14,7 +14,7 @@ join_signal(traitData, traitSignal, response = c("rest", "noise"))
 \item{response}{name of response to create through joining}
 }
 \value{
-data frame with `value` as individual signal, plus `signal` column
+data frame with `value` as `rest` or `noise` column
 }
 \description{
 Join trait data and signal

@@ -10,7 +10,7 @@ traitSolos(
   traitData,
   traitSignal,
   traitnames = unique(unite_datatraits(traitSignal)),
-  response = c("value", "cellmean", "signal", "individual"),
+  response = c("value", "cellmean", "signal"),
   strains = names(foundr::CCcolors),
   abbrev = FALSE,
   sep = ": "

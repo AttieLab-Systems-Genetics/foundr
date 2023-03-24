@@ -56,7 +56,7 @@ pairsetup <- function(x, object,
   
   out <- pivot_pair(object, x)
   
-  is_indiv <- (response %in% c("individual"))
+  is_indiv <- (response == "value")
   if(is_indiv & nrow(out) < 2) {
     # Problem of nrow<2 likely from traits having different subjects.
     # Reduce to response
@@ -121,7 +121,7 @@ pairplots <- function(object,
                       sep = attr(object, "sep"), 
                       shape_sex = TRUE,
                       parallel_lines = FALSE,
-                      line_strain = (response %in% c("individual")),
+                      line_strain = (response == "value"),
                       title = paste(pair[1], "vs", pair[2]),
                       ...) {
   # Get trait pair

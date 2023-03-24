@@ -1,8 +1,9 @@
 #' Harmonize module object
 #'
+#' @param datasetname name to give to dataset (here for compatibility)
 #' @param object object of class traitModule
 #' @param links data frame with links (not used yet)
-#' @param response name of response to extract
+#' @param responsename name of response to extract
 #' @param ... additional parameters ignored
 #'
 #' @return harmonize object
@@ -16,9 +17,9 @@
 moduleHarmony <- function(datasetname,
                           links,
                           object,
-                          response = names(object),
+                          responsename = names(object[[1]]),
                           ...) { 
-  response <- match.arg(response)
+  responsename <- match.arg(responsename)
   
   dplyr::select(
     tidyr::unite(
@@ -56,7 +57,7 @@ moduleHarmony <- function(datasetname,
               # Responses cellmean and signal do not have `animal`.
               too_few = "align_start"),
             condition, carb, fat),
-          response == "individual"),
+          response == responsename),
         -response),
       trait,
       dataset, trait),
