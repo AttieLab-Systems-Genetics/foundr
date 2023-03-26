@@ -1,7 +1,12 @@
+#' @importFrom utils read.csv
+#' @importFrom tools file_ext
+#' @importFrom readxl read_excel
+#' @importFrom tidyr unite
+#' @importFrom dplyr group_by mutate rename ungroup
 newTraitData <- function(datapath, condition_name, dataset_name) {
   newdata <- switch(
     tools::file_ext(datapath),
-    csv = read.csv(datapath),
+    csv = utils::read.csv(datapath),
     xls, xlsx = readxl::read_excel(datapath),
     rds = readRDS(datapath))
   

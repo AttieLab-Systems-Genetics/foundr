@@ -13,6 +13,10 @@
 #' @importFrom ggplot2 aes element_text facet_grid geom_line geom_point geom_smooth 
 #'             ggplot ggtitle scale_color_manual scale_fill_manual scale_shape_manual theme
 #'
+#' @examples
+#' out <- traitSolos(sampleData)
+#' out2 <- traitPairs(out)
+#' plot(out2, parallel_lines = TRUE)
 traitPairs <- function(object,
                        traitnames = attr(object, "traitnames"),
                        pair = paste(traitnames[1:2], collapse = sep),

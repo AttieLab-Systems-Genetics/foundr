@@ -79,6 +79,14 @@ volcano(sampleStats, "signal")
 ```
 
 ```{r}
-effectplot(sampleStats, "sample: C")
+summary(sampleStats, "deviation", "parts")
+```
+
+```{r}
+summary(sampleStats, "log10.p", "terms")
+```
+
+```{r}
+effectplot(sampleStats, trait_names(sampleStats, "C"))
 ```
 

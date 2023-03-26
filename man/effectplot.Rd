@@ -18,3 +18,8 @@ effectplot(object, traitnames = NULL, correlated = NULL, ...)
 \description{
 Effect Plots
 }
+\examples{
+sampleStats <- strainstats(sampleData)
+effectplot(sampleStats, trait_names(sampleStats, "C"))
+
+}

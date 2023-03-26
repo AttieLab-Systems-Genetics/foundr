@@ -16,7 +16,7 @@
 #' 
 #' @importFrom dplyr across arrange bind_rows distinct everything filter mutate select
 #' @importFrom purrr map
-#' @importFrom stats formula lm
+#' @importFrom stats formula lm predict resid
 #' 
 #' @export
 #'
@@ -46,9 +46,9 @@ partition <- function(object,
     formred <- stats::formula(paste(value, "~", rest))
     fitred <- stats::lm(formred, object)
     resids <- rep(NA, nrow(object))
-    resids[!is.na(object[[value]])] <- resid(fitred)
+    resids[!is.na(object[[value]])] <- stats::resid(fitred)
     preds <- rep(NA, nrow(object))
-    preds[!is.na(object[[value]])] <- predict(fitred)
+    preds[!is.na(object[[value]])] <- stats::predict(fitred)
     object <- 
       dplyr::mutate(
         object,
@@ -57,9 +57,9 @@ partition <- function(object,
     formful <- stats::formula(paste("residred", "~", signal))
     fitful <- stats::lm(formful, object)
     resids <- rep(NA, nrow(object))
-    resids[!is.na(object[[value]])] <- resid(fitful)
+    resids[!is.na(object[[value]])] <- stats::resid(fitful)
     preds <- rep(NA, nrow(object))
-    preds[!is.na(object[[value]])] <- predict(fitful)
+    preds[!is.na(object[[value]])] <- stats::predict(fitful)
     object <- dplyr::mutate(
       dplyr::select(object, -residred),
       signal = preds,

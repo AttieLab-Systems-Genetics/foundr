@@ -10,14 +10,16 @@
 #' @importFrom dplyr arrange as_tibble bind_rows distinct filter mutate select
 #' @importFrom tidyr pivot_wider separate_wider_delim unite
 #' @importFrom stringr str_detect
-#' @importFrom stats anova drop1 formula lm pf sd
+#' @importFrom stats anova coef drop1 formula lm pf sd
 #' @importFrom purrr map
 #' @importFrom broom tidy
 #' @importfrom rlang .data
 #' 
 #' @export
 #' @examples
-#' strainstats(sampleData)
+#' out <- strainstats(sampleData)
+#' summary(out, "deviation", "parts")
+#' summary(out, "log10.p", "terms")
 strainstats <- function(object,
                     signal = ifelse(
                       is_condition,
@@ -52,7 +54,7 @@ strainstats <- function(object,
   
   # Reorder to agree with data object
   o <- dplyr::distinct(object, datatraits)$datatraits
-  tidyr::separate_wider_delim(
+  out <- tidyr::separate_wider_delim(
     dplyr::arrange(
       dplyr::mutate(
         out,
@@ -61,6 +63,9 @@ strainstats <- function(object,
     datatraits,
     ": ",
     names = c("dataset", "trait"))
+  
+  class(out) <- c("strainstats", class(out))
+  out
 }
 fitsplit <- function(traitdata, signal, rest) {
   sig <- tryCatch(signalfit(traitdata, "value", signal, rest),
@@ -72,7 +77,7 @@ fitsplit <- function(traitdata, signal, rest) {
   rawSD <-  stats::sd(traitdata$value, na.rm = TRUE)
   
   # Find sign of coefficients for condition and sex
-  coefs <- coef(fit)
+  coefs <- stats::coef(fit)
   if("condition" %in% names(traitdata) && length(unique(traitdata$condition)) == 2) {
     condsign <- sign(coefs[stringr::str_detect(names(coefs), "condition") &
                              !stringr::str_detect(names(coefs), ":")])
@@ -167,4 +172,66 @@ strain_stats <- function(fitsum, termname = "") {
       SD = "sumsq"),
     term, SD, p.value)
 }
+#' Summary of Strain Statistics
+#'
+#' @param object object of class `strainstats`
+#' @param stats choice of `deviation` or `log10.p`
+#' @param model choice of model `parts` or `terms`
+#' @param ... not used
+#'
+#' @return data frame
+#' @export
+#' @importFrom dplyr filter mutate select
+#' @importFrom tidyr pivot_wider
+#' @rdname strainstats
+#'
+summary_strainstats <- function(object,
+                                stats = c("deviation", "log10.p"),
+                                model = c("parts", "terms"),
+                                ...) {
+  model <- match.arg(model)
+  switch(model,
+    parts = {
+      object <-
+        dplyr::filter(
+          object,
+          term %in% c("signal", "cellmean", "rest", "noise"))
+    },
+    terms ={
+      object <-
+        dplyr::filter(
+          object,
+          !(term %in% c("signal", "cellmean", "rest", "noise")))
+    })
+  
+  stats <- match.arg(stats)
+  switch(stats,
+    deviation = {
+      tidyr::pivot_wider(
+        dplyr::select(
+          dplyr::mutate(
+            dplyr::filter(
+              object,
+              term != "noise"),
+            SD = signif(SD, 4)),
+          -p.value),
+        names_from = "term", values_from = "SD")
+    },
+    log10.p = {
+      tidyr::pivot_wider(
+        dplyr::rename(
+          dplyr::select(
+            dplyr::mutate(
+              object,
+              p.value = signif(-log10(p.value), 4)),
+            -SD),
+          log10.p = "p.value"),
+        names_from = "term", values_from = "log10.p")
+    })
+}
+#' @export
+#' @rdname strainstats
+#' @method summary strainstats
+summary.strainstats <- function(object, ...)
+  summary_strainstats(object, ...)
 

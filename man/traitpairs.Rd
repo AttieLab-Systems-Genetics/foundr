@@ -32,3 +32,8 @@ traitPairs(
 \description{
 Prepare pairs of traits for plotting
 }
+\examples{
+out <- traitSolos(sampleData)
+out2 <- traitPairs(out)
+plot(out2, parallel_lines = TRUE)
+}

@@ -2,6 +2,8 @@
 % Please edit documentation in R/strainstats.R
 \name{strainstats}
 \alias{strainstats}
+\alias{summary_strainstats}
+\alias{summary.strainstats}
 \title{Use Broom to Find Stats for Model Summaries}
 \usage{
 strainstats(
@@ -10,22 +12,43 @@ strainstats(
   rest = ifelse(is_condition, "strain * sex + sex * condition", "sex"),
   calc_sd = TRUE
 )
+
+summary_strainstats(
+  object,
+  stats = c("deviation", "log10.p"),
+  model = c("parts", "terms"),
+  ...
+)
+
+\method{summary}{strainstats}(object, ...)
 }
 \arguments{
-\item{object}{data frame in long format with trait data}
+\item{object}{object of class `strainstats`}
 
 \item{signal}{signal factor combination as string for `formula`}
 
 \item{rest}{rest factor combination as string for `formula`}
 
 \item{calc_sd}{calculate SDs by `term` if `TRUE` (default)}
+
+\item{stats}{choice of `deviation` or `log10.p`}
+
+\item{model}{choice of model `parts` or `terms`}
+
+\item{...}{not used}
 }
 \value{
 data frame with summaries by trait
+
+data frame
 }
 \description{
 Use Broom to Find Stats for Model Summaries
+
+Summary of Strain Statistics
 }
 \examples{
-strainstats(sampleData)
+out <- strainstats(sampleData)
+summary(out, "deviation", "parts")
+summary(out, "log10.p", "terms")
 }

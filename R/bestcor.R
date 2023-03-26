@@ -11,6 +11,7 @@
 #' @importFrom dplyr across arrange as_tibble bind_rows desc distinct
 #'             everything filter mutate select
 #' @importFrom tidyr matches pivot_wider separate_wider_delim unite
+#' @importFrom stats cor
 #'
 #' @examples
 #' sampleSignal <- partition(sampleData)
@@ -137,7 +138,7 @@ bestcor <- function(traitSignal,
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
-  out <- as.data.frame(cor(traitSignal, proband, use = "pair"))
+  out <- as.data.frame(stats::cor(traitSignal, proband, use = "pair"))
   out$absmax <- apply(out, 1, function(x) max(abs(x)))
   out$trait <- row.names(out)
   out <- dplyr::arrange(

@@ -7,6 +7,7 @@
 #' @return data frame with design columns, `trait` names and `value` of absolute correlations
 #' @importFrom dplyr select
 #' @importFrom tidyr pivot_wider
+#' @importFrom stats cor
 #' 
 #' @export
 #'
@@ -21,7 +22,7 @@ abscorcalc <- function(object,
   colnames <- colnames[!(colnames %in% c("trait","value"))]
   
   out <- 
-    cor(
+    stats::cor(
       dplyr::select(
         tidyr::pivot_wider(
           object,

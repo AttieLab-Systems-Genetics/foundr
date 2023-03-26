@@ -12,6 +12,10 @@
 #'             geom_jitter ggplot scale_size theme
 #' @importFrom tidyr pivot_longer unite
 #'
+#' @examples
+#' sampleStats <- strainstats(sampleData)
+#' effectplot(sampleStats, trait_names(sampleStats, "C"))
+#' 
 effectplot <- function(object, traitnames = NULL,
                        correlated = NULL, ...) {
   

@@ -12,7 +12,7 @@ ggplot_traitSolos(object, ...)
 traitSolos(
   traitData,
   traitSignal = partition(traitData),
-  traitnames = unique(unite_datatraits(traitSignal)),
+  traitnames = trait_names(traitData),
   response = c("value", "cellmean", "signal"),
   strains = names(foundr::CCcolors),
   abbrev = FALSE,
