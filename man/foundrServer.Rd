@@ -21,6 +21,8 @@ foundrServer(
 
 \item{traitstats}{data frame with summary data}
 
+\item{traitsignal}{data frame with signal data from `partition`}
+
 \item{customSettings}{list of custom settings}
 }
 \value{

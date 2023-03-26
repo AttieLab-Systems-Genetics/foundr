@@ -8,7 +8,6 @@
 #' @importFrom dplyr filter
 #' @export
 #'
-#' @examples
 linkpath <- function(dataset, links, datadir = "data") {
   # Data for this repository are identified by `data/source.csv`,
   # which is not saved with the repo.

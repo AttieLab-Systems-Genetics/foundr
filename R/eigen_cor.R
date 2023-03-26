@@ -75,7 +75,7 @@ eigen_cor <- function(object) {
 }
 #' GGplot of Eigentrait Correlations
 #'
-#' @param object object of class `eigen_cor`
+#' @param object,x object of class `eigen_cor`
 #' @param facetname facet name
 #' @param colorname color name
 #' @param main title

@@ -7,7 +7,7 @@
 #'
 #' @return ggplot2 object
 #' @importFrom ggdendro ggdendrogram
-#' @importFrom ggplot2 autoplot ylim
+#' @importFrom ggplot2 autoplot ggtitle ylim
 #' @importFrom cowplot plot_grid
 #' 
 #' @export
@@ -57,7 +57,7 @@ autoplot.wgcnaModules <- function(object, ...) {
 #'
 #' @return ggplot2 object
 #' @importFrom ggdendro ggdendrogram
-#' @importFrom ggplot2 autoplot element_text theme ylim
+#' @importFrom ggplot2 autoplot element_text ggtitle theme ylim
 #' @importFrom cowplot plot_grid
 #' 
 #' @export

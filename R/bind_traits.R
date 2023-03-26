@@ -1,10 +1,12 @@
 #' Bind trait data together into unified objects.
 #'
 #' @param datasets vector of dataset names.
+#' @param dirname name of directory
 #'
 #' @return side effects: save data in local RDS and CSV files
 #' @export
 #' @importFrom dplyr bind_rows filter
+#' @importFrom purrr map set_names
 #' @importFrom readr write_csv
 #'
 bind_traits <- function(datasets, dirname = ".") {

@@ -39,6 +39,10 @@ sampleStats %>%
 ```{r}
 out <- traitSolos(sampleData, sampleSignal,
                   response = "cellmean")
+summary(out)
+```
+
+```{r}
 plot(out)
 ```
 

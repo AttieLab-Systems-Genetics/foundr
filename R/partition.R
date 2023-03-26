@@ -14,7 +14,7 @@
 #'
 #' @return data frame with added columns `rest`, `signal`, `noise`
 #' 
-#' @importFrom dplyr across arrange bind_rows distinct filter mutate select
+#' @importFrom dplyr across arrange bind_rows distinct everything filter mutate select
 #' @importFrom purrr map
 #' @importFrom stats formula lm
 #' 

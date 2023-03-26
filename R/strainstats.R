@@ -7,11 +7,10 @@
 #'
 #' @return data frame with summaries by trait
 #' 
-#' @importFrom dplyr bind_rows filter select
-#' @importFrom tidyr pivot_wider
-#' @importFrom tibble as_tibble
-#' @importFrom stringr str_remove
-#' @importFrom stats drop1 formula lm sd
+#' @importFrom dplyr arrange as_tibble bind_rows distinct filter mutate select
+#' @importFrom tidyr pivot_wider separate_wider_delim unite
+#' @importFrom stringr str_detect
+#' @importFrom stats anova drop1 formula lm pf sd
 #' @importFrom purrr map
 #' @importFrom broom tidy
 #' @importfrom rlang .data
@@ -107,7 +106,7 @@ traitOrderStats <- function(object, termname) {
 #'
 #' @return
 #' @export
-#' @importFrom stringr str_remove
+#' @importFrom stringr str_replace_all
 #'
 #' @examples
 termStats <- function(object, signal = TRUE) {

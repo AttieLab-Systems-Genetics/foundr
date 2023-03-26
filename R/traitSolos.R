@@ -8,14 +8,19 @@
 #' @param abbrev abbreviate names if `TRUE`
 #'
 #' @return data frame
+#' @seealso \code{\link{ggplot_traitSolos}}
 #' @export
-#' @importFrom dplyr all_of filter left_join mutate select
-#' @importFrom tidyr unite
+#' @importFrom dplyr all_of arrange distinct filter left_join mutate select
+#' @importFrom tidyr pivot_wider unite
 #' @importFrom rlang .data
 #'
 #' @examples
-traitSolos <- function(traitData, traitSignal,
-                       traitnames = unique(unite_datatraits(traitSignal)),
+#' out <- traitSolos(sampleData)
+#' summary(out)
+#' plot(out)
+traitSolos <- function(traitData, 
+                       traitSignal = partition(traitData),
+                       traitnames = trait_names(traitData),
                        response = c("value", "cellmean", "signal"),
                        strains = names(foundr::CCcolors),
                        abbrev = FALSE,

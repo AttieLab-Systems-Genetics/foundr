@@ -6,10 +6,8 @@
 #'
 #' @return tibble of data frame
 #' @export
-#' @importFrom tibble as_tibble
-
+#' @importFrom dplyr as_tibble filter
 #'
-#' @examples
 cor_compare <- function(traitStats, cor1, cor2, ...) {
   # Typically traitStats will be summary across traits for a particular datatype.
   
@@ -23,7 +21,7 @@ cor_compare <- function(traitStats, cor1, cor2, ...) {
   pvalc <- -log10(pvalc[upper.tri(pvalc)])
   
   
-  tibble::as_tibble(
+  dplyr::as_tibble(
     data.frame(
       cor1 = cor1[upper.tri(cor1)],
       cor2 = cor2[upper.tri(cor2)],

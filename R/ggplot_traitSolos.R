@@ -1,6 +1,6 @@
 #' GGplot by strain and condition
 #'
-#' @param object data frame to be plotted
+#' @param object,x data frame to be plotted
 #' @param facet_strain facet by strain if `TRUE` 
 #' @param shape_sex use different shape by sex if `TRUE`
 #' @param boxplot overlay boxplot if `TRUE`
@@ -10,16 +10,16 @@
 #' @return object of class ggplot
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom stats formula
-#' @importFrom dplyr distinct
+#' @importFrom dplyr distinct group_by mutate select summarize ungroup
+#' @importFrom tidyr all_of unite
+#' @importFrom rlang .data
 #' @importFrom ggplot2 aes element_text facet_grid geom_jitter ggplot ggtitle
-#'             scale_fill_manual scale_shape_manual theme ylab
+#'             scale_fill_manual scale_shape_manual theme xlab ylab
 #' @importFrom cowplot plot_grid
 #' @export
-#'
+#' @rdname traitSolos
 #' @examples
-#' sampleSignal <- partition(sampleData)
-#' sampleSolo <- traitSolos(sampleData, sampleSignal)
-#' ggplot_traitSolos(sampleSolo)
+#' ggplot_traitSolos(traitSolos(sampleData))
 #' 
 ggplot_traitSolos <- function(object,
                               ...) {
@@ -181,6 +181,6 @@ autoplot.traitSolos <- function(object, ...) {
 #' @export
 #' @rdname ggplot_traitSolos
 #' @method plot traitSolos
-plot.traitSolos <- function(object, ...) {
-  ggplot_traitSolos(object, ...)
+plot.traitSolos <- function(x, ...) {
+  ggplot_traitSolos(x, ...)
 }

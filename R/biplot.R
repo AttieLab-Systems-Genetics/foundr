@@ -39,7 +39,6 @@ biplot_data <- function(dat, traits, factors = c("strain", "animal", "sex", "con
 #' @importFrom dplyr select
 #' @export
 #'
-#' @examples
 biplot_pca <- function(bip,
                        factors = c("strain", "animal", "sex", "condition"),
                        strain = "strain") {

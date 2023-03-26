@@ -22,7 +22,7 @@ ggplot_eigen_cor(
 \method{subset}{eigen_cor}(x, ...)
 }
 \arguments{
-\item{object}{object of class `eigen_cor`}
+\item{object}{object with `eigen` element}
 
 \item{facetname}{facet name}
 
@@ -31,6 +31,8 @@ ggplot_eigen_cor(
 \item{main}{title}
 
 \item{...}{additional parameters}
+
+\item{object, x}{object of class `eigen_cor`}
 }
 \value{
 data frame of class `eigen_cor`

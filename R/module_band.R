@@ -6,6 +6,8 @@
 #'
 #' @return data frame of class `module_band`
 #' @export
+#' @importFrom dplyr bind_rows mutate
+#' @importFrom purrr map set_names
 #'
 module_band <- function(traitModule, response = responses[1], solo = FALSE) {
   if(is.null(traitModule))

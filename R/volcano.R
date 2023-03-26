@@ -8,9 +8,9 @@
 #'
 #' @return
 #' @export
-#' @importFrom dplyr matches mutate select
+#' @importFrom dplyr filter mutate
 #' @importFrom ggplot2 aes geom_hline geom_point geom_vline geom_text ggplot
-#'             scale_color_manual theme theme_minimal
+#'             scale_color_manual theme theme_minimal xlab
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom rlang .data
 #'

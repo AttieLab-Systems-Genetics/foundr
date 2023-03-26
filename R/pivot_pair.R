@@ -5,8 +5,7 @@
 #'
 #' @return data frame
 #' @export
-#' @importFrom dplyr filter full_join mutate rename select
-#' @importFrom tidyr pivot_wider unite
+#' @importFrom dplyr filter full_join mutate select
 #'
 #' @examples
 pivot_pair <- function(object, pair) {

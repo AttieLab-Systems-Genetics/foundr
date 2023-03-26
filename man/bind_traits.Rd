@@ -8,6 +8,8 @@ bind_traits(datasets, dirname = ".")
 }
 \arguments{
 \item{datasets}{vector of dataset names.}
+
+\item{dirname}{name of directory}
 }
 \value{
 side effects: save data in local RDS and CSV files

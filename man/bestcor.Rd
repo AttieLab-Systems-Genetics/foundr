@@ -35,7 +35,7 @@ Find other traits with best correlation with selected traitnames.
 }
 \examples{
 sampleSignal <- partition(sampleData)
-out <- bestcor(sampleSignal, "A")
+out <- bestcor(sampleSignal, "sample: A")
 ggplot_bestcor(out, 0)
 ggplot_bestcor(out, 0, abscor = FALSE)
 }

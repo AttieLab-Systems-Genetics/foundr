@@ -7,11 +7,11 @@
 #'
 #' @return
 #' @export
-#' @importFrom dplyr filter mutate rename
-#' @importFrom ggplot2 aes element_text facet_grid geom_point ggplot theme
-#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr arrange filter mutate rename
+#' @importFrom ggplot2 aes element_text facet_grid geom_boxplot
+#'             geom_jitter ggplot scale_size theme
+#' @importFrom tidyr pivot_longer unite
 #'
-#' @examples
 effectplot <- function(object, traitnames = NULL,
                        correlated = NULL, ...) {
   

@@ -5,11 +5,10 @@
 #' 
 #' @return ggplot2 object
 #' @export
-#' @importFrom ggplot2 aes facet_wrap geom_hline geom_vline ggplot ggtitle
+#' @importFrom ggplot2 aes facet_wrap geom_hline geom_point geom_vline ggplot ggtitle
 #'             scale_color_manual scale_x_log10 scale_y_log10 theme xlab ylab
 #' @importFrom dplyr mutate
 #'
-#' @examples
 ggplot_module <- function(object, terms = c("p_strain_sex", "p_strain")) {
   # Set up module colors
   module_colors <- unique(object$module)
@@ -19,9 +18,9 @@ ggplot_module <- function(object, terms = c("p_strain_sex", "p_strain")) {
                          x = -log10(.data[[terms[1]]]),
                          y = -log10(.data[[terms[2]]]))
   
-  ggplot(object) +
-    aes(x, y, col = module) +
-    geom_point() +
+  ggplot2::ggplot(object) +
+    ggplot2::aes(x, y, col = module) +
+    ggplot2::geom_point() +
     ggplot2::geom_hline(yintercept = 5, col = "darkgrey") +
     ggplot2::geom_vline(xintercept = 5, col = "darkgrey") +
     ggplot2::scale_x_log10() +

@@ -8,13 +8,13 @@
 #'
 #' @return sorted vector of absolute correlations with names
 #' @export
-#' @importFrom dplyr across arrange desc distinct filter mutate select
-#' @importFrom tidyr matches pivot_wider unite
-#' @importFrom tibble as_tibble
+#' @importFrom dplyr across arrange as_tibble bind_rows desc distinct
+#'             everything filter mutate select
+#' @importFrom tidyr matches pivot_wider separate_wider_delim unite
 #'
 #' @examples
 #' sampleSignal <- partition(sampleData)
-#' out <- bestcor(sampleSignal, "A")
+#' out <- bestcor(sampleSignal, "sample: A")
 #' ggplot_bestcor(out, 0)
 #' ggplot_bestcor(out, 0, abscor = FALSE)
 bestcor <- function(traitSignal,
@@ -142,21 +142,24 @@ bestcor <- function(traitSignal,
   out$trait <- row.names(out)
   out <- dplyr::arrange(
     dplyr::select(
-      tibble::as_tibble(out),
+      dplyr::as_tibble(out),
       trait, absmax, dplyr::everything()),
     dplyr::desc(absmax))
   
   # Rearrange as dataframe with dataset, trait, absmax, probandset, proband, cors
   out <- 
     dplyr::mutate(
-      tidyr::separate(
-        tidyr::separate(
+      tidyr::separate_wider_delim(
+        tidyr::separate_wider_delim(
           tidyr::pivot_longer(
             out,
             tidyr::all_of(names(proband)),
             names_to = "proband", values_to = "cors"),
-          trait, c("dataset", "trait"), sep = ": "),
-        proband, c("probandset", "proband"), sep = ": "),
+          trait,
+          delim = ": ", names = c("dataset", "trait")),
+        proband,
+        delim = ": ",
+        names = c("probandset", "proband")),
       proband = factor(proband, unique(uproband$trait)),
       probandset = factor(probandset, unique(uproband$dataset)))
   
@@ -214,7 +217,10 @@ bestcorStats <- function(traitStats, traitnames = NULL,
 #' @export
 #' @importFrom tidyr pivot_longer unite
 #' @importFrom dplyr mutate select
-#' @importFrom ggplot2 aes autoplot element_text facet_grid geom_point ggplot theme
+#' @importFrom ggplot2 aes autoplot element_text facet_grid
+#'             geom_hline geom_point ggplot theme
+#' @importFrom stats reorder
+#' 
 #' @rdname bestcor
 #'
 ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {

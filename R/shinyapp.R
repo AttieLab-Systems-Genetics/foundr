@@ -7,10 +7,17 @@
 #' @return A UI definition that can be passed to the `shinyUI` function.
 #' 
 #' @export
-#' @importFrom shiny fluidPage mainPanel sidebarLayout sidebarPanel sliderInput titlePanel uiOutput
-#'             tabsetPanel tabPanel includeMarkdown tags includeMarkdown
+#' @importFrom DT dataTableOutput renderDataTable
+#' @importFrom shiny a br checkboxInput checkboxGroupInput column conditionalPanel
+#'             downloadButton downloadHandler fluidPage fluidRow
+#'             includeMarkdown isTruthy observeEvent mainPanel plotOutput radioButtons
+#'             reactive reactiveVal renderPlot renderUI req
+#'             selectInput selectizeInput sidebarLayout sidebarPanel sliderInput
+#'             tabsetPanel tabPanel tagList tags textAreaInput titlePanel uiOutput
+#' @importFrom dplyr across arrange bind_rows distinct filter mutate rename select
+#' @importFrom plotly ggplotly plotlyOutput renderPlotly
+#' 
 #'
-#' @examples
 foundrUI <- function(title) {
   shiny::fluidPage(
     
@@ -45,6 +52,7 @@ foundrUI <- function(title) {
 #' @param input,output,session shiny parameters
 #' @param traitdata data frame with trait data
 #' @param traitstats data frame with summary data
+#' @param traitsignal data frame with signal data from `partition`
 #' @param customSettings list of custom settings
 #' 
 #' @description 

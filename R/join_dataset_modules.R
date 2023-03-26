@@ -5,6 +5,9 @@
 #'
 #' @return object of class `listof_wgcnaModules`
 #' @export
+#' @importFrom purrr transpose
+#' @importFrom dplyr filter inner_join
+#' @importFrom tidyr unite
 #'
 join_dataset_modules <- function(dmods, response) {
   if(is.null(dmods))

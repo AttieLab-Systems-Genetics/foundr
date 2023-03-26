@@ -5,7 +5,7 @@
 #'
 #' @return data frame
 #' @export
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr arrange bind_rows desc group_by mutate n summarize ungroup
 #' @importFrom purrr map set_names
 #' 
 #' @rdname summary_wgcnaModules

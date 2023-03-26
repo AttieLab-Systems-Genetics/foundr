@@ -1,3 +1,6 @@
+#' @importFrom dplyr filter mutate
+#' @importFrom tidyr separate_wider_delim unite
+#' 
 mutate_datasets <- function(object, datasets, undo = FALSE) {
   if(is.null(object) | is.null(datasets))
     return(NULL)

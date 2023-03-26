@@ -10,7 +10,6 @@
 #' @export
 #' @importFrom dplyr filter
 #'
-#' @examples
 harmonize <- function(dataset, links, userHarmony, ...,
                       normalize = TRUE) {
   # Harmonize data with user-supplied harmony function.
