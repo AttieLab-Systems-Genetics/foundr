@@ -37,7 +37,7 @@ traitPairs <- function(object,
   
   object <- tidyr::unite(
     object,
-    .data$datatraits,
+    datatraits,
     .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
@@ -72,7 +72,7 @@ pairsetup <- function(x, object,
     out <- selectSignal(object, x, response)
     out <- tidyr::unite(
       out,
-      .data$datatraits,
+      datatraits,
       .data$dataset, .data$trait,
       sep = ": ", remove = FALSE)
     
@@ -84,7 +84,7 @@ pairsetup <- function(x, object,
     if(!all(is.na(out$condition))) {
       out <- tidyr::unite(
         out,
-        .data$sex_condition,
+        sex_condition,
         .data$sex, .data$condition,
         remove = FALSE,
         na.rm = TRUE)

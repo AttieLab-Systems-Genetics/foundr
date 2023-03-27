@@ -92,7 +92,11 @@ ggplot_onetrait <- function(object,
     else {
       condition <- "sex_condition"
       if(!("sex_condition" %in% names(object)))
-        object <- tidyr::unite(object, sex_condition, sex, condition, remove = FALSE)
+        object <- tidyr::unite(
+          object, 
+          sex_condition,
+          .data$sex, .data$condition,
+          remove = FALSE)
     }
   }
   
@@ -109,16 +113,6 @@ ggplot_onetrait <- function(object,
   }
   
   if(facet_strain) {
-    # The condition could be multiple columns; unite as one.
-    if(length(condition) > 1) {
-      tmp <- paste(condition, sep = "_")
-      object <- tidyr::unite(
-        object,
-        tmp,
-        tidyr::all_of(condition),
-        na.rm = TRUE)
-      condition <- tmp
-    }
     ncond <- sort(unique(object[[condition]]))
     cond_colors <- RColorBrewer::brewer.pal(n = length(ncond), name = "Dark2")
     names(cond_colors) <- ncond

@@ -25,7 +25,7 @@ effectplot <- function(object, traitnames = NULL,
 
   object <- tidyr::unite(
     object,
-    .data$datatraits,
+    datatraits,
     .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
 
@@ -112,7 +112,7 @@ effecthelper <- function(corobj = NULL, mincor = NULL, ...) {
     dplyr::filter(
       corobj,
       absmax >= mincor),
-    .data$datatraits,
+    datatraits,
     .data$dataset, .data$trait,
     sep = ": ")$datatraits
 }

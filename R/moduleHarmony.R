@@ -58,10 +58,11 @@ moduleHarmony <- function(datasetname,
               names = c("strain", "sex", "carb", "fat", "animal"),
               # Responses cellmean and signal do not have `animal`.
               too_few = "align_start"),
-            .data$condition, .data$carb, .data$fat),
+            condition,
+            .data$carb, .data$fat),
           .data$response == responsename),
         -.data$response),
-      .data$trait,
+      trait,
       .data$dataset, .data$trait),
     .data$strain, .data$sex, .data$animal, .data$condition, .data$trait, .data$value)
 }

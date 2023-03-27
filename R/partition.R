@@ -78,7 +78,7 @@ partition <- function(object,
     # Temporarily for datatraits (called here trait) as `dataset: trait`
     object <- tidyr::unite(
       object,
-      .data$trait,
+      trait,
       .data$dataset, .data$trait,
       sep = ": ")
   }

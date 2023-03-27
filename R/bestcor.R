@@ -32,7 +32,7 @@ bestcor <- function(traitSignal,
   
   traitSignal <- tidyr::unite(
     traitSignal,
-    .data$datatraits,
+    datatraits,
     .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
@@ -58,7 +58,7 @@ bestcor <- function(traitSignal,
           dplyr::filter(
             traitSignal,
             is_condition),
-          .data$trait,
+          trait,
           .data$condition, .data$trait,
           sep = ":")
         # Keep trait as is for those without condtion
@@ -95,11 +95,11 @@ bestcor <- function(traitSignal,
       dplyr::distinct(
         proband,
         dplyr::across(conds)),
-      .data$levels,
+      levels,
       tidyr::matches(conds))$levels)
   ofactors <- tidyr::unite(
     traitSignal,
-    .data$levels,
+    levels,
     tidyr::matches(conds))$levels %in% factors
   
   traitSignal <- traitSignal[ofactors,]
@@ -126,7 +126,7 @@ bestcor <- function(traitSignal,
         dplyr::arrange(
           tidyr::unite(
             traitSignal,
-            .data$datatraits,
+            datatraits,
             .data$dataset, .data$trait,
             sep = ": "),
           .data$datatraits, dplyr::across(conds)),
@@ -182,7 +182,7 @@ bestcorStats <- function(traitStats, traitnames = NULL,
     traitnames,
     tidyr::unite(
       bestcorObject,
-      .data$datatraits,
+      datatraits,
       .data$dataset, .data$trait,
       sep = ": ")$datatraits
   ))
@@ -192,7 +192,7 @@ bestcorStats <- function(traitStats, traitnames = NULL,
   
   traitStats <- tidyr::unite(
     traitStats,
-    .data$datatraits,
+    datatraits,
     .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
@@ -243,7 +243,7 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
         dplyr::mutate(
           tidyr::unite(
             object,
-            .data$trait,
+            trait,
             .data$dataset, .data$trait,
             sep = ": "),
           trait = stats::reorder(.data$trait, dplyr::desc(absmax))),

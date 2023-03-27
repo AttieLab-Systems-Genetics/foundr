@@ -42,7 +42,7 @@ strainstats <- function(object,
   if(!("datatraits" %in% names(object)))
     object <- tidyr::unite(
       object,
-      .data$datatraits,
+      datatraits,
       .data$dataset, .data$trait,
       sep = ": ")
   
@@ -193,16 +193,35 @@ summary_strainstats <- function(object,
                                 model = c("parts", "terms"),
                                 threshold = c(SD = 1, p = 0.01),
                                 ...) {
+  
+  if(!is.null(threshold) && length(threshold)) {
+    if(!("log10.p" %in% names(threshold))) {
+      if("p" %in% names(threshold))
+        threshold["log10.p"] <- -log10(threshold["p"])
+      else
+        threshold["log10.p"] <- -Inf
+    }
+    if(!("deviance" %in% names(threshold))) {
+      if("SD" %in% names(threshold))
+        threshold["deviance"] <- threshold["SD"]
+      else
+        threshold["deviance"] <- 0
+    }
+  } else {
+    threshold <- c(deviance = 0, log10.p = -Inf)
+  }
+  
   object <-
     dplyr::mutate(
-      dplyr::rename(
-        dplyr::filter(
-          object,
-          abs(.data$SD) >= threshold["SD"],
-          .data$p.value <= threshold["p"]),
-        deviance = "SD",
-        log10.p = "p.value"),
-      log10.p = -log10(.data$log10.p),
+      dplyr::filter(
+        dplyr::mutate(
+          dplyr::rename(
+            object,
+            deviance = "SD",
+            log10.p = "p.value"),
+          log10.p = -log10(.data$log10.p)),
+        abs(.data$deviance) >= threshold["deviance"],
+        .data$log10.p >= threshold["log10.p"]),
       dplyr::across(
         dplyr::where(is.numeric),
         function(x) signif(x, 4)))
@@ -233,15 +252,17 @@ summary_strainstats <- function(object,
                    object,
                    .data$term != "noise"),
                  -.data$log10.p),
-               names_from = "term", values_from = "SD")
+               names_from = "term", values_from = "deviance")
            },
            log10.p = {
              tidyr::pivot_wider(
                dplyr::select(
                  object,
-                 -SD),
+                 -deviance),
                names_from = "term", values_from = "log10.p")
            })
+  } else {
+    object
   }
 }
 #' @export

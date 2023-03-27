@@ -67,7 +67,7 @@ unite_datatraits <- function(object, traitnames, undo = FALSE, sep = ": ") {
       dplyr::filter(
         tidyr::unite(
           object,
-          .data$datatraits,
+          datatraits,
           .data$dataset, .data$trait,
           sep = sep),
         .data$datatraits %in% traitnames),
@@ -79,7 +79,7 @@ unite_datatraits <- function(object, traitnames, undo = FALSE, sep = ": ") {
     # result = vector of `dataset: trait` names
     tidyr::unite(
       object,
-      .data$datatraits,
+      datatraits,
       .data$dataset, .data$trait,
       sep = sep)$datatraits
   }

@@ -35,7 +35,7 @@ trait_names <- function(object, traitnames = NULL, sep = ": ") {
       dplyr::distinct(
         tidyr::unite(
           object,
-          .data$datatraits,
+          datatraits,
           .data$dataset, .data$trait,
           sep = sep, remove = FALSE),
         datatraits, dataset, trait)
@@ -59,7 +59,7 @@ trait_names <- function(object, traitnames = NULL, sep = ": ") {
       traitnames <- unique(
         tidyr::unite(
           traitnames,
-          .data$datatraits,
+          datatraits,
           .data$dataset, .data$trait,
           sep = sep)$datatraits)
     } else {

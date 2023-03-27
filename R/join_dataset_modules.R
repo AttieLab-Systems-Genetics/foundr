@@ -48,7 +48,7 @@ join_dataset_modules <- function(dmods, response) {
   if(is_animal)
     dmodsID <- tidyr::unite(
       dmodsID, 
-      .data$ID,
+      ID,
       .data$ID, .data$animal,
       na.rm = TRUE)
   dmodsID <- dmodsID$ID

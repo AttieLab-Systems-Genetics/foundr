@@ -55,7 +55,7 @@ traitSolos <- function(traitData,
   # Want to preserve order of traitnames into traitData
   tmp <- tidyr::unite(
     traitData,
-    .data$datatraits,
+    datatraits,
     .data$dataset, .data$trait,
     sep = sep, remove = FALSE)
   m <- which(!duplicated(tmp$datatraits))
@@ -132,7 +132,7 @@ summary_traitSolos <- function(object,
       dplyr::distinct(
         tidyr::unite(
           object,
-          .data$datatraits,
+          datatraits,
           .data$dataset, .data$trait,
           sep = ": ", remove = FALSE),
         .data$datatraits, .data$dataset, .data$trait),

@@ -79,6 +79,10 @@ volcano(sampleStats, "signal")
 ```
 
 ```{r}
+summary(sampleStats)
+```
+
+```{r}
 summary(sampleStats, "deviation", "parts")
 ```
 
@@ -87,6 +91,24 @@ summary(sampleStats, "log10.p", "terms")
 ```
 
 ```{r}
+summary(sampleStats, "log10.p", "terms", threshold = NULL)
+```
+
+```{r}
 effectplot(sampleStats, trait_names(sampleStats, "C"))
 ```
 
+# Shiny App
+
+This package is equiped with a default app in [inst/shinyApp/app.R](https://github.com/byandell/foundr/blob/main/inst/shinyApp/app.R).
+Other applied apps can be found in <https://github.com/byandell/FounderCalciumStudy> and
+<https://github.com/byandell/FounderDietStudy>. Users can deploy their own version of apps.
+
+More is needed here to explain the steps to set up:
+
+- harmonize data with [harmonize()](https://github.com/byandell/foundr/blob/main/R/harmonize.R); see example in <https://github.com/byandell/FounderCalciumStudy/blob/main/DataHarmony.Rmd>.
+- customize app.r; see example in <https://github.com/byandell/FounderCalciumStudy/blob/main/app.R> with components
+  + install packages for the deployment platform that are not already present
+  + read in trait data created in harmonize step
+  + set `customSettings`
+  + provide custom title to `foundr::foundrUI()`
