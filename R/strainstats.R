@@ -42,8 +42,8 @@ strainstats <- function(object,
   if(!("datatraits" %in% names(object)))
     object <- tidyr::unite(
       object,
-      datatraits,
-      dataset, trait,
+      .data$datatraits,
+      .data$dataset, .data$trait,
       sep = ": ")
   
   out <- dplyr::bind_rows(
@@ -58,9 +58,9 @@ strainstats <- function(object,
     dplyr::arrange(
       dplyr::mutate(
         out,
-        datatraits = factor(datatraits, o)),
-      datatraits),
-    datatraits,
+        datatraits = factor(.data$datatraits, o)),
+      .data$datatraits),
+    .data$datatraits,
     ": ",
     names = c("dataset", "trait"))
   
@@ -90,9 +90,9 @@ fitsplit <- function(traitdata, signal, rest) {
     dplyr::bind_rows(
       sig,
       strain_stats(stats::drop1(fit, fit, test = "F"))),
-    SD = SD / rawSD,
-    SD = ifelse(term == "condition", SD * condsign, SD),
-    SD = ifelse(term == "sex", SD * sexsign, SD))
+    SD = .data$SD / rawSD,
+    SD = ifelse(.data$term == "condition", .data$SD * condsign, .data$SD),
+    SD = ifelse(.data$term == "sex", .data$SD * sexsign, .data$SD))
   out
 }
 
@@ -100,8 +100,8 @@ traitOrderStats <- function(object, termname) {
   dplyr::arrange(
     dplyr::filter(
       object,
-      term == termname),
-    p.value)
+      .data$term == termname),
+    .data$p.value)
 }
 
 
@@ -166,68 +166,83 @@ strain_stats <- function(fitsum, termname = "") {
     dplyr::rename(
       dplyr::mutate(
         broom::tidy(fitsum)[-1,],
-        sumsq = ifelse(df > 0, sumsq / df, 0),
-        sumsq = sqrt(sumsq),
-        term = termfn(term)),
+        sumsq = ifelse(.data$df > 0, .data$sumsq / .data$df, 0),
+        sumsq = sqrt(.data$sumsq),
+        term = termfn(.data$term)),
       SD = "sumsq"),
-    term, SD, p.value)
+    .data$term, .data$SD, .data$p.value)
 }
 #' Summary of Strain Statistics
 #'
 #' @param object object of class `strainstats`
 #' @param stats choice of `deviation` or `log10.p`
 #' @param model choice of model `parts` or `terms`
+#' @param threshold named vector for `SD` and `p.value`
 #' @param ... not used
 #'
 #' @return data frame
 #' @export
 #' @importFrom dplyr filter mutate select
 #' @importFrom tidyr pivot_wider
+#' @importFrom rlang .data
+#' 
 #' @rdname strainstats
 #'
 summary_strainstats <- function(object,
                                 stats = c("deviation", "log10.p"),
                                 model = c("parts", "terms"),
+                                threshold = c(SD = 1, p = 0.01),
                                 ...) {
-  model <- match.arg(model)
-  switch(model,
-    parts = {
-      object <-
+  object <-
+    dplyr::mutate(
+      dplyr::rename(
         dplyr::filter(
           object,
-          term %in% c("signal", "cellmean", "rest", "noise"))
-    },
-    terms ={
-      object <-
-        dplyr::filter(
-          object,
-          !(term %in% c("signal", "cellmean", "rest", "noise")))
-    })
+          abs(.data$SD) >= threshold["SD"],
+          .data$p.value <= threshold["p"]),
+        deviance = "SD",
+        log10.p = "p.value"),
+      log10.p = -log10(.data$log10.p),
+      dplyr::across(
+        dplyr::where(is.numeric),
+        function(x) signif(x, 4)))
   
-  stats <- match.arg(stats)
-  switch(stats,
-    deviation = {
-      tidyr::pivot_wider(
-        dplyr::select(
-          dplyr::mutate(
-            dplyr::filter(
-              object,
-              term != "noise"),
-            SD = signif(SD, 4)),
-          -p.value),
-        names_from = "term", values_from = "SD")
-    },
-    log10.p = {
-      tidyr::pivot_wider(
-        dplyr::rename(
-          dplyr::select(
-            dplyr::mutate(
-              object,
-              p.value = signif(-log10(p.value), 4)),
-            -SD),
-          log10.p = "p.value"),
-        names_from = "term", values_from = "log10.p")
-    })
+  
+  if(length(model) == 1) {
+    switch(model,
+           parts = {
+             object <-
+               dplyr::filter(
+                 object,
+                 .data$term %in% c("signal", "cellmean", "rest", "noise"))
+           },
+           terms ={
+             object <-
+               dplyr::filter(
+                 object,
+                 !(.data$term %in% c("signal", "cellmean", "rest", "noise")))
+           })
+  }
+  
+  if(length(stats) == 1) {
+    switch(stats,
+           deviation = {
+             tidyr::pivot_wider(
+               dplyr::select(
+                 dplyr::filter(
+                   object,
+                   .data$term != "noise"),
+                 -.data$log10.p),
+               names_from = "term", values_from = "SD")
+           },
+           log10.p = {
+             tidyr::pivot_wider(
+               dplyr::select(
+                 object,
+                 -SD),
+               names_from = "term", values_from = "log10.p")
+           })
+  }
 }
 #' @export
 #' @rdname strainstats

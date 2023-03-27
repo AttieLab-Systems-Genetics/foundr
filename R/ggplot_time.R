@@ -6,11 +6,12 @@
 #' 
 #' @importFrom ggplot2 aes facet_wrap geom_jitter geom_smooth ggplot
 #'                     scale_color_manual scale_fill_manual
+#' @importFrom rlang .data
 #' @export
 #'
 ggplot_time <- function(object) {
   ggplot2::ggplot(object) +
-    ggplot2::aes(time, value, fill = strain, color = strain) +
+    ggplot2::aes(.data$time, .data$value, fill = .data$strain, color = .data$strain) +
     ggplot2::geom_jitter(shape = 21, size = 2, color = "black") +
     ggplot2::geom_smooth(se = FALSE) +
     ggplot2::facet_wrap(sex ~ condition) +

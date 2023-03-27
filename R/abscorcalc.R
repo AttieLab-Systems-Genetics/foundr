@@ -5,7 +5,7 @@
 #' @param abs absolute correlation if `TRUE`
 #'
 #' @return data frame with design columns, `trait` names and `value` of absolute correlations
-#' @importFrom dplyr select
+#' @importFrom dplyr all_of select
 #' @importFrom tidyr pivot_wider
 #' @importFrom stats cor
 #' 
@@ -28,7 +28,7 @@ abscorcalc <- function(object,
           object,
           names_from = "trait",
           values_from = "value"),
-        -colnames),
+        -dplyr::all_of(colnames)),
       use = "pairwise",
       method = "spearman")
   if(abs)

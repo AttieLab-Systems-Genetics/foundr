@@ -41,12 +41,12 @@ traitSolos <- function(traitData,
           traitData,
           traitSignal,
           by = bys),
-        -signal)
+        -.data$signal)
     
     traitData <- 
       dplyr::filter(
         unite_datatraits(traitData, traitnames, TRUE),
-        strain %in% strains)
+        .data$strain %in% strains)
 
   } else {
     traitData <- selectSignal(traitSignal, traitnames, response, strains)
@@ -55,8 +55,9 @@ traitSolos <- function(traitData,
   # Want to preserve order of traitnames into traitData
   tmp <- tidyr::unite(
     traitData,
-    datatraits, dataset,
-    trait, sep = sep, remove = FALSE)
+    .data$datatraits,
+    .data$dataset, .data$trait,
+    sep = sep, remove = FALSE)
   m <- which(!duplicated(tmp$datatraits))
   names(m) <- tmp$datatraits[m]
   m <- m[traitnames]
@@ -71,8 +72,8 @@ traitSolos <- function(traitData,
   }
   traitData <- dplyr::mutate(
     traitData,
-    trait = factor(trait, unique(trait[m])),
-    dataset = factor(dataset, unique(dataset[m])))
+    trait = factor(.data$trait, unique(.data$trait[m])),
+    dataset = factor(.data$dataset, unique(.data$dataset[m])))
   
 
   class(traitData) <- c("traitSolos", class(traitData))
@@ -98,12 +99,12 @@ selectSignal <- function(object, traitnames, response,
         dplyr::mutate(
           dplyr::filter(
             unite_datatraits(object, traitnames, TRUE),
-            strain %in% strains),
+            .data$strain %in% strains),
           value = .data[[response]]),
         dplyr::all_of(c(bys, "value"))),
       .keep_all = TRUE),
-    strain = factor(strain, names(foundr::CCcolors)),
-    value = signif(value, 4))
+    strain = factor(.data$strain, names(foundr::CCcolors)),
+    value = signif(.data$value, 4))
 }
 #' Summary of traitSolos object
 #'
@@ -131,10 +132,12 @@ summary_traitSolos <- function(object,
       dplyr::distinct(
         tidyr::unite(
           object,
-          datatraits, dataset, trait, sep = ": ", remove = FALSE),
-        datatraits, dataset, trait),
-      datatraits = factor(datatraits, traitnames)),
-    datatraits)
+          .data$datatraits,
+          .data$dataset, .data$trait,
+          sep = ": ", remove = FALSE),
+        .data$datatraits, .data$dataset, .data$trait),
+      datatraits = factor(.data$datatraits, traitnames)),
+    .data$datatraits)
   
   
   if(response == "value") {
@@ -155,7 +158,7 @@ summary_traitSolos <- function(object,
         object,
         names_from = "strain", values_from = "value"),
       dplyr::all_of(nobject)),
-    trait, sex)
+    .data$trait, .data$sex)
   
   # Use custom condition name if present
   if(!is.null(customSettings$condition) &
@@ -177,9 +180,9 @@ summary_traitSolos <- function(object,
   object <- dplyr::arrange(
     dplyr::mutate(
       object,
-      dataset = factor(dataset, unique(uobject$dataset)),
-      trait = factor(trait, unique(uobject$trait))),
-    dataset, trait)
+      dataset = factor(.data$dataset, unique(uobject$dataset)),
+      trait = factor(.data$trait, unique(uobject$trait))),
+    .data$dataset, .data$trait)
   
   object
 }

@@ -6,6 +6,7 @@
 #' @return side effects: save data in local RDS and CSV files
 #' @export
 #' @importFrom dplyr bind_rows filter
+#' @importFrom rlang .data
 #' @importFrom purrr map set_names
 #' @importFrom readr write_csv
 #'
@@ -20,9 +21,11 @@ bind_traits <- function(datasets, dirname = ".") {
       # Ignore "noise" term as it has no p.value.
       dplyr::filter(
         traitStats,
-        term != "noise"),
-      is.na(p.value)))$trait
-  traitStats <- dplyr::filter(traitStats, !(trait %in% dropTraits))
+        .data$term != "noise"),
+      is.na(.data$p.value)))$trait
+  
+  traitStats <- dplyr::filter(traitStats, !(.data$trait %in% dropTraits))
+  
   # Additional traits were dropped due to failed fit. Keep what is left.
   keepTraits <- unique(traitStats$trait)
 
@@ -34,7 +37,7 @@ bind_traits <- function(datasets, dirname = ".") {
   traitData <- 
     dplyr::filter(
       bind_traits_object(datasets, "Data", dirname),
-      trait %in% keepTraits)
+      .data$trait %in% keepTraits)
   
   saveRDS(traitData, "traitData.rds")
   readr::write_csv(traitData, "traitData.csv")
@@ -44,7 +47,7 @@ bind_traits <- function(datasets, dirname = ".") {
   traitSignal <-
     dplyr::filter(
       bind_traits_object(datasets, "Signal", dirname),
-      trait %in% keepTraits)
+      .data$trait %in% keepTraits)
 
   saveRDS(traitSignal, "traitSignal.rds")
   readr::write_csv(traitSignal, "traitSignal.csv")

@@ -12,6 +12,7 @@
 #' @importFrom tidyr pivot_longer separate_wider_delim unite
 #' @importFrom purrr transpose
 #' @importFrom tibble rownames_to_column
+#' @importFrom rlang .data
 #'
 #' @examples
 moduleHarmony <- function(datasetname,
@@ -52,14 +53,15 @@ moduleHarmony <- function(datasetname,
                       .id = "dataset")
                   }),
                 .id = "response"),
-              ID, "_",
+              .data$ID,
+              delim = "_",
               names = c("strain", "sex", "carb", "fat", "animal"),
               # Responses cellmean and signal do not have `animal`.
               too_few = "align_start"),
-            condition, carb, fat),
-          response == responsename),
-        -response),
-      trait,
-      dataset, trait),
-    strain, sex, animal, condition, trait, value)
+            .data$condition, .data$carb, .data$fat),
+          .data$response == responsename),
+        -.data$response),
+      .data$trait,
+      .data$dataset, .data$trait),
+    .data$strain, .data$sex, .data$animal, .data$condition, .data$trait, .data$value)
 }

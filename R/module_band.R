@@ -8,6 +8,7 @@
 #' @export
 #' @importFrom dplyr bind_rows mutate
 #' @importFrom purrr map set_names
+#' @importFrom rlang .data
 #'
 module_band <- function(traitModule, response = responses[1], solo = FALSE) {
   if(is.null(traitModule))
@@ -29,7 +30,7 @@ module_band <- function(traitModule, response = responses[1], solo = FALSE) {
             traitModule),
           responses),
         .id = "response"),
-      response = factor(response, responses))
+      response = factor(.data$response, responses))
 
   class(out) <- c("module_band", class(out))
   out
@@ -66,8 +67,8 @@ module_band1 <- function(response, traitModule) {
 #'
 ggplot_module_band <- function(object, ...) {
   ggplot2::ggplot(object) +
-    ggplot2::aes(response, lengths,
-                 group = group, label = color, fill = color) + 
+    ggplot2::aes(.data$response, .data$lengths,
+                 group = .data$group, label = .data$color, fill = .data$color) + 
     ggplot2::geom_bar(stat="identity")+
     ggplot2::scale_fill_identity() + 
     ggplot2::theme_void() + 

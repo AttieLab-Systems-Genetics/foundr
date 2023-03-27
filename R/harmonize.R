@@ -9,6 +9,7 @@
 #' @return side action to save RDS files locally
 #' @export
 #' @importFrom dplyr filter
+#' @importFrom rlang .data
 #'
 harmonize <- function(dataset, links, userHarmony, ...,
                       normalize = TRUE) {
@@ -29,12 +30,12 @@ harmonize <- function(dataset, links, userHarmony, ...,
       # Ignore "noise" term as it has no p.value.
       dplyr::filter(
         traitStats,
-        term != "noise"),
-      is.na(p.value)))$trait
+        .data$term != "noise"),
+      is.na(.data$p.value)))$trait
   traitStats <-
     dplyr::filter(
       traitStats,
-      !(trait %in% dropTraits))
+      !(.data$trait %in% dropTraits))
   # Additional traits were dropped due to failed fit. Keep what is left.
   keepTraits <- unique(traitStats$trait)
   
@@ -43,14 +44,14 @@ harmonize <- function(dataset, links, userHarmony, ...,
   traitData <-
     dplyr::filter(
       traitData,
-      trait %in% keepTraits)
+      .data$trait %in% keepTraits)
   saveRDS(traitData, paste0(dataset, "Data.rds"))
   
   cat("Running partition of traits ...\n", stderr())
   traitSignal <- 
     dplyr::filter(
       partition(traitData),
-      trait %in% keepTraits)
+      .data$trait %in% keepTraits)
   saveRDS(traitSignal, paste0(dataset, "Signal.rds"))
   
   invisible()

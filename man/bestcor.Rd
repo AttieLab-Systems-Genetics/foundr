@@ -4,6 +4,8 @@
 \alias{bestcor}
 \alias{ggplot_bestcor}
 \alias{autoplot.bestcor}
+\alias{summary_bestcor}
+\alias{summary.bestcor}
 \title{Traits with Best Correlation}
 \usage{
 bestcor(traitSignal, traitnames = NULL, term = c("signal", "cellmean"))
@@ -11,6 +13,10 @@ bestcor(traitSignal, traitnames = NULL, term = c("signal", "cellmean"))
 ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 
 \method{autoplot}{bestcor}(object, ...)
+
+summary_bestcor(object, mincor = 0.5, ...)
+
+\method{summary}{bestcor}(object, ...)
 }
 \arguments{
 \item{traitSignal}{data frame from `partition`}
@@ -21,14 +27,16 @@ ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 
 \item{object}{object of class `bestcor`}
 
-\item{mincor}{minimum absolute correlation to plot}
+\item{mincor}{minimum correlation to show}
 
 \item{abscor}{plot absolute value of correlation if `TRUE`}
 
-\item{...}{additional parameters not used}
+\item{...}{not used}
 }
 \value{
 sorted vector of absolute correlations with names
+
+data frame
 }
 \description{
 Find other traits with best correlation with selected traitnames.

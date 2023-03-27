@@ -1,5 +1,6 @@
 #' @importFrom dplyr filter mutate
 #' @importFrom tidyr separate_wider_delim unite
+#' @importFrom rlang .data
 #' 
 mutate_datasets <- function(object, datasets, undo = FALSE) {
   if(is.null(object) | is.null(datasets))
@@ -9,8 +10,9 @@ mutate_datasets <- function(object, datasets, undo = FALSE) {
     for(i in seq_along(datasets)) {
       object <- dplyr::mutate(
         object,
-        dataset = ifelse(dataset == datasets[[i]],
-                          names(datasets)[i], dataset))
+        dataset = ifelse(
+          .data$dataset == datasets[[i]],
+          names(datasets)[i], .data$dataset))
     }
   } else {
     object$dataset <- as.character(object$dataset)
@@ -29,7 +31,6 @@ rename_datasets <- function(object, datasets, undo = FALSE) {
     return(NULL)
   
   if(undo) {
-    #shiny::req(input$dataset)
     # object = long names of selected datasets
     
     # Translate long name from menu selection (object)
@@ -66,17 +67,20 @@ unite_datatraits <- function(object, traitnames, undo = FALSE, sep = ": ") {
       dplyr::filter(
         tidyr::unite(
           object,
-          datatraits, dataset, trait, sep = sep),
-        datatraits %in% traitnames),
-      datatraits, sep,
+          .data$datatraits,
+          .data$dataset, .data$trait,
+          sep = sep),
+        .data$datatraits %in% traitnames),
+      .data$datatraits,
+      delim = sep,
       names = c("dataset", "trait"))    
   } else {
     # object = data frame with dataset and trait columns
     # result = vector of `dataset: trait` names
     tidyr::unite(
       object,
-      datatraits,
-      dataset, trait,
+      .data$datatraits,
+      .data$dataset, .data$trait,
       sep = sep)$datatraits
   }
 }

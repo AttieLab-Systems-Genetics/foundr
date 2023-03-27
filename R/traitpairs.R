@@ -12,7 +12,8 @@
 #' @importFrom dplyr across count everything filter left_join mutate
 #' @importFrom ggplot2 aes element_text facet_grid geom_line geom_point geom_smooth 
 #'             ggplot ggtitle scale_color_manual scale_fill_manual scale_shape_manual theme
-#'
+#' @importFrom rlang .data
+#' 
 #' @examples
 #' out <- traitSolos(sampleData)
 #' out2 <- traitPairs(out)
@@ -36,8 +37,8 @@ traitPairs <- function(object,
   
   object <- tidyr::unite(
     object,
-    datatraits,
-    dataset, trait,
+    .data$datatraits,
+    .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
   if(!all(traits %in% object$datatraits)) {
@@ -69,7 +70,11 @@ pairsetup <- function(x, object,
     # Reduce to response
     response <- "cellmean"
     out <- selectSignal(object, x, response)
-    out <- tidyr::unite(out, datatraits, dataset, trait, sep = ": ", remove = FALSE)
+    out <- tidyr::unite(
+      out,
+      .data$datatraits,
+      .data$dataset, .data$trait,
+      sep = ": ", remove = FALSE)
     
     # Create columns for each trait pair with trait means.
     out <- pivot_pair(out, x)
@@ -79,7 +84,8 @@ pairsetup <- function(x, object,
     if(!all(is.na(out$condition))) {
       out <- tidyr::unite(
         out,
-        sex_condition, sex, condition,
+        .data$sex_condition,
+        .data$sex, .data$condition,
         remove = FALSE,
         na.rm = TRUE)
     } else {
@@ -166,15 +172,15 @@ pairplots <- function(object,
       p <- p +
         ggplot2::geom_line(
           ggplot2::aes(
-            fill = strain, group = strain, col = strain,
-            y = .fitted),
+            fill = .data$strain, group = .data$strain, col = .data$strain,
+            y = .data$.fitted),
           linewidth = 1) +
         ggplot2::scale_color_manual(values = foundr::CCcolors)
     } else {
       p <- p +
         ggplot2::geom_smooth(
           ggplot2::aes(
-            fill = strain, group = strain, col = strain),
+            fill = .data$strain, group = .data$strain, col = .data$strain),
           method = "lm", se = FALSE, formula = "y ~ x",
           linewidth = 1) +
         ggplot2::scale_color_manual(values = foundr::CCcolors)
@@ -184,7 +190,7 @@ pairplots <- function(object,
     if(parallel_lines) {
       p <- p +
         ggplot2::geom_line(
-          ggplot2::aes(y = .fitted),
+          ggplot2::aes(y = .data$.fitted),
           linewidth = 1, col = "darkgrey")
       
     } else {
@@ -204,25 +210,25 @@ pairplots <- function(object,
   if(shape_sex) {
     p <- p +
       ggplot2::geom_point(
-        ggplot2::aes(fill = strain, shape = sex),
+        ggplot2::aes(fill = .data$strain, shape = .data$sex),
         size = 3, color = "black", alpha = 0.65) +
       ggplot2::scale_shape_manual(values = c(23, 22))
   } else {
     p <- p +
       ggplot2::geom_point(
-        ggplot2::aes(fill = strain),
+        ggplot2::aes(fill = .data$strain),
         size = 3, shape = 21, color = "black", alpha = 0.65)
   }
   
   # Facet if there are data
   if("sex_condition" %in% names(object)) {
-    ct <- dplyr::count(object, sex_condition)$n
+    ct <- dplyr::count(object, .data$sex_condition)$n
     if(length(ct) > 1)
-      p <- p + ggplot2::facet_grid(. ~ sex_condition)
+      p <- p + ggplot2::facet_grid(. ~ .data$sex_condition)
   } else {
-    ct <- dplyr::count(object, sex)$n
+    ct <- dplyr::count(object, .data$sex)$n
     if(length(ct) > 1)
-      p <- p + ggplot2::facet_grid(. ~ sex)
+      p <- p + ggplot2::facet_grid(. ~ .data$sex)
   }
   p
 }

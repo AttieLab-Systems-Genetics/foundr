@@ -8,6 +8,7 @@
 #' @importFrom ggplot2 aes facet_wrap geom_hline geom_point geom_vline ggplot ggtitle
 #'             scale_color_manual scale_x_log10 scale_y_log10 theme xlab ylab
 #' @importFrom dplyr mutate
+#' @importFrom rlang .data
 #'
 ggplot_module <- function(object, terms = c("p_strain_sex", "p_strain")) {
   # Set up module colors
@@ -19,7 +20,7 @@ ggplot_module <- function(object, terms = c("p_strain_sex", "p_strain")) {
                          y = -log10(.data[[terms[2]]]))
   
   ggplot2::ggplot(object) +
-    ggplot2::aes(x, y, col = module) +
+    ggplot2::aes(.data$x, .data$y, col = .data$module) +
     ggplot2::geom_point() +
     ggplot2::geom_hline(yintercept = 5, col = "darkgrey") +
     ggplot2::geom_vline(xintercept = 5, col = "darkgrey") +

@@ -17,6 +17,7 @@ summary_strainstats(
   object,
   stats = c("deviation", "log10.p"),
   model = c("parts", "terms"),
+  threshold = c(SD = 1, p = 0.01),
   ...
 )
 
@@ -34,6 +35,8 @@ summary_strainstats(
 \item{stats}{choice of `deviation` or `log10.p`}
 
 \item{model}{choice of model `parts` or `terms`}
+
+\item{threshold}{named vector for `SD` and `p.value`}
 
 \item{...}{not used}
 }

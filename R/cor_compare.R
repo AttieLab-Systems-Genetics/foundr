@@ -7,6 +7,7 @@
 #' @return tibble of data frame
 #' @export
 #' @importFrom dplyr as_tibble filter
+#' @importFrom rlang .data
 #'
 cor_compare <- function(traitStats, cor1, cor2, ...) {
   # Typically traitStats will be summary across traits for a particular datatype.
@@ -14,7 +15,7 @@ cor_compare <- function(traitStats, cor1, cor2, ...) {
   # Pull p-values for signal and organize by rows and columns of cor matrices.
   tmp <- dplyr::filter(
     traitStats,
-    term == "signal")$p.value
+    .data$term == "signal")$p.value
   pvalr <- matrix(tmp, byrow = TRUE, nrow = length(tmp), ncol = length(tmp))
   pvalr <- -log10(pvalr[upper.tri(pvalr)])
   pvalc <- matrix(tmp, byrow = FALSE, nrow = length(tmp), ncol = length(tmp))
@@ -39,7 +40,7 @@ cor_compare <- function(traitStats, cor1, cor2, ...) {
 #'
 #' @return data frame
 #' @export
-#' @importFrom dplyr across filter mutate rename row_number select
+#' @importFrom dplyr across everything filter mutate rename row_number select
 #' @importFrom purrr map transpose
 #'
 #' @examples
@@ -61,10 +62,10 @@ cor_extreme <- function(traitStats,
         dplyr::mutate(
           object,
           index = dplyr::row_number()),
-        cor1 > cormin | cor2 > 0.8,
-        pmax(logpvalr, logpvalc) > minlogp),
-      cor2 - cor1 == max(cor2 - cor1) |
-        cor2 - cor1 == min(cor2 - cor1))
+        .data$cor1 > cormin | .data$cor2 > 0.8,
+        pmax(.data$logpvalr, .data$logpvalc) > minlogp),
+      .data$cor2 - .data$cor1 == max(.data$cor2 - .data$cor1) |
+        .data$cor2 - .data$cor1 == min(.data$cor2 - .data$cor1))
   
   cc <- matrix(NA, length(traits), length(traits))
   rr <- row(cc)[upper.tri(cc)][object$index]
@@ -81,8 +82,8 @@ cor_extreme <- function(traitStats,
                   purrr::transpose(
                     dplyr::mutate(
                       object,
-                      traitc = traits[cc],
-                      traitr = traits[rr])),
+                      traitc = .data$traits[cc],
+                      traitr = .data$traits[rr])),
                   function(x) {
                     if(x$logpvalc > x$logpvalr) {
                       # switch row and columne
@@ -100,7 +101,7 @@ cor_extreme <- function(traitStats,
           logpvaly = "logpvalc",
           traitx = "traitr",
           traity = "traitc"),
-        traitx, traity, everything()),
+        .data$traitx, .data$traity, dplyr::everything()),
       traitx, logpvalx, traity, logpvaly, cor1, cor2),
     dplyr::across(is.numeric, signif, 3))
 }

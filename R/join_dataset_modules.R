@@ -8,6 +8,7 @@
 #' @importFrom purrr transpose
 #' @importFrom dplyr filter inner_join
 #' @importFrom tidyr unite
+#' @importFrom rlang .data
 #'
 join_dataset_modules <- function(dmods, response) {
   if(is.null(dmods))
@@ -45,7 +46,11 @@ join_dataset_modules <- function(dmods, response) {
   
   # Reduce eigen data frames to common IDs.
   if(is_animal)
-    dmodsID <- tidyr::unite(dmodsID, ID, ID, animal, na.rm = TRUE)
+    dmodsID <- tidyr::unite(
+      dmodsID, 
+      .data$ID,
+      .data$ID, .data$animal,
+      na.rm = TRUE)
   dmodsID <- dmodsID$ID
   dmods$eigen <- lapply(dmods$eigen,
                         function(x, ID) x[rownames(x) %in% ID, ],
@@ -65,9 +70,10 @@ join_dataset_modules <- function(dmods, response) {
   }
   dmodstrait <- dmodstrait$trait
   
-  dmods$modules <- lapply(dmods$modules,
-                          function(x, dmodstrait) dplyr::filter(x, trait %in% dmodstrait),
-                          dmodstrait)
+  dmods$modules <- lapply(
+    dmods$modules,
+    function(x, dmodstrait) dplyr::filter(x, .data$trait %in% dmodstrait),
+    dmodstrait)
   dmods <- lapply(
     purrr::transpose(dmods),
     function(x, eclass) {

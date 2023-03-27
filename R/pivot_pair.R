@@ -6,6 +6,7 @@
 #' @return data frame
 #' @export
 #' @importFrom dplyr filter full_join mutate select
+#' @importFrom rlang .data
 #'
 #' @examples
 pivot_pair <- function(object, pair) {
@@ -18,13 +19,18 @@ pivot_pair <- function(object, pair) {
     object$signal <- NULL
   
   # Reduce to pair of traits.
-  object <- dplyr::filter(object, datatraits %in% pair)
+  object <- dplyr::filter(object, .data$datatraits %in% pair)
+  
   nocond <- !("condition" %in% names(object))
   
   # Columns sex and condition present. Need to carefully address differences in condition.
   
   # split by datatraits
-  object <- split(dplyr::select(object, -datatraits, -dataset, -trait), object$datatraits)
+  object <- split(
+    dplyr::select(
+      object,
+      -.data$datatraits, -.data$dataset, -.data$trait),
+    object$datatraits)
   ntraits <- names(object)
   byvars <- names(object[[1]])
   byvars <- byvars[!(byvars %in% c("value"))]

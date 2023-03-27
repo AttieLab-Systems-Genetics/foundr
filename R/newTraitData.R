@@ -3,6 +3,7 @@
 #' @importFrom readxl read_excel
 #' @importFrom tidyr unite
 #' @importFrom dplyr group_by mutate rename ungroup
+#' @importFrom rlang .data
 newTraitData <- function(datapath, condition_name, dataset_name) {
   newdata <- switch(
     tools::file_ext(datapath),
@@ -23,7 +24,7 @@ newTraitData <- function(datapath, condition_name, dataset_name) {
       newdata <- tidyr::unite(
         newdata,
         "condition",
-        .data[[condition_name]], condition,
+        .data[[condition_name]], .data$condition,
         remove = TRUE)
     } else {
       # Change to name condition
@@ -47,7 +48,6 @@ newTraitData <- function(datapath, condition_name, dataset_name) {
   # Normal scores with jitter for new data
   dplyr::ungroup(
     dplyr::mutate(
-      dplyr::group_by(newdata, dataset, trait),
-      value = nqrank(value, jitter = TRUE)))
-  
+      dplyr::group_by(newdata, .data$dataset, .data$trait),
+      value = nqrank(.data$value, jitter = TRUE)))
 }

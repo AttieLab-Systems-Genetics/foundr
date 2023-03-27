@@ -20,6 +20,7 @@
 #' @export
 #' @importFrom tidyr unite
 #' @importFrom dplyr distinct mutate
+#' @importFrom rlang .data
 #'
 #' @examples
 #' trait_names(sampleData, c("A","C"))
@@ -34,8 +35,8 @@ trait_names <- function(object, traitnames = NULL, sep = ": ") {
       dplyr::distinct(
         tidyr::unite(
           object,
-          datatraits,
-          dataset, trait,
+          .data$datatraits,
+          .data$dataset, .data$trait,
           sep = sep, remove = FALSE),
         datatraits, dataset, trait)
   } else {
@@ -43,8 +44,8 @@ trait_names <- function(object, traitnames = NULL, sep = ": ") {
       dplyr::distinct(
         dplyr:mutate(
           object,
-          datatraits = trait),
-        datatraits)
+          datatraits = .data$trait),
+        .data$datatraits)
   }
   
   
@@ -58,8 +59,9 @@ trait_names <- function(object, traitnames = NULL, sep = ": ") {
       traitnames <- unique(
         tidyr::unite(
           traitnames,
-          datatraits,
-          dataset, trait, sep = sep)$datatraits)
+          .data$datatraits,
+          .data$dataset, .data$trait,
+          sep = sep)$datatraits)
     } else {
       traitnames <- unique(traitnames$trait)
     }
@@ -81,7 +83,7 @@ trait_names <- function(object, traitnames = NULL, sep = ": ") {
       # Expand trait names to include dataset
       object2 <- dplyr::filter(
         object,
-        trait %in% traitnames[trynames2])
+        .data$trait %in% traitnames[trynames2])
       traitnames <- c(traitnames[trynames], object2$datatraits) 
     }
   } else {

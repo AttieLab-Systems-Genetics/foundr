@@ -16,6 +16,7 @@
 #' @importFrom ggplot2 aes element_text facet_grid geom_jitter ggplot ggtitle
 #'             scale_fill_manual scale_shape_manual theme xlab ylab
 #' @importFrom cowplot plot_grid
+#'
 #' @export
 #' @rdname traitSolos
 #' @examples
@@ -44,15 +45,15 @@ ggplot_traitSolos <- function(object,
       dplyr::summarize(
         dplyr::group_by(
           object,
-          dataset, trait),
-        condgroup = paste(unique(condition), collapse = ";"))),
+          .data$dataset, .data$trait),
+        condgroup = paste(unique(.data$condition), collapse = ";"))),
     by = c("dataset", "trait"))
 
   # Split object by condition grouping
   object <- split(
     dplyr::select(
       object,
-      -condgroup),
+      -.data$condgroup),
     object$condgroup)
 
   plots <- purrr::map(object, ggplot_onetrait, ...)
@@ -72,7 +73,7 @@ ggplot_onetrait <- function(object,
                             ...) {
   # Allow for dataset grouping for traits
   if("dataset" %in% names(object)) {
-    tmp <- dplyr::distinct(object, dataset, trait)
+    tmp <- dplyr::distinct(object, .data$dataset, .data$trait)
     dataset <- tmp$dataset
     trait <- tmp$trait
     ltrait <- length(trait)
@@ -96,7 +97,9 @@ ggplot_onetrait <- function(object,
   }
   
   # Make sure strain is in proper order
-  object <- dplyr::mutate(object, strain = factor(strain, names(foundr::CCcolors)))
+  object <- dplyr::mutate(
+    object,
+    strain = factor(.data$strain, names(foundr::CCcolors)))
   
   p <- ggplot2::ggplot(object)
   
@@ -123,11 +126,11 @@ ggplot_onetrait <- function(object,
     
     if(horizontal) {
       p <- p +
-        ggplot2::aes(value, .data[[condition]], fill = .data[[condition]]) +
+        ggplot2::aes(.data$value, .data[[condition]], fill = .data[[condition]]) +
         ggplot2::xlab("")
     } else {
       p <- p +
-        ggplot2::aes(.data[[condition]], value, fill = .data[[condition]]) +
+        ggplot2::aes(.data[[condition]], .data$value, fill = .data[[condition]]) +
         ggplot2::ylab("")
     }
     
@@ -138,11 +141,11 @@ ggplot_onetrait <- function(object,
     
     if(horizontal) {
       p <- p +
-        ggplot2::aes(value, strain, fill = strain) +
+        ggplot2::aes(.data$value, .data$strain, fill = .data$strain) +
         ggplot2::xlab("")
     } else {
       p <- p +
-        ggplot2::aes(strain, value, fill = strain) +
+        ggplot2::aes(.data$strain, .data$value, fill = .data$strain) +
         ggplot2::ylab("")
     }
     

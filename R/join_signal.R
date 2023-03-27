@@ -7,6 +7,7 @@
 #' @return data frame with `value` as `rest` or `noise` column
 #' @export
 #' @importFrom dplyr left_join mutate select
+#' @importFrom rlang .data
 #'
 join_signal <- function(traitData, traitSignal, response = c("rest", "noise")) {
   response <- match.arg(response)
@@ -30,14 +31,14 @@ join_signal <- function(traitData, traitSignal, response = c("rest", "noise")) {
            dplyr::select(
              dplyr::mutate(
                out,
-               value = value - signal),
-             -cellmean, -signal)
+               value = .data$value - .data$signal),
+             -.data$cellmean, -.data$signal)
          },
          noise = {
            dplyr::select(
              dplyr::mutate(
                out,
-               value = value - cellmean),
-             -cellmean, -signal)
+               value = .data$value - .data$cellmean),
+             -.data$cellmean, -.data$signal)
          })
 }

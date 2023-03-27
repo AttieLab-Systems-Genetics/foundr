@@ -11,6 +11,7 @@
 #' @importFrom ggplot2 aes element_text facet_grid geom_boxplot
 #'             geom_jitter ggplot scale_size theme
 #' @importFrom tidyr pivot_longer unite
+#' @importFrom rlang .data
 #'
 #' @examples
 #' sampleStats <- strainstats(sampleData)
@@ -24,8 +25,8 @@ effectplot <- function(object, traitnames = NULL,
 
   object <- tidyr::unite(
     object,
-    datatraits,
-    dataset, trait,
+    .data$datatraits,
+    .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
 
   if(is.null(traitnames) || !length(traitnames))
@@ -52,25 +53,28 @@ effectplot <- function(object, traitnames = NULL,
         object,
         terms = "term",
         log10_p = "p.value"),
-      terms = factor(terms, unique(terms)),
-      log10_p = -log10(log10_p)),
-    SD:log10_p,
+      terms = factor(.data$terms, unique(.data$terms)),
+      log10_p = -log10(.data$log10_p)),
+    .data$SD:.data$log10_p,
     names_to = "stats",
     values_to = "value")
   
   object <- dplyr::arrange(
     dplyr::mutate(
       object,
-      model = ifelse(terms %in% c("signal", "cellmean", "rest", "noise"),
-                     "model parts", "model terms"),
-      selected = ifelse(datatraits %in% traitnames,
-                        datatraits, NA),
-      selected = ifelse(datatraits %in% correlated,
-                        "correlated", datatraits),
-      selected = factor(selected, c("correlated", traitnames)),
-      sizes = ifelse(datatraits %in% traitnames,
+      model = ifelse(
+        .data$terms %in% c("signal", "cellmean", "rest", "noise"),
+        "model parts", "model terms"),
+      selected = ifelse(
+        .data$datatraits %in% traitnames,
+        .data$datatraits, NA),
+      selected = ifelse(
+        .data$datatraits %in% correlated,
+        "correlated", .data$datatraits),
+      selected = factor(.data$selected, c("correlated", traitnames)),
+      sizes = ifelse(.data$datatraits %in% traitnames,
                      1, 0.5)),
-    selected)
+    .data$selected)
   
   selected_colors <- rep(c(
     "gray50",
@@ -80,15 +84,15 @@ effectplot <- function(object, traitnames = NULL,
   names(selected_colors) <- c("correlated", traitnames)
   
   ggplot2::ggplot(object) +
-    ggplot2::aes(terms, value,
-                 col = selected) +
+    ggplot2::aes(.data$terms, .data$value,
+                 col = .data$selected) +
     ggplot2::geom_boxplot(color = "black", outlier.size = 0.5, outlier.color = "gray80") +
     ggplot2::geom_jitter(inherit.aes = FALSE,
                          data = subset(object, !is.na(selected)),
-                         ggplot2::aes(terms, value,
-                                      col = selected,
-                                      size = sizes,
-                                      stroke = sizes),
+                         ggplot2::aes(.data$terms, .data$value,
+                                      col = .data$selected,
+                                      size = .data$sizes,
+                                      stroke = .data$sizes),
                          shape = 1, width = 0.2, height = 0) +
     ggplot2::scale_size(range = c(0.5,2), guide = "none") +
     ggplot2::facet_grid(stats ~ model, scales = "free") +
@@ -108,7 +112,7 @@ effecthelper <- function(corobj = NULL, mincor = NULL, ...) {
     dplyr::filter(
       corobj,
       absmax >= mincor),
-    datatraits,
-    dataset, trait,
+    .data$datatraits,
+    .data$dataset, .data$trait,
     sep = ": ")$datatraits
 }

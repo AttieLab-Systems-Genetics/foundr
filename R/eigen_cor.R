@@ -4,8 +4,9 @@
 #'
 #' @return data frame of class `eigen_cor`
 #' @export
-#' @importFrom dplyr mutate
+#' @importFrom dplyr arrange mutate
 #' @importFrom tidyr pivot_longer
+#' @importFrom rlang .data
 #'
 eigen_cor <- function(object) {
   if(is.null(object))
@@ -13,14 +14,14 @@ eigen_cor <- function(object) {
   
   # Get ID from first response.
   # Assume these agree across elements of object.
-  ID <- dplyr::arrange(
+  IDdf <- dplyr::arrange(
     object[[1]]$ID,
-    ID)
+    .data$ID)
   
   # Get eigen data frames.
   object <- purrr::transpose(object)$eigen
 
-  if("animal" %in% names(ID)) {
+  if("animal" %in% names(IDdf)) {
     reduced_response <- c("cellmean","signal")
     m <- match(reduced_response, names(object), nomatch = 0)
     if(any(m > 0)) {
@@ -30,12 +31,13 @@ eigen_cor <- function(object) {
           as.data.frame(
             tidyr::unite(
               dplyr::left_join(
-                ID,
+                IDdf,
                 dplyr::mutate(
                   object[[i]],
                   ID = rownames(object[[i]])),
                 by = "ID"),
-              ID, ID, animal))
+              .data$ID,
+              .data$ID, .data$animal))
         
         # Put row names back and remove ID column.
         rownames(object[[i]]) <- object[[i]]$ID
@@ -86,7 +88,7 @@ eigen_cor <- function(object) {
 #' @export
 #' @importFrom ggplot2 aes element_blank facet_wrap geom_point ggplot ggtitle
 #'             scale_color_manual scale_y_discrete theme ylab
-#' @importFrom dplyr filter
+#' @importFrom rlang .data
 #'
 ggplot_eigen_cor <- function(object, facetname, colorname,
                              main = paste("facet by", facetname,
@@ -104,7 +106,7 @@ ggplot_eigen_cor <- function(object, facetname, colorname,
   names(modcolors) <- modcolors
   
   ggplot2::ggplot(object) +
-    ggplot2::aes(corr, .data[[colorname]], col = .data[[colorname]],
+    ggplot2::aes(.data$corr, .data[[colorname]], col = .data[[colorname]],
                  facet = .data[[facetname]]) +
     ggplot2::geom_vline(xintercept = 0, col = "gray") +
     ggplot2::geom_point() +
@@ -134,6 +136,7 @@ autoplot.eigen_cor <- function(object, ...)
 #' @return data frame with colorname, facetname, correlation
 #' @export
 #' @importFrom dplyr filter
+#' @importFrom rlang .data
 #'
 subset_eigen_cor <- function(x,
                              facetname,

@@ -14,7 +14,7 @@
 #'             reactive reactiveVal renderPlot renderUI req
 #'             selectInput selectizeInput sidebarLayout sidebarPanel sliderInput
 #'             tabsetPanel tabPanel tagList tags textAreaInput titlePanel uiOutput
-#' @importFrom dplyr across arrange bind_rows distinct filter mutate rename select
+#' @importFrom dplyr arrange bind_rows distinct filter
 #' @importFrom plotly ggplotly plotlyOutput renderPlotly
 #' 
 #'
@@ -68,8 +68,7 @@ foundrUI <- function(title) {
 #'             plotOutput radioButtons reactive reactiveVal renderPlot renderUI req
 #'             selectInput selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
 #'             setProgress withProgress
-#' @importFrom dplyr across arrange everything filter mutate
-#' @importFrom tidyselect where
+#' @importFrom dplyr across arrange everything filter mutate where
 #' @importFrom DT dataTableOutput renderDataTable
 #' @importFrom ggplot2 ggplot
 #' @importFrom grDevices pdf dev.off
@@ -121,11 +120,6 @@ foundrServer <- function(input, output, session,
   
   traitDataInput <- shiny::reactive({
     newdata <- newtraitdata()
-    if(!is.null(traitdata)) {
-      if("datatype" %in% names(traitdata)) {
-        traitdata <- dplyr::rename(traitdata, dataset = "datatype")
-      }
-    }
     if(!is.null(newdata)) {
       if(is.null(traitdata)) {
         traitdata <- newdata
@@ -149,12 +143,7 @@ foundrServer <- function(input, output, session,
   # Trait Stats: <dataset>, trait, term, SD, p.value
   traitStatsInput <- shiny::reactive({
     shiny::req(traitDataInput(), datasets())
-    if(!is.null(traitstats)) {
-      if("datatype" %in% names(traitstats)) {
-        traitstats <- dplyr::rename(traitstats, dataset = "datatype")
-      }
-    }
-    
+
     # Create stats for new data
     if(!is.null(newtraitdata())) {
       newtraitstats <- progress(newtraitdata(), strainstats, "Stats")
@@ -174,12 +163,7 @@ foundrServer <- function(input, output, session,
   # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, cellmean
   traitSignalInput <- shiny::reactive({
     shiny::req(traitDataInput(), datasets())
-    if(!is.null(traitsignal)) {
-      if("datatype" %in% names(traitsignal)) {
-        traitsignal <- dplyr::rename(traitsignal, dataset = "datatype")
-      }
-    }
-    
+
     # Create signal for new data
     if(!is.null(newtraitdata())) {
       newtraitsignal <- progress(newtraitdata(), partition, "Signal")
@@ -213,7 +197,7 @@ foundrServer <- function(input, output, session,
     shiny::req(datasets_selected())
     out <- dplyr::filter(
       traitDataInput(),
-      dataset %in% datasets_selected())
+      .data$dataset %in% datasets_selected())
     if("condition" %in% names(out)) {
       if(all(is.na(out$condition)))
         out$condition <- NULL
@@ -225,14 +209,14 @@ foundrServer <- function(input, output, session,
     shiny::req(datasets_selected())
     dplyr::filter(
       traitStatsInput(),
-      dataset %in% datasets_selected())
+      .data$dataset %in% datasets_selected())
   })
   # Trait Signal from selected datasets
   traitSignalSelectType <- shiny::reactive({
     shiny::req(datasets_selected())
     out <- dplyr::filter(
       traitSignalInput(),
-      dataset %in% datasets_selected())
+      .data$dataset %in% datasets_selected())
     
     if(!nrow(out)) # Happens if traitStatsSelectType changes
       return(NULL)
@@ -256,7 +240,7 @@ foundrServer <- function(input, output, session,
       return(NULL)
     
     if(input$order == "alphabetical") {
-      out <- dplyr::arrange(out, trait)
+      out <- dplyr::arrange(out, .data$trait)
     } else {
       if(input$order == "correlation") {
         out <- traitStatsBestCor()
@@ -288,7 +272,7 @@ foundrServer <- function(input, output, session,
     unite_datatraits(
       dplyr::distinct(
         traitStatsArranged(),
-        dataset, trait))
+        .data$dataset, .data$trait))
   })
   
   # Trait Data for Selected Traits
@@ -427,15 +411,11 @@ foundrServer <- function(input, output, session,
   output$cortable <- DT::renderDataTable(
     {
       shiny::req(corobject(), input$mincor, input$corterm)
-      dplyr::mutate(
-        dplyr::select(
-          dplyr::filter(
-            mutate_datasets(
-              corobject(),
-              customSettings$dataset),
-            absmax >= input$mincor),
-          -absmax),
-        cors = signif(cors, 4))
+      summary_bestcor(
+        mutate_datasets(
+          corobject(),
+          customSettings$dataset),
+        input$mincor)
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
@@ -630,17 +610,11 @@ foundrServer <- function(input, output, session,
   output$tablesum <- DT::renderDataTable(
     {
       shiny::req(traitStatsSelectType(), input$volsd, input$volpval, input$term)
-      dplyr::mutate(
-        dplyr::filter(
-          mutate_datasets(
-            traitStatsSelectType(),
-            customSettings$dataset),
-          abs(SD) >= input$volsd,
-          -log10(p.value) >= input$volpval,
-          term == input$term),
-        dplyr::across(
-          tidyselect::where(is.numeric),
-          function(x) signif(x, 4)))
+      summary_strainstats(
+        mutate_datasets(
+          traitStatsSelectType(),
+          customSettings$dataset),
+        threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))

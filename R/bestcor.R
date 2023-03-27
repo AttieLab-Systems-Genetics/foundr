@@ -12,6 +12,7 @@
 #'             everything filter mutate select
 #' @importFrom tidyr matches pivot_wider separate_wider_delim unite
 #' @importFrom stats cor
+#' @importFrom rlang .data
 #'
 #' @examples
 #' sampleSignal <- partition(sampleData)
@@ -31,8 +32,8 @@ bestcor <- function(traitSignal,
   
   traitSignal <- tidyr::unite(
     traitSignal,
-    datatraits,
-    dataset, trait,
+    .data$datatraits,
+    .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
   if(!all(traitnames %in% unique(traitSignal$datatraits)))
@@ -57,14 +58,15 @@ bestcor <- function(traitSignal,
           dplyr::filter(
             traitSignal,
             is_condition),
-          trait, condition, trait,
+          .data$trait,
+          .data$condition, .data$trait,
           sep = ":")
         # Keep trait as is for those without condtion
         tmp2 <- dplyr::select(
           dplyr::filter(
             traitSignal,
             !is_condition),
-          -condition)
+          -.data$condition)
         # Drop any condition:trait entries in tmp2 already in tmp1
         is_dup <- (tmp2$trait %in% tmp1$trait)
         if(any(is_dup)) {
@@ -77,14 +79,14 @@ bestcor <- function(traitSignal,
   
   proband <- dplyr::filter(
       traitSignal,
-      datatraits %in% traitnames)
+      .data$datatraits %in% traitnames)
   uproband <- dplyr::arrange(
     dplyr::mutate(
       dplyr::distinct(
         proband,
-        datatraits, dataset, trait),
-      datatraits = factor(datatraits, traitnames)),
-    datatraits)
+        .data$datatraits, .data$dataset, .data$trait),
+      datatraits = factor(.data$datatraits, traitnames)),
+    .data$datatraits)
   
   # Identify subset of strain, sex, condition included.
   conds <- condset(proband)
@@ -93,11 +95,11 @@ bestcor <- function(traitSignal,
       dplyr::distinct(
         proband,
         dplyr::across(conds)),
-      levels,
+      .data$levels,
       tidyr::matches(conds))$levels)
   ofactors <- tidyr::unite(
     traitSignal,
-    levels,
+    .data$levels,
     tidyr::matches(conds))$levels %in% factors
   
   traitSignal <- traitSignal[ofactors,]
@@ -124,8 +126,10 @@ bestcor <- function(traitSignal,
         dplyr::arrange(
           tidyr::unite(
             traitSignal,
-            datatraits, dataset, trait, sep = ": "),
-          datatraits, dplyr::across(conds)),
+            .data$datatraits,
+            .data$dataset, .data$trait,
+            sep = ": "),
+          .data$datatraits, dplyr::across(conds)),
         names_from = "datatraits", values_from = term),
       -tidyr::matches(conds))
   }
@@ -134,7 +138,7 @@ bestcor <- function(traitSignal,
   traitSignal <- myfun(
     dplyr::filter(
       traitSignal,
-      !(datatraits %in% traitnames)),
+      !(.data$datatraits %in% traitnames)),
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
@@ -144,8 +148,8 @@ bestcor <- function(traitSignal,
   out <- dplyr::arrange(
     dplyr::select(
       dplyr::as_tibble(out),
-      trait, absmax, dplyr::everything()),
-    dplyr::desc(absmax))
+      .data$trait, .data$absmax, dplyr::everything()),
+    dplyr::desc(.data$absmax))
   
   # Rearrange as dataframe with dataset, trait, absmax, probandset, proband, cors
   out <- 
@@ -161,8 +165,8 @@ bestcor <- function(traitSignal,
         proband,
         delim = ": ",
         names = c("probandset", "proband")),
-      proband = factor(proband, unique(uproband$trait)),
-      probandset = factor(probandset, unique(uproband$dataset)))
+      proband = factor(.data$proband, unique(uproband$trait)),
+      probandset = factor(.data$probandset, unique(uproband$dataset)))
   
   class(out) <- c("bestcor", class(out))
   out
@@ -178,8 +182,8 @@ bestcorStats <- function(traitStats, traitnames = NULL,
     traitnames,
     tidyr::unite(
       bestcorObject,
-      datatraits,
-      dataset, trait,
+      .data$datatraits,
+      .data$dataset, .data$trait,
       sep = ": ")$datatraits
   ))
   
@@ -188,8 +192,8 @@ bestcorStats <- function(traitStats, traitnames = NULL,
   
   traitStats <- tidyr::unite(
     traitStats,
-    datatraits,
-    dataset, trait,
+    .data$datatraits,
+    .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
   if(!all(m <- (traitnames %in% unique(traitStats$datatraits)))) {
@@ -202,9 +206,9 @@ bestcorStats <- function(traitStats, traitnames = NULL,
     dplyr::arrange(
       dplyr::mutate(
         traitStats,
-        datatraits = factor(datatraits, traitnames)),
-      datatraits),
-    -datatraits)
+        datatraits = factor(.data$datatraits, traitnames)),
+      .data$datatraits),
+    -.data$datatraits)
 }
 
 #' GGplot of bestcor object
@@ -221,6 +225,7 @@ bestcorStats <- function(traitStats, traitnames = NULL,
 #' @importFrom ggplot2 aes autoplot element_text facet_grid
 #'             geom_hline geom_point ggplot theme
 #' @importFrom stats reorder
+#' @importFrom rlang .data
 #' 
 #' @rdname bestcor
 #'
@@ -229,7 +234,7 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     return(plot_null("No Correlations to Plot."))
 
   if(abscor) {
-    object <- dplyr::mutate(object, cors = abs(cors))
+    object <- dplyr::mutate(object, cors = abs(.data$cors))
   }
   
   object <- 
@@ -238,18 +243,20 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
         dplyr::mutate(
           tidyr::unite(
             object,
-            trait, dataset, trait, sep = ": "),
-          trait = stats::reorder(trait, dplyr::desc(absmax))),
-        absmax >= mincor),
-    -absmax)
+            .data$trait,
+            .data$dataset, .data$trait,
+            sep = ": "),
+          trait = stats::reorder(.data$trait, dplyr::desc(absmax))),
+        .data$absmax >= mincor),
+    -.data$absmax)
 
   if(!nrow(object))
     return(plot_null(paste("No Correlations above", mincor)))
   
   p <- ggplot2::ggplot(object) +
-    ggplot2::aes(trait, cors, col = proband) +
+    ggplot2::aes(.data$trait, .data$cors, col = .data$proband) +
     ggplot2::geom_point(size = 2) + 
-    ggplot2::facet_grid(probandset + proband ~ .) +
+    ggplot2::facet_grid(.data$probandset + .data$proband ~ .) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
   if(!abscor) {
     p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")
@@ -262,3 +269,31 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
 autoplot.bestcor <- function(object, ...) {
   ggplot_bestcor(object, ...)
 }
+
+#' Summary of bestcor objects
+#'
+#' @param object object of class `bestcor`
+#' @param mincor minimum correlation to show
+#' @param ... not used
+#'
+#' @return data frame
+#' @export
+#' @rdname bestcor
+#' @importFrom dplyr filter mutate select
+#' @importFrom rlang .data
+#'
+summary_bestcor <- function(object, mincor = 0.5, ...) {
+  dplyr::mutate(
+    dplyr::select(
+      dplyr::filter(
+        object,
+        .data$absmax >= mincor),
+      -.data$absmax),
+    cors = signif(.data$cors, 4))
+}
+#' @export
+#' @rdname bestcor
+#' @method summary bestcor
+summary.bestcor <- function(object, ...) 
+  summary_bestcor(object, ...)
+  

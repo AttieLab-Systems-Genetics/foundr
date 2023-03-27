@@ -7,6 +7,7 @@
 #' @export
 #' @importFrom dplyr arrange bind_rows desc group_by mutate n summarize ungroup
 #' @importFrom purrr map set_names
+#' @importFrom rlang .data
 #' 
 #' @rdname summary_wgcnaModules
 #' @method summary listof_wgcnaModules
@@ -33,12 +34,12 @@ summary_wgcnaModules <- function(object, ...) {
         dplyr::group_by(
           dplyr::mutate(
             object$modules,
-            module = as.character(module)),
-          module),
+            module = as.character(.data$module)),
+          .data$module),
         count = dplyr::n(),
-        maxkME = signif(max(kME), 4),
-        minkME = signif(min(kME), 4))),
-    dplyr::desc(count))
+        maxkME = signif(max(.data$kME), 4),
+        minkME = signif(min(.data$kME), 4))),
+    dplyr::desc(.data$count))
 }
 
 #' @export

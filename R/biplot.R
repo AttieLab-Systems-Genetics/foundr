@@ -37,6 +37,7 @@ biplot_data <- function(dat, traits, factors = c("strain", "animal", "sex", "con
 #' @importFrom ordr as_tbl_ord confer_inertia mutate_cols mutate_rows
 #' @importFrom stats princomp
 #' @importFrom dplyr select
+#' @importFrom rlang .data
 #' @export
 #'
 biplot_pca <- function(bip,
@@ -50,8 +51,8 @@ biplot_pca <- function(bip,
             dplyr::select(bip, -factors),
             cor = TRUE)),
         1),
-      strain = bip[[strain]]),
-    trait = names(dplyr::select(bip, -factors)))
+      strain = bip[[.data$strain]]),
+    trait = names(dplyr::select(bip, -.data$factors)))
 }
 
 #' Biplot using ggplot2 via ordr package
@@ -68,8 +69,9 @@ biplot_pca <- function(bip,
 #' @examples
 biggplot <- function(bip_pca, scale.factor = 2) {
   ordr::ggbiplot(bip_pca) +
-    ggplot2::aes(color = strain, sec.axes = "cols", scale.factor = scale.factor) +
+    ggplot2::aes(color = .data$strain, sec.axes = "cols", scale.factor = scale.factor) +
     ordr::geom_rows_point() +
     ordr::geom_cols_vector() +
-    ordr::geom_cols_text_radiate(aes(label = trait))
+    ordr::geom_cols_text_radiate(
+      ggplot2::aes(label = .data$trait))
 }

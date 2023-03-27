@@ -17,6 +17,7 @@
 #' @importFrom dplyr across arrange bind_rows distinct everything filter mutate select
 #' @importFrom purrr map
 #' @importFrom stats formula lm predict resid
+#' @importFrom rlang .data
 #' 
 #' @export
 #'
@@ -61,7 +62,7 @@ partition <- function(object,
     preds <- rep(NA, nrow(object))
     preds[!is.na(object[[value]])] <- stats::predict(fitful)
     object <- dplyr::mutate(
-      dplyr::select(object, -residred),
+      dplyr::select(object, -.data$residred),
       signal = preds,
       noise = resids)
   }
@@ -75,7 +76,11 @@ partition <- function(object,
   
   if(is_dataset <- ("dataset" %in% names(object))) {
     # Temporarily for datatraits (called here trait) as `dataset: trait`
-    object <- tidyr::unite(object, trait, dataset, trait, sep = ": ")
+    object <- tidyr::unite(
+      object,
+      .data$trait,
+      .data$dataset, .data$trait,
+      sep = ": ")
   }
   
   out <- dplyr::bind_rows(
@@ -98,8 +103,8 @@ partition <- function(object,
           out,
           !is.na(.data[[value]])),
         dplyr::across(c(signal_terms, "trait", "signal", "rest"))),
-      cellmean = signal + rest),
-    -rest)
+      cellmean = .data$signal + .data$rest),
+    -.data$rest)
   
   if(is_dataset) {
     # If dataset was in object, restore it from `dataset: trait`
@@ -107,13 +112,14 @@ partition <- function(object,
       dplyr::select(
         tidyr::separate(
           out,
-          trait, c("dataset", "trait"), sep = ": "),
-        dataset, dplyr::everything())
+          .data$trait,
+          c("dataset", "trait"), sep = ": "),
+        .data$dataset, dplyr::everything())
   }
   
   dplyr::arrange(
     dplyr::mutate(
       out,
-      trait = factor(trait, traits)),
-    trait)
+      trait = factor(.data$trait, traits)),
+    .data$trait)
 }
