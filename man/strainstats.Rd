@@ -15,6 +15,7 @@ strainstats(
 
 summary_strainstats(
   object,
+  terms = NULL,
   stats = c("deviation", "log10.p"),
   model = c("parts", "terms"),
   threshold = c(SD = 1, p = 0.01),
@@ -31,6 +32,8 @@ summary_strainstats(
 \item{rest}{rest factor combination as string for `formula`}
 
 \item{calc_sd}{calculate SDs by `term` if `TRUE` (default)}
+
+\item{terms}{terms to include (overrides `model` and `stats`)}
 
 \item{stats}{choice of `deviation` or `log10.p`}
 

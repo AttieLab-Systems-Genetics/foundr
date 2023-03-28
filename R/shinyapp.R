@@ -614,6 +614,7 @@ foundrServer <- function(input, output, session,
         mutate_datasets(
           traitStatsSelectType(),
           customSettings$dataset),
+        terms = input$term,
         threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
     },
     escape = FALSE,

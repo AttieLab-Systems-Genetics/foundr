@@ -175,6 +175,7 @@ strain_stats <- function(fitsum, termname = "") {
 #' Summary of Strain Statistics
 #'
 #' @param object object of class `strainstats`
+#' @param terms terms to include (overrides `model` and `stats`)
 #' @param stats choice of `deviation` or `log10.p`
 #' @param model choice of model `parts` or `terms`
 #' @param threshold named vector for `SD` and `p.value`
@@ -182,13 +183,14 @@ strain_stats <- function(fitsum, termname = "") {
 #'
 #' @return data frame
 #' @export
-#' @importFrom dplyr filter mutate select
+#' @importFrom dplyr arrange desc filter mutate select
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang .data
 #' 
 #' @rdname strainstats
 #'
 summary_strainstats <- function(object,
+                                terms = NULL,
                                 stats = c("deviation", "log10.p"),
                                 model = c("parts", "terms"),
                                 threshold = c(SD = 1, p = 0.01),
@@ -226,43 +228,52 @@ summary_strainstats <- function(object,
         dplyr::where(is.numeric),
         function(x) signif(x, 4)))
   
-  
-  if(length(model) == 1) {
-    switch(model,
-           parts = {
-             object <-
-               dplyr::filter(
-                 object,
-                 .data$term %in% c("signal", "cellmean", "rest", "noise"))
-           },
-           terms ={
-             object <-
-               dplyr::filter(
-                 object,
-                 !(.data$term %in% c("signal", "cellmean", "rest", "noise")))
-           })
-  }
-  
-  if(length(stats) == 1) {
-    switch(stats,
-           deviation = {
-             tidyr::pivot_wider(
-               dplyr::select(
-                 dplyr::filter(
-                   object,
-                   .data$term != "noise"),
-                 -.data$log10.p),
-               names_from = "term", values_from = "deviance")
-           },
-           log10.p = {
-             tidyr::pivot_wider(
-               dplyr::select(
-                 object,
-                 -deviance),
-               names_from = "term", values_from = "log10.p")
-           })
+  if(!is.null(terms)) {
+    dplyr::arrange(
+      dplyr::filter(
+        object,
+        .data$term %in% terms),
+      dplyr::desc(log10.p))
   } else {
-    object
+    if(length(model) == 1) {
+      object <-
+        switch(
+          model,
+          parts = {
+            dplyr::filter(
+              object,
+              .data$term %in% c("signal", "cellmean", "rest", "noise"))
+          },
+          terms ={
+            dplyr::filter(
+              object,
+              !(.data$term %in% c("signal", "cellmean", "rest", "noise")))
+          })
+    }
+    
+    if(length(stats) == 1) {
+      switch(stats,
+             deviation = {
+               tidyr::pivot_wider(
+                 dplyr::select(
+                   dplyr::filter(
+                     object,
+                     .data$term != "noise"),
+                   -.data$log10.p),
+                 names_from = "term", values_from = "deviance")
+             },
+             log10.p = {
+               tidyr::pivot_wider(
+                 dplyr::select(
+                   object,
+                   -deviance),
+                 names_from = "term", values_from = "log10.p")
+             })
+    } else {
+      dplyr::arrange(
+        object,
+        dplyr::desc(log10.p))
+    }
   }
 }
 #' @export
