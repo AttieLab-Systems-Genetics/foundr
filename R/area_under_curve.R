@@ -25,7 +25,7 @@ area_under_curve <- function(object) {
           .data$minutes),
         value = sum(
           diff(.data$minutes) * 
-            zoo::rollmean(.data$value, 2)) / 60,
+            zoo::rollmean(.data$value, 2)),
         .groups = "drop")),
     trait = paste0(.data$trait, "_AUC"))
 }
