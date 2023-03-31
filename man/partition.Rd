@@ -24,7 +24,7 @@ partition(
 \item{rest}{rest factor combination as string for `formula`}
 }
 \value{
-data frame with added columns `rest`, `signal`, `noise`
+data frame with added columns `signal`, `cellmean`
 }
 \description{
 Partition a trait value into three parts based on rest and signal factors.

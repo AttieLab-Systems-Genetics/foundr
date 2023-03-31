@@ -12,7 +12,7 @@
 #' @param signal signal factor combination as string for `formula`
 #' @param rest rest factor combination as string for `formula`
 #'
-#' @return data frame with added columns `rest`, `signal`, `noise`
+#' @return data frame with added columns `signal`, `cellmean`
 #' 
 #' @importFrom dplyr across arrange bind_rows distinct everything filter mutate select
 #' @importFrom purrr map
@@ -57,14 +57,11 @@ partition <- function(object,
         rest = preds)
     formful <- stats::formula(paste("residred", "~", signal))
     fitful <- stats::lm(formful, object)
-    resids <- rep(NA, nrow(object))
-    resids[!is.na(object[[value]])] <- stats::resid(fitful)
     preds <- rep(NA, nrow(object))
     preds[!is.na(object[[value]])] <- stats::predict(fitful)
     object <- dplyr::mutate(
       dplyr::select(object, -.data$residred),
-      signal = preds,
-      noise = resids)
+      signal = preds)
   }
   
   signal_terms <- 
