@@ -4,10 +4,14 @@
 \alias{ggplot_time}
 \title{GGplot of object over time}
 \usage{
-ggplot_time(object)
+ggplot_time(object, facet_strain = FALSE, ...)
 }
 \arguments{
 \item{object}{}
+
+\item{facet_strain}{facet by strain if `TRUE`}
+
+\item{...}{additional parameters}
 }
 \value{
 object of class ggplot2
