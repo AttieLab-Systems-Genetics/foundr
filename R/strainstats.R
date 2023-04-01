@@ -9,11 +9,11 @@
 #' 
 #' @importFrom dplyr arrange as_tibble bind_rows distinct filter mutate select
 #' @importFrom tidyr pivot_wider separate_wider_delim unite
-#' @importFrom stringr str_detect
+#' @importFrom stringr str_detect str_replace_all
 #' @importFrom stats anova coef drop1 formula lm pf sd
 #' @importFrom purrr map
 #' @importFrom broom tidy
-#' @importfrom rlang .data
+#' @importFrom rlang .data
 #' 
 #' @export
 #' @examples
@@ -104,16 +104,6 @@ traitOrderStats <- function(object, termname) {
     .data$p.value)
 }
 
-
-#' Terms in Stats Object
-#'
-#' @param object object from `strainstats`
-#'
-#' @return
-#' @export
-#' @importFrom stringr str_replace_all
-#'
-#' @examples
 termStats <- function(object, signal = TRUE) {
   terms <- unique(object$term)
 

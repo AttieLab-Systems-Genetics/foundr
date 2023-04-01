@@ -6,7 +6,7 @@
 #' @param interact prepare for interactive if `TRUE`
 #' @param traitnames include trait names if `TRUE`
 #'
-#' @return
+#' @return ggplot object
 #' @export
 #' @importFrom dplyr filter mutate
 #' @importFrom ggplot2 aes geom_hline geom_point geom_vline geom_text ggplot

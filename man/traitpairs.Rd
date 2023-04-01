@@ -29,6 +29,9 @@ traitPairs(
 
 \item{...}{ignored}
 }
+\value{
+object of class `traitPairs`
+}
 \description{
 Prepare pairs of traits for plotting
 }

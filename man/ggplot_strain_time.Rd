@@ -7,9 +7,9 @@
 ggplot_strain_time(
   traitData,
   traitSignal,
-  traits,
-  response = c("value", "cellmean", "signal"),
+  datatraits,
   timecol = "week",
+  response = c("value", "cellmean", "signal"),
   ...
 )
 }
@@ -18,11 +18,11 @@ ggplot_strain_time(
 
 \item{traitSignal}{data frame of summary signals}
 
-\item{traits}{trait name(s) (typically one)}
-
-\item{response}{type of response}
+\item{datatraits}{`dataset: trait` name(s) (typically one)}
 
 \item{timecol}{column to use for time}
+
+\item{response}{type of response}
 
 \item{...}{additional parameters}
 }

@@ -5,7 +5,7 @@
 #' @param correlated correlated `traitnames` to overlay on boxplot
 #' @param ... additional parameters
 #'
-#' @return
+#' @return ggplot object
 #' @export
 #' @importFrom dplyr arrange filter mutate rename
 #' @importFrom ggplot2 aes element_text facet_grid geom_boxplot

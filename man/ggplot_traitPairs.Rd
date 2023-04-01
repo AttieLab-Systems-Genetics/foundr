@@ -11,6 +11,9 @@ ggplot_traitPairs(object, ...)
 
 \item{...}{}
 }
+\value{
+ggplot object
+}
 \description{
 GGplot of trait pairs
 }

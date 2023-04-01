@@ -9,6 +9,7 @@
 #' @importFrom stats sd runif qnorm
 #'
 #' @examples
+#' nqrank(1:10)
 nqrank <- function (x, jitter = FALSE)
 {
   ## qtl::nqrank(x, jitter)

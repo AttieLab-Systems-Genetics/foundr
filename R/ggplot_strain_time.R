@@ -2,22 +2,26 @@
 #'
 #' @param traitData data frame
 #' @param traitSignal data frame of summary signals
-#' @param traits trait name(s) (typically one)
-#' @param response type of response
+#' @param datatraits `dataset: trait` name(s) (typically one)
 #' @param timecol column to use for time
+#' @param response type of response
 #' @param ... additional parameters
 #'
 #' @return ggplot object
 #' @export
-#' @importFrom dplyr filter rename select
+#' @importFrom dplyr filter mutate rename select
 #' @importFrom rlang .data
 #'
-#' @examples
-ggplot_strain_time <- function(traitData, traitSignal, traits,
-                               response = c("value","cellmean","signal"),
+ggplot_strain_time <- function(traitData, traitSignal, datatraits,
                                timecol = "week",
+                               response = c("value","cellmean","signal"),
                                ...) {
   response <- match.arg(response)
+  
+  if(is.null(traitData) | is.null(traitSignal))
+    return(plot_null("no data for time plot"))
+  
+  
   
   object <- switch(
     response,
@@ -41,10 +45,23 @@ ggplot_strain_time <- function(traitData, traitSignal, traits,
   
   object <- 
     dplyr::rename(
-      dplyr::filter(
+      unite_datatraits(
         object,
-        .data$trait %in% traits),
+        datatraits,
+        TRUE),
       time = timecol)
   
-  ggplot_time(object, ...)
+  if(!nrow(object))
+    return(plot_null("no data over time"))
+  
+  if(timecol == "minute") {
+    facet_time <- "week"
+    object <-
+      dplyr::mutate(
+        object,
+        week = paste0(week, "wk"))
+  } else
+    facet_time <- NULL
+  
+  ggplot_time(object, xlab = timecol, facet_time = facet_time, ...)
 }

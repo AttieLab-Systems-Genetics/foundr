@@ -1,6 +1,6 @@
 Package: foundr
-Version: 0.7.6
-Date: 2023-03-31
+Version: 0.8.0
+Date: 2023-04-01
 Title: Multiparent Founder Study Tools
 Description: Tools to study founders for multiparent genetic crosses.
 Authors@R: c(person("Brian S Yandell",
@@ -9,9 +9,9 @@ Authors@R: c(person("Brian S Yandell",
 Depends:
     R (>= 3.5.0)
 Imports:
-    dplyr, tidyr, purrr, tibble, tidyselect, rlang, ggplot2, broom, zoo,
-    stats, ordr, RColorBrewer, shiny, utils, DT, grDevices, stringr,
-    readxl, tools, cowplot, patchwork, readr, ggdendro, ggrepel, plotly
+    broom, cowplot, dplyr, DT, ggdendro, ggplot2, ggrepel, grDevices,
+    ordr, plotly, purrr, RColorBrewer, readr, readxl, rlang,
+    shiny, stats, stringr, tibble, tidyr, tools, utils, zoo
 LazyData: true
 License: GPL-3
 Encoding: UTF-8

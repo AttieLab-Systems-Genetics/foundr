@@ -43,7 +43,6 @@ cor_compare <- function(traitStats, cor1, cor2, ...) {
 #' @importFrom dplyr across everything filter mutate rename row_number select
 #' @importFrom purrr map transpose
 #'
-#' @examples
 cor_extreme <- function(traitStats,
                         object = cor_compare(traitStats, ...),
                         ...,

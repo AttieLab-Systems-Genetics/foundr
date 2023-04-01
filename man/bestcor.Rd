@@ -36,6 +36,8 @@ summary_bestcor(object, mincor = 0.5, ...)
 \value{
 sorted vector of absolute correlations with names
 
+ggplot object
+
 data frame
 }
 \description{

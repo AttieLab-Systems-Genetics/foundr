@@ -10,7 +10,6 @@
 #' @importFrom tidyr pivot_wider
 #' @export
 #'
-#' @examples
 biplot_data <- function(dat, traits, factors = c("strain", "animal", "sex", "condition")) {
   dplyr::mutate(
     tidyr::pivot_wider(
@@ -66,7 +65,6 @@ biplot_pca <- function(bip,
 #' @importFrom ordr geom_cols_vector geom_cols_text_radiate geom_rows_point ggbiplot
 #' @export
 #'
-#' @examples
 biggplot <- function(bip_pca, scale.factor = 2) {
   ordr::ggbiplot(bip_pca) +
     ggplot2::aes(color = .data$strain, sec.axes = "cols", scale.factor = scale.factor) +

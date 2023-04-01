@@ -17,3 +17,6 @@ vector of normal scores
 \description{
 Copied from github.com/kbroman/broman package
 }
+\examples{
+nqrank(1:10)
+}

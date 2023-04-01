@@ -8,7 +8,6 @@
 #' @importFrom dplyr filter full_join mutate select
 #' @importFrom rlang .data
 #'
-#' @examples
 pivot_pair <- function(object, pair) {
   if(!all(pair %in% object$datatraits)) {
     return(NULL)

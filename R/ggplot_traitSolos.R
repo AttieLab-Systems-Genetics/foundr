@@ -18,7 +18,6 @@
 #' @importFrom cowplot plot_grid
 #'
 #' @export
-#' @rdname traitSolos
 #' @examples
 #' ggplot_traitSolos(traitSolos(sampleData))
 #' 
@@ -114,8 +113,9 @@ ggplot_onetrait <- function(object,
   
   if(facet_strain) {
     ncond <- sort(unique(object[[condition]]))
-    cond_colors <- RColorBrewer::brewer.pal(n = length(ncond), name = "Dark2")
-    names(cond_colors) <- ncond
+    cond_colors <- RColorBrewer::brewer.pal(
+      n = max(3, length(ncond)), name = "Dark2")
+    names(cond_colors) <- ncond[seq_len(length(ncond))]
     form <- stats::formula(paste(form, "strain"))
     
     if(horizontal) {
@@ -163,11 +163,6 @@ ggplot_onetrait <- function(object,
     ggplot2::theme(
       legend.position = "none",
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
-}
-#' @export
-#' @rdname ggplot_traitSolos
-strainplot <- function(object, ...) {
-  strainplot(object, ...)
 }
 #' @export
 #' @rdname ggplot_traitSolos

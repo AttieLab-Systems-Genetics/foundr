@@ -4,12 +4,22 @@
 \alias{ggplot_time}
 \title{GGplot of object over time}
 \usage{
-ggplot_time(object, facet_strain = FALSE, ...)
+ggplot_time(
+  object,
+  facet_strain = FALSE,
+  xlab = "time",
+  facet_time = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{}
 
 \item{facet_strain}{facet by strain if `TRUE`}
+
+\item{xlab}{label for X axis}
+
+\item{facet_time}{name of column to facet on if not `NULL`}
 
 \item{...}{additional parameters}
 }

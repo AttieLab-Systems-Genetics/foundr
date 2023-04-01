@@ -15,6 +15,9 @@ effectplot(object, traitnames = NULL, correlated = NULL, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+ggplot object
+}
 \description{
 Effect Plots
 }

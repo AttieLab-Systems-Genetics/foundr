@@ -59,30 +59,5 @@ rename_datasets <- function(object, datasets, undo = FALSE) {
   # Return un-named vector
   as.vector(dtypes)
 }
-unite_datatraits <- function(object, traitnames, undo = FALSE, sep = ": ") {
-  if(undo) {
-    # object = data frame to subset based on datatraits = `dataset: trait` names
-    # result = data frame with only entries matching datatraits
-    tidyr::separate_wider_delim(
-      dplyr::filter(
-        tidyr::unite(
-          object,
-          datatraits,
-          .data$dataset, .data$trait,
-          sep = sep),
-        .data$datatraits %in% traitnames),
-      .data$datatraits,
-      delim = sep,
-      names = c("dataset", "trait"))    
-  } else {
-    # object = data frame with dataset and trait columns
-    # result = vector of `dataset: trait` names
-    tidyr::unite(
-      object,
-      datatraits,
-      .data$dataset, .data$trait,
-      sep = sep)$datatraits
-  }
-}
 
 

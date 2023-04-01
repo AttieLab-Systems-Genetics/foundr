@@ -218,7 +218,7 @@ bestcorStats <- function(traitStats, traitnames = NULL,
 #' @param abscor plot absolute value of correlation if `TRUE`
 #' @param ... additional parameters not used
 #'
-#' @return
+#' @return ggplot object
 #' @export
 #' @importFrom tidyr pivot_longer unite
 #' @importFrom dplyr mutate select

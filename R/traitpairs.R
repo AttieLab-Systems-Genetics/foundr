@@ -6,7 +6,7 @@
 #' @param sep pair separator
 #' @param ... ignored
 #'
-#' @return
+#' @return object of class `traitPairs`
 #' @export
 #' @importFrom tidyr unite
 #' @importFrom dplyr across count everything filter left_join mutate
@@ -117,8 +117,10 @@ trait_pairs <- function(traitnames, sep = " ON ") {
 #' @param object,x object of class `traitPairs`
 #' @param ... 
 #'
-#' @return
+#' @return ggplot object
 #' @export
+#' @importFrom purrr map
+#' @importFrom cowplot plot_grid
 #'
 ggplot_traitPairs <- function(object, ...) {
 
@@ -128,7 +130,7 @@ ggplot_traitPairs <- function(object, ...) {
   plots <- purrr::map(object, pairplots, sep = attr(object, "sep"), ...)
   
   # Patch plots together by rows
-  patchwork::wrap_plots(plots, nrow = length(plots))
+  cowplot::plot_grid(plotlist = plots, nrow = length(plots))
 }
 pairplots <- function(object,
                       sep = attr(object, "sep"), 

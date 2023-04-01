@@ -37,6 +37,7 @@ foundrUI <- function(title) {
           shiny::tabPanel("Traits", shiny::uiOutput("tab_trait")),
           shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
           shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano")),
+          shiny::tabPanel("Time", shiny::uiOutput("tab_time")),
           shiny::tabPanel("About", shiny::uiOutput("intro"))
         )
       )
@@ -78,7 +79,6 @@ foundrUI <- function(title) {
 #' @importFrom readxl read_excel
 #' @importFrom rlang .data
 #'
-#' @examples
 foundrServer <- function(input, output, session,
                          traitdata = NULL,
                          traitstats = NULL,
@@ -419,6 +419,87 @@ foundrServer <- function(input, output, session,
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
+  
+  output$tab_time <- shiny::renderUI({
+    shiny::tagList(
+      shiny::fluidRow(
+        shiny::column(
+          3,
+          shiny::selectInput("time", "Time Unit:", c("week", "minute"))),
+        shiny::column(
+          3,
+          shiny::selectInput("time_trait", "Trait:", NULL)),
+        shiny::column(
+          3,
+          shiny::checkboxInput("time_facet_strain", "Facet Strain?", FALSE)),
+        shiny::column(
+          3,
+          shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
+      
+      shiny::renderPlot({
+        print(foundr::ggplot_strain_time(
+          traitTimeData(),
+          traitTimeSignal(),
+          input$time_trait, input$time,
+          response = input$time_response,
+          facet_strain = input$time_facet_strain))
+      })
+    )
+  })
+  shiny::observeEvent(
+    input$time,
+    {
+      shiny::updateSelectInput(
+        session, "time_trait",
+        choices = timetraits(),
+        selected = timetraits()[1])
+  })
+  shiny::observeEvent(
+    datatraits(),
+    {
+      if(nrow(datatraits())) {
+        shiny::showTab(inputId = "tabpanel", target = "Time")
+      } else {
+        shiny::hideTab(inputId = "tabpanel", target = "Time")
+      }
+    })
+  
+  datatraits <- reactive({
+    shiny::req(traitSignalInput())
+    dplyr::filter(
+      dplyr::mutate(
+        dplyr::distinct(
+          traitSignalInput(),
+          .data$dataset, .data$trait),
+        timetrait = c("no", "week", "minute")[
+          1 + grepl("_[0-9]+_[0-9]+wk$", .data$trait) +
+            grepl("_[0-9]+wk$", .data$trait)]),
+      .data$timetrait != "no")
+  })
+  
+  timetraits <- shiny::reactive({
+    shiny::req(input$time)
+    foundr::unite_datatraits(
+      dplyr::filter(
+        dplyr::count(
+          dplyr::distinct(
+            foundr::separate_time(
+              datatraits(),
+              datatraits(),
+              input$time),
+            .data$dataset, .data$trait, .data[[input$time]]),
+          .data$dataset, .data$trait),
+        .data$n > 1))
+  })
+  traitTimeData <- shiny::reactive({
+    shiny::req(input$time, traitDataInput(), datatraits())
+    foundr::separate_time(traitDataInput(), datatraits(), input$time)
+  })
+  traitTimeSignal <- shiny::reactive({
+    shiny::req(input$time, traitSignalInput(), datatraits())
+    foundr::separate_time(traitSignalInput(), datatraits(), input$time)
+  })
+  
   
   output$tab_volcano <- shiny::renderUI({
     shiny::tagList(

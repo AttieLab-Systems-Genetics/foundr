@@ -8,7 +8,6 @@
 #' @importFrom rlang .data
 #' @importFrom zoo rollmean
 #'
-#' @examples
 area_under_curve <- function(object) {
   cols <- c("strain", "sex", "condition", "animal", "week", "trait")
   cols <- cols[cols %in% names(object)]

@@ -14,7 +14,6 @@
 #' @importFrom tibble rownames_to_column
 #' @importFrom rlang .data
 #'
-#' @examples
 moduleHarmony <- function(datasetname,
                           links,
                           object,

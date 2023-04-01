@@ -23,6 +23,9 @@ volcano(
 
 \item{traitnames}{include trait names if `TRUE`}
 }
+\value{
+ggplot object
+}
 \description{
 One-sided Volcano Plot
 }
