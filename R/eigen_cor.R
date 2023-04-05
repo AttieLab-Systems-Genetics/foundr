@@ -39,10 +39,10 @@ eigen_cor <- function(object) {
                 # Convert rownames to column named "ID".
                 tibble::rownames_to_column(
                   object[[i]],
-                  var = "ID")),
+                  var = "ID"),
                 by = "ID"),
               ID,
-              .data$ID, .data$animal)
+              .data$ID, .data$animal))
         
         # Put row names back and remove ID column.
         rownames(object[[i]]) <- object[[i]]$ID
