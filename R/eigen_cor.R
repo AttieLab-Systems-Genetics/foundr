@@ -6,6 +6,7 @@
 #' @export
 #' @importFrom dplyr arrange mutate
 #' @importFrom tidyr pivot_longer
+#' @importFrom tibble rownames_to_column
 #' @importFrom rlang .data
 #'
 eigen_cor <- function(object) {
@@ -28,16 +29,20 @@ eigen_cor <- function(object) {
       reduced_response <- reduced_response[m > 0]  
       for(i in reduced_response) {
         object[[i]] <- 
+          # Unite ID and animal as one column and make a data frame.
           as.data.frame(
             tidyr::unite(
+              # Left join ID data frame with response object.
+              # This generates rows of object for each animal.
               dplyr::left_join(
                 IDdf,
-                dplyr::mutate(
+                # Convert rownames to column named "ID".
+                tibble::rownames_to_column(
                   object[[i]],
-                  ID = rownames(object[[i]])),
+                  var = "ID")),
                 by = "ID"),
-              .data$ID,
-              .data$ID, .data$animal))
+              ID,
+              .data$ID, .data$animal)
         
         # Put row names back and remove ID column.
         rownames(object[[i]]) <- object[[i]]$ID
