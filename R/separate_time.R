@@ -1,7 +1,7 @@
 #' Separate Time Traits 
 #'
 #' @param object data frame
-#' @param datatraits data frame with dataset and trait names
+#' @param traitnames character vector with `dataset: trait` names
 #' @param timeunit name of time unit
 #'
 #' @return data frame
@@ -9,54 +9,64 @@
 #' @importFrom dplyr filter mutate
 #' @importFrom rlang .data
 #' @importFrom tidyr separate_wider_delim
-#' @importFrom stringr str_replace
+#' @importFrom stringr str_detect str_replace
 #'
-separate_time <- function(object, datatraits, timeunit = c("week", "minute")) {
+separate_time <- function(object, traitnames, timeunit = c("week", "minute")) {
   timeunit <- match.arg(timeunit)
   
-  if(!nrow(datatraits))
+  if(is.null(object) | !length(traitnames))
     return(NULL)
   
+  # str_time:  detect _MM_NNwk
+  # str_colon: replace "_" by ":"
   switch(
     timeunit,
-    minute = separate_minute(object, datatraits),
-    week   = separate_week(object, datatraits))
-}
-separate_minute <- function(object, datatraits) {
+    minute = {
+      str_time  <- "_([0-9]+)_([0-9]+wk)$"
+      str_colon <- ":\\1:\\2"
+      str_names <- c("trait", "minute", "week")
+    },
+    week   = {
+      str_time  <- "_([0-9]+)wk$"
+      str_colon <- ":\\1"
+      str_names <- c("trait", "week")
+    })
   
-  dplyr::mutate(
-    tidyr::separate_wider_delim(
+  object <-
+    # Filter on traitnames
+    unite_datatraits(
+      # Separate `trait`, `minute`, `week` into columns.
+      tidyr::separate_wider_delim(
+        # Change delimiters before `minute` and `week` to colons.
+        # Important as trait names may have "_"
+        dplyr::mutate(
+          dplyr::filter(
+            object,
+            stringr::str_detect(
+              .data$trait,
+              str_time)),
+          trait = stringr::str_replace(
+            .data$trait,
+            str_time,
+            str_colon)),
+        trait,
+        delim = ":",
+        names = str_names),
+      traitnames,
+      undo = TRUE)
+    
+  switch(
+    timeunit,
+    minute = {
+      # Minute becomes numeric. Week stays as character ending in "wk".
       dplyr::mutate(
-        foundr::unite_datatraits(
-          object,
-          foundr::unite_datatraits(
-            datatraits,
-            filters = list(timetrait = "minute")),
-          undo = TRUE),
-        trait = stringr::str_replace(
-          .data$trait,
-          "_([0-9]+)_([0-9]+)wk$",
-          ":\\1:\\2")),
-      trait,
-      delim = ":",
-      names = c("trait", "minute", "week")),
-    minute = as.numeric(.data$minute),
-    week = as.numeric(.data$week))
-}
-separate_week <- function(object, datatraits) {
-  dplyr::mutate(
-    tidyr::separate_wider_delim(
+        object,
+        minute = as.numeric(.data$minute))
+    },
+    week   = {
+      # Week becomes numeric.
       dplyr::mutate(
-        foundr::unite_datatraits(
-          object,
-          foundr::unite_datatraits(
-            datatraits,
-            filters = list(timetrait = "week")),
-          undo = TRUE),
-        trait = str_replace(.data$trait, "_([0-9]+)wk$", ":\\1")),
-      trait,
-      delim = ":",
-      names = c("trait", "week")),
-    week = as.numeric(.data$week))
+        object,        
+        week = as.numeric(.data$week))
+    })
 }
-

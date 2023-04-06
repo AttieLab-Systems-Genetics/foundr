@@ -4,12 +4,12 @@
 \alias{separate_time}
 \title{Separate Time Traits}
 \usage{
-separate_time(object, datatraits, timeunit = c("week", "minute"))
+separate_time(object, traitnames, timeunit = c("week", "minute"))
 }
 \arguments{
 \item{object}{data frame}
 
-\item{datatraits}{data frame with dataset and trait names}
+\item{traitnames}{character vector with `dataset: trait` names}
 
 \item{timeunit}{name of time unit}
 }

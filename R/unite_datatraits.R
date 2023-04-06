@@ -34,7 +34,8 @@ unite_datatraits <- function(object, traitnames, undo = FALSE, sep = ": ",
       names = c("dataset", "trait"))    
   } else {
     # object = data frame with dataset and trait columns
-    # result = vector of `dataset: trait` names
+    # result = vector of `dataset: trait` names optionally filtered.
+    # currently only filter is `timetrait`.
     if(!is.null(filters)) {
       for(item in names(filters))
       object <-

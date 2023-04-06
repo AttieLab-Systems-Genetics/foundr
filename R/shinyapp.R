@@ -437,17 +437,15 @@ foundrServer <- function(input, output, session,
           shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
       
       shiny::renderPlot({
+        shiny::req(traitTime())
         print(foundr::ggplot_strain_time(
-          traitTimeData(),
-          traitTimeSignal(),
-          input$time_trait, input$time,
-          response = input$time_response,
+          traitTime(),
           facet_strain = input$time_facet_strain))
       })
     )
   })
   shiny::observeEvent(
-    input$time,
+    timetraits(),
     {
       shiny::updateSelectInput(
         session, "time_trait",
@@ -455,51 +453,24 @@ foundrServer <- function(input, output, session,
         selected = timetraits()[1])
   })
   shiny::observeEvent(
-    datatraits(),
+    timetraits(),
     {
-      if(nrow(datatraits())) {
+      if(length(timetraits())) {
         shiny::showTab(inputId = "tabpanel", target = "Time")
       } else {
         shiny::hideTab(inputId = "tabpanel", target = "Time")
       }
     })
-  
-  datatraits <- reactive({
-    shiny::req(traitSignalInput())
-    dplyr::filter(
-      dplyr::mutate(
-        dplyr::distinct(
-          traitSignalInput(),
-          .data$dataset, .data$trait),
-        timetrait = c("no", "week", "minute")[
-          1 + grepl("_[0-9]+_[0-9]+wk$", .data$trait) +
-            grepl("_[0-9]+wk$", .data$trait)]),
-      .data$timetrait != "no")
-  })
-  
   timetraits <- shiny::reactive({
     shiny::req(input$time)
-    foundr::unite_datatraits(
-      dplyr::filter(
-        dplyr::count(
-          dplyr::distinct(
-            foundr::separate_time(
-              datatraits(),
-              datatraits(),
-              input$time),
-            .data$dataset, .data$trait, .data[[input$time]]),
-          .data$dataset, .data$trait),
-        .data$n > 1))
+    foundr::timetraits(traitSignalInput(), input$time)
   })
-  traitTimeData <- shiny::reactive({
-    shiny::req(input$time, traitDataInput(), datatraits())
-    foundr::separate_time(traitDataInput(), datatraits(), input$time)
+  traitTime <- shiny::reactive({
+    shiny::req(input$time_trait, input$time_response, input$time)
+    foundr::strain_time(
+      traitDataInput(), traitSignalInput(),
+      input$time_trait, input$time_response, input$time)
   })
-  traitTimeSignal <- shiny::reactive({
-    shiny::req(input$time, traitSignalInput(), datatraits())
-    foundr::separate_time(traitSignalInput(), datatraits(), input$time)
-  })
-  
   
   output$tab_volcano <- shiny::renderUI({
     shiny::tagList(
