@@ -47,6 +47,10 @@ plot(out)
 ```
 
 ```{r}
+ggplot_traitSolos(out)
+```
+
+```{r}
 out2 <- traitPairs(
   out,
   traitnames = attr(out, "traitnames"),
@@ -54,6 +58,10 @@ out2 <- traitPairs(
     paste(attr(out, "traitnames")[1:2], collapse = " ON "),
     paste(attr(out, "traitnames")[3:4], collapse = " ON ")))
 plot(out2, parallel_lines = TRUE)
+```
+
+```{r}
+ggplot_traitPairs(out2, parallel_lines = FALSE)
 ```
 
 ```{r}

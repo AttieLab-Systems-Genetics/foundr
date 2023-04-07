@@ -127,7 +127,11 @@ ggplot_traitPairs <- function(object, ...) {
   if(is.null(object) || !nrow(object[[1]]))
     return(plot_null("No Trait Pairs to Plot."))
 
-  plots <- purrr::map(object, pairplots, sep = attr(object, "sep"), ...)
+  plots <- purrr::map(
+    object,
+    ggplot_onetrait,
+    pairplot = TRUE,
+    ...)
   
   # Patch plots together by rows
   cowplot::plot_grid(plotlist = plots, nrow = length(plots))
@@ -143,65 +147,15 @@ pairplots <- function(object,
   pair <- attr(object, "pair")
   response <- attr(object, "response")
   
-  if(parallel_lines) {
-    if("sex_condition" %in% names(object)) {
-      groupsex <- "sex_condition"
-    } else {
-      groupsex <- "sex"
-    }
-    if(line_strain) {
-      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
-                             "` + strain * `", groupsex, "`"))
-      bys <- c(pair, "strain", groupsex)
-    } else {
-      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
-                             "` + `", groupsex, "`"))
-      bys <- c(pair, groupsex)
-    }
-    mod <- lm(form, object)
-    object <- 
-      dplyr::left_join(
-        object,
-        broom::augment(mod),
-        by = bys)
-  }
+  object <- parallels(object, pair[1], pair[2],
+                      line_strain, parallel_lines)
 
   # create plot
   p <- ggplot2::ggplot(object) +
     ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
-  if(line_strain) {
-    if(parallel_lines) {
-      p <- p +
-        ggplot2::geom_line(
-          ggplot2::aes(
-            fill = .data$strain, group = .data$strain, col = .data$strain,
-            y = .data$.fitted),
-          linewidth = 1) +
-        ggplot2::scale_color_manual(values = foundr::CCcolors)
-    } else {
-      p <- p +
-        ggplot2::geom_smooth(
-          ggplot2::aes(
-            fill = .data$strain, group = .data$strain, col = .data$strain),
-          method = "lm", se = FALSE, formula = "y ~ x",
-          linewidth = 1) +
-        ggplot2::scale_color_manual(values = foundr::CCcolors)
-    }
-  } else {
-    # Because we specify fill in aes, we need to include it here.
-    if(parallel_lines) {
-      p <- p +
-        ggplot2::geom_line(
-          ggplot2::aes(y = .data$.fitted),
-          linewidth = 1, col = "darkgrey")
-      
-    } else {
-      p <- p +
-        ggplot2::geom_smooth(
-          method = "lm", se = FALSE, formula = "y ~ x",
-          linewidth = 1, fill = "darkgrey", col = "darkgrey")
-    }
-  }
+  
+  p <- strain_lines(p, line_strain, parallel_lines)
+  
   p <- p +
     ggplot2::scale_fill_manual(values = foundr::CCcolors) +
     ggplot2::theme(
@@ -244,5 +198,85 @@ autoplot.traitPairs <- function(object, ...) {
 #' @rdname traitPairs
 #' @method plot traitPairs
 plot.traitPairs <- function(x, ...) {
-  ggplot_traitPairs(x, ...)
+  autoplot.traitPairs(x, ...)
+}
+
+parallels <- function(
+    object,
+    line_strain = (response == "value"),
+    parallel_lines = TRUE,
+    ...) {
+  if(parallel_lines) {
+    pair <- attr(object, "pair")
+    response <- attr(object, "response")
+    
+    if("sex_condition" %in% names(object)) {
+      groupsex <- "sex_condition"
+    } else {
+      groupsex <- "sex"
+    }
+    if(line_strain) {
+      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
+                             "` + strain * `", groupsex, "`"))
+      bys <- c(pair, "strain", groupsex)
+    } else {
+      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
+                             "` + `", groupsex, "`"))
+      bys <- c(pair, groupsex)
+    }
+    dplyr::left_join(
+      object,
+      broom::augment(lm(form, object)),
+      by = bys)
+  } else {
+    object
+  }
+}
+strain_lines <- function(
+    object,
+    p,
+    line_strain = (response == "value"),
+    parallel_lines = TRUE,
+    ...) {
+  response <- attr(object, "response")
+  pair <- attr(object, "pair")
+  
+  # Set x and y to the pair of traits.
+  p <- p +
+    ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
+  
+  if(line_strain) {
+    if(parallel_lines) {
+      p <- p +
+        ggplot2::geom_line(
+          ggplot2::aes(
+            fill = .data$strain, group = .data$strain, col = .data$strain,
+            y = .data$.fitted),
+          linewidth = 1) +
+        ggplot2::scale_color_manual(values = foundr::CCcolors)
+    } else {
+      p <- p +
+        ggplot2::geom_smooth(
+          ggplot2::aes(
+            fill = .data$strain, group = .data$strain, col = .data$strain),
+          method = "lm", se = FALSE, formula = "y ~ x",
+          linewidth = 1) +
+        ggplot2::scale_color_manual(values = foundr::CCcolors)
+    }
+  } else {
+    # Because we specify fill in aes, we need to include it here.
+    if(parallel_lines) {
+      p <- p +
+        ggplot2::geom_line(
+          ggplot2::aes(y = .data$.fitted),
+          linewidth = 1, col = "darkgrey")
+      
+    } else {
+      p <- p +
+        ggplot2::geom_smooth(
+          method = "lm", se = FALSE, formula = "y ~ x",
+          linewidth = 1, fill = "darkgrey", col = "darkgrey")
+    }
+  }
+  p
 }

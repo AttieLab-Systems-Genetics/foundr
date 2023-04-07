@@ -1,4 +1,4 @@
-#' GGplot by strain and condition
+#' GGplot template for other routines
 #'
 #' @param object,x data frame to be plotted
 #' @param facet_strain facet by strain if `TRUE` 
@@ -16,23 +16,22 @@
 #' @importFrom ggplot2 aes element_text facet_grid geom_jitter ggplot ggtitle
 #'             scale_fill_manual scale_shape_manual theme xlab ylab
 #' @importFrom cowplot plot_grid
-#'
 #' @export
-#' @examples
-#' ggplot_traitSolos(traitSolos(sampleData))
-#' 
-ggplot_traitSolos <- function(object,
+#'
+ggplot_template <- function(object,
                               ...) {
   
   if(is.null(object) || !nrow(object))
     return(plot_null("No Traits to Plot."))
+  
+  response <- attr(object, "response")
   
   if("condition" %in% names(object)) {
     if(all(is.na(object$condition)))
       object$condition <- NULL
   }
   if(!("condition" %in% names(object)))
-    return(ggplot_onetrait(object, ...))
+    return(ggplot_onetrait(object, response = response, ...))
   
   if(is.null(object$dataset))
     object$dataset <- "unknown"
@@ -45,7 +44,7 @@ ggplot_traitSolos <- function(object,
         dplyr::group_by(
           object,
           .data$dataset, .data$trait),
-        condgroup = paste(unique(.data$condition), collapse = ";"))),
+        condgroup = paste(sort(unique(.data$condition)), collapse = ";"))),
     by = c("dataset", "trait"))
 
   # Split object by condition grouping
@@ -55,7 +54,8 @@ ggplot_traitSolos <- function(object,
       -.data$condgroup),
     object$condgroup)
 
-  plots <- purrr::map(object, ggplot_solos_onetrait, ...)
+  plots <- purrr::map(object, ggplot_onetrait,
+                      response = response, ...)
   lplots <- length(plots)
   
   for(i in seq_len(lplots - 1))
@@ -64,23 +64,33 @@ ggplot_traitSolos <- function(object,
   # Patch plots together by rows
   cowplot::plot_grid(plotlist = plots, nrow = lplots)
 }
-ggplot_solos_onetrait <- function(object,
+ggplot_onetrait <- function(object,
                             facet_strain = FALSE,
                             shape_sex = FALSE,
                             boxplot = FALSE,
                             horizontal = FALSE,
+                            response = "value",
+                            pairplot = FALSE,
+                            title = "",
+                            xname = "value",
+                            yname = condition,
                             ...) {
+  
   # Allow for dataset grouping for traits
-  if("dataset" %in% names(object)) {
-    tmp <- dplyr::distinct(object, .data$dataset, .data$trait)
-    dataset <- tmp$dataset
-    trait <- tmp$trait
-    ltrait <- length(trait)
-    form <- "dataset + trait ~"
+  if(pairplot) {
+    form <- ". ~"
   } else {
-    trait <- unique(object$trait)
-    ltrait <- length(trait)
-    form <- "trait ~"
+    if("dataset" %in% names(object)) {
+      tmp <- dplyr::distinct(object, .data$dataset, .data$trait)
+      dataset <- tmp$dataset
+      trait <- tmp$trait
+      ltrait <- length(trait)
+      form <- "dataset + trait ~"
+    } else {
+      trait <- unique(object$trait)
+      ltrait <- length(trait)
+      form <- "trait ~"
+    }
   }
   
   # Check if there is a condition column that is not all NA
@@ -99,6 +109,10 @@ ggplot_solos_onetrait <- function(object,
     }
   }
   
+  # Code for trait pair plot.
+  if(pairplot)
+    object <- parallels(object, ...)
+  
   # Make sure strain is in proper order
   object <- dplyr::mutate(
     object,
@@ -112,52 +126,60 @@ ggplot_solos_onetrait <- function(object,
   }
   
   if(facet_strain) {
-    ncond <- sort(unique(object[[condition]]))
-    cond_colors <- RColorBrewer::brewer.pal(
+    ncond <- sort(unique(object[[yname]]))
+    plotcolors <- RColorBrewer::brewer.pal(
       n = max(3, length(ncond)), name = "Dark2")
-    names(cond_colors) <- ncond[seq_len(length(ncond))]
+    names(plotcolors) <- ncond[seq_len(length(ncond))]
     form <- stats::formula(paste(form, "strain"))
-    
-    if(horizontal) {
-      p <- p +
-        ggplot2::aes(.data$value, .data[[condition]], fill = .data[[condition]]) +
-        ggplot2::xlab("")
-    } else {
-      p <- p +
-        ggplot2::aes(.data[[condition]], .data$value, fill = .data[[condition]]) +
-        ggplot2::ylab("")
-    }
-    
-    p <- p +
-      ggplot2::facet_grid(form, scales = "free_y") +
-      ggplot2::scale_fill_manual(values = cond_colors)
+    fillname <- condition
   } else {
-    
+    plotcolors <- foundr::CCcolors
+    form <- stats::formula(paste(form, condition))
+    fillname <- "strain"
+  }
+  
+  # Code for trait pair plots.
+  if(pairplot) {
+    p <- strain_lines(object, p, ...)
+  } else {
     if(horizontal) {
       p <- p +
-        ggplot2::aes(.data$value, .data$strain, fill = .data$strain) +
+        ggplot2::aes(.data[[xname]], .data[[fillname]],
+                     fill = .data[[fillname]]) +
         ggplot2::xlab("")
     } else {
       p <- p +
-        ggplot2::aes(.data$strain, .data$value, fill = .data$strain) +
+        ggplot2::aes(.data[[fillname]], .data[[xname]]) +
         ggplot2::ylab("")
     }
-    
-    p <- p +
-      ggplot2::scale_fill_manual(values = foundr::CCcolors)
-    
-    form <- stats::formula(paste(form, condition))
-    p <- p + ggplot2::facet_grid(form, scales = "free_y")
   }
+  
+  p <- p +
+    ggplot2::scale_fill_manual(values = plotcolors) +
+    ggplot2::facet_grid(form, scales = "free_y")
   
   if(shape_sex) {
     p <- p +
-      ggplot2::geom_jitter(aes(shape = sex), size = 3, color = "black", alpha = 0.65) +
+      ggplot2::geom_jitter(
+        ggplot2::aes(
+          shape = .data$sex,
+          fill = .data[[fillname]]),
+        width = 0.25, height = 0,
+        size = 3, color = "black", alpha = 0.65) +
       ggplot2::scale_shape_manual(values = c(23, 22))
   } else {
     p <- p +
-      ggplot2::geom_jitter(size = 3, shape = 21, color = "black", alpha = 0.65)
+      ggplot2::geom_jitter(
+        ggplot2::aes(
+          shape = .data$sex,
+          fill = .data[[fillname]]),
+        shape = 21, 
+        width = 0.25, height = 0,
+        size = 3, color = "black", alpha = 0.65)
   }
+  
+  if(title != "")
+    p <- p + ggplot2::ggtitle(title)
   
   p +
     ggplot2::theme(
