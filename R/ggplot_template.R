@@ -5,7 +5,8 @@
 #' @param shape_sex use different shape by sex if `TRUE`
 #' @param boxplot overlay boxplot if `TRUE`
 #' @param horizontal flip vertical and horizontal axis if `TRUE`
-#' @param ... additional parameters (ignored)
+#' @param ... additional parameters
+#' @param drop_xlab drop `xlab` except last if `TRUE`
 #'
 #' @return object of class ggplot
 #' @importFrom RColorBrewer brewer.pal
@@ -19,52 +20,28 @@
 #' @export
 #'
 ggplot_template <- function(object,
-                              ...) {
+                            ...,
+                            drop_xlab = FALSE) {
   
-  if(is.null(object) || !nrow(object))
+  if(is.null(object))
     return(plot_null("No Traits to Plot."))
   
   response <- attr(object, "response")
-  
-  if("condition" %in% names(object)) {
-    if(all(is.na(object$condition)))
-      object$condition <- NULL
-  }
-  if(!("condition" %in% names(object)))
-    return(ggplot_onetrait(object, response = response, ...))
-  
-  if(is.null(object$dataset))
-    object$dataset <- "unknown"
-  
-  # Find all condition groupings (including NA) for plotting.
-  object <- left_join(
-    object,
-    dplyr::ungroup(
-      dplyr::summarize(
-        dplyr::group_by(
-          object,
-          .data$dataset, .data$trait),
-        condgroup = paste(sort(unique(.data$condition)), collapse = ";"))),
-    by = c("dataset", "trait"))
 
-  # Split object by condition grouping
-  object <- split(
-    dplyr::select(
-      object,
-      -.data$condgroup),
-    object$condgroup)
-
-  plots <- purrr::map(object, ggplot_onetrait,
+  plots <- purrr::map(object, ggplot_onerow,
                       response = response, ...)
-  lplots <- length(plots)
   
-  for(i in seq_len(lplots - 1))
-    plots[[i]] <- plots[[i]] + ggplot2::xlab("")
+  if(drop_xlab) {
+    lplots <- length(plots)
+    
+    for(i in seq_len(lplots - 1))
+      plots[[i]] <- plots[[i]] + ggplot2::xlab("")
+  }
   
   # Patch plots together by rows
   cowplot::plot_grid(plotlist = plots, nrow = lplots)
 }
-ggplot_onetrait <- function(object,
+ggplot_onerow <- function(object,
                             facet_strain = FALSE,
                             shape_sex = FALSE,
                             boxplot = FALSE,
@@ -140,12 +117,11 @@ ggplot_onetrait <- function(object,
   
   # Code for trait pair plots.
   if(pairplot) {
-    p <- strain_lines(object, p, ...)
+    p <- strain_lines(object, p, plotcolors, fillname, ...)
   } else {
     if(horizontal) {
       p <- p +
-        ggplot2::aes(.data[[xname]], .data[[fillname]],
-                     fill = .data[[fillname]]) +
+        ggplot2::aes(.data[[xname]], .data[[fillname]]) +
         ggplot2::xlab("")
     } else {
       p <- p +

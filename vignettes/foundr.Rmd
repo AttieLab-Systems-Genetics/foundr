@@ -34,6 +34,34 @@ sampleStats %>%
 
 ## Scatterplots
 
+```{r}
+out <- traitSolos(sampleData, sampleSignal,
+                  response = "value")
+plot(out)
+```
+
+```{r}
+plot(out, facet_strain = TRUE)
+```
+
+```{r}
+out2 <- traitPairs(
+  out,
+  traitnames = attr(out, "traitnames"),
+  pair = c(
+    paste(attr(out, "traitnames")[1:2], collapse = " ON "),
+    paste(attr(out, "traitnames")[3:4], collapse = " ON ")))
+plot(out2, parallel_lines = TRUE)
+```
+
+```{r}
+plot(out2, facet_strain = TRUE)
+```
+
+```{r}
+plot(out2, facet_strain = TRUE, parallel_lines = FALSE)
+```
+
 #### Plots of Means
 
 ```{r}

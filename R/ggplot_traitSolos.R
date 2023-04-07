@@ -24,8 +24,10 @@
 ggplot_traitSolos <- function(object,
                               ...) {
   
-  if(is.null(object) || !nrow(object))
+  if(is.null(object) || !length(object))
     return(plot_null("No Traits to Plot."))
+  
+  response <- attr(object, "response")
   
   if("condition" %in% names(object)) {
     if(all(is.na(object$condition)))
@@ -54,113 +56,8 @@ ggplot_traitSolos <- function(object,
       object,
       -.data$condgroup),
     object$condgroup)
-
-  plots <- purrr::map(object, ggplot_solos_onetrait, ...)
-  lplots <- length(plots)
   
-  for(i in seq_len(lplots - 1))
-    plots[[i]] <- plots[[i]] + ggplot2::xlab("")
+  attr(object, "response") <- response
   
-  # Patch plots together by rows
-  cowplot::plot_grid(plotlist = plots, nrow = lplots)
-}
-ggplot_solos_onetrait <- function(object,
-                            facet_strain = FALSE,
-                            shape_sex = FALSE,
-                            boxplot = FALSE,
-                            horizontal = FALSE,
-                            ...) {
-  # Allow for dataset grouping for traits
-  if("dataset" %in% names(object)) {
-    tmp <- dplyr::distinct(object, .data$dataset, .data$trait)
-    dataset <- tmp$dataset
-    trait <- tmp$trait
-    ltrait <- length(trait)
-    form <- "dataset + trait ~"
-  } else {
-    trait <- unique(object$trait)
-    ltrait <- length(trait)
-    form <- "trait ~"
-  }
-  
-  # Check if there is a condition column that is not all NA
-  condition <- "sex"
-  if("condition" %in% names(object)) {
-    if(all(is.na(object$condition)))
-      object$condition <- NULL
-    else {
-      condition <- "sex_condition"
-      if(!("sex_condition" %in% names(object)))
-        object <- tidyr::unite(
-          object, 
-          sex_condition,
-          .data$sex, .data$condition,
-          remove = FALSE)
-    }
-  }
-  
-  # Make sure strain is in proper order
-  object <- dplyr::mutate(
-    object,
-    strain = factor(.data$strain, names(foundr::CCcolors)))
-  
-  p <- ggplot2::ggplot(object)
-  
-  if(boxplot) {
-    p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA,
-                                   outlier.shape = NA)
-  }
-  
-  if(facet_strain) {
-    ncond <- sort(unique(object[[condition]]))
-    cond_colors <- RColorBrewer::brewer.pal(
-      n = max(3, length(ncond)), name = "Dark2")
-    names(cond_colors) <- ncond[seq_len(length(ncond))]
-    form <- stats::formula(paste(form, "strain"))
-    
-    if(horizontal) {
-      p <- p +
-        ggplot2::aes(.data$value, .data[[condition]], fill = .data[[condition]]) +
-        ggplot2::xlab("")
-    } else {
-      p <- p +
-        ggplot2::aes(.data[[condition]], .data$value, fill = .data[[condition]]) +
-        ggplot2::ylab("")
-    }
-    
-    p <- p +
-      ggplot2::facet_grid(form, scales = "free_y") +
-      ggplot2::scale_fill_manual(values = cond_colors)
-  } else {
-    
-    if(horizontal) {
-      p <- p +
-        ggplot2::aes(.data$value, .data$strain, fill = .data$strain) +
-        ggplot2::xlab("")
-    } else {
-      p <- p +
-        ggplot2::aes(.data$strain, .data$value, fill = .data$strain) +
-        ggplot2::ylab("")
-    }
-    
-    p <- p +
-      ggplot2::scale_fill_manual(values = foundr::CCcolors)
-    
-    form <- stats::formula(paste(form, condition))
-    p <- p + ggplot2::facet_grid(form, scales = "free_y")
-  }
-  
-  if(shape_sex) {
-    p <- p +
-      ggplot2::geom_jitter(aes(shape = sex), size = 3, color = "black", alpha = 0.65) +
-      ggplot2::scale_shape_manual(values = c(23, 22))
-  } else {
-    p <- p +
-      ggplot2::geom_jitter(size = 3, shape = 21, color = "black", alpha = 0.65)
-  }
-  
-  p +
-    ggplot2::theme(
-      legend.position = "none",
-      axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+  ggplot_template(object, ..., drop_xlab = TRUE)
 }

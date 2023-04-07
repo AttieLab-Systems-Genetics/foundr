@@ -4,12 +4,14 @@
 \alias{ggplot_template}
 \title{GGplot template for other routines}
 \usage{
-ggplot_template(object, ...)
+ggplot_template(object, ..., drop_xlab = FALSE)
 }
 \arguments{
 \item{object, x}{data frame to be plotted}
 
-\item{...}{additional parameters (ignored)}
+\item{...}{additional parameters}
+
+\item{drop_xlab}{drop `xlab` except last if `TRUE`}
 
 \item{facet_strain}{facet by strain if `TRUE`}
 

@@ -51,7 +51,8 @@ traitPairs <- function(object,
     pairsetup, object, response, sep, ...)
   class(out) <- c("traitPairs", class(out))
   attr(out, "sep") <- sep
-
+  attr(out, "response") <- response
+  
   out
 }
 pairsetup <- function(x, object,
@@ -129,7 +130,7 @@ ggplot_traitPairs <- function(object, ...) {
 
   plots <- purrr::map(
     object,
-    ggplot_onetrait,
+    ggplot_onerow,
     pairplot = TRUE,
     ...)
   
@@ -235,6 +236,8 @@ parallels <- function(
 strain_lines <- function(
     object,
     p,
+    plotcolors = foundr::CCcolors,
+    fillname = "strain",
     line_strain = (response == "value"),
     parallel_lines = TRUE,
     ...) {
@@ -250,21 +253,20 @@ strain_lines <- function(
       p <- p +
         ggplot2::geom_line(
           ggplot2::aes(
-            fill = .data$strain, group = .data$strain, col = .data$strain,
+            group = .data[[fillname]], col = .data[[fillname]],
             y = .data$.fitted),
           linewidth = 1) +
-        ggplot2::scale_color_manual(values = foundr::CCcolors)
+        ggplot2::scale_color_manual(values = plotcolors)
     } else {
       p <- p +
         ggplot2::geom_smooth(
           ggplot2::aes(
-            fill = .data$strain, group = .data$strain, col = .data$strain),
+            group = .data[[fillname]], col = .data[[fillname]]),
           method = "lm", se = FALSE, formula = "y ~ x",
           linewidth = 1) +
-        ggplot2::scale_color_manual(values = foundr::CCcolors)
+        ggplot2::scale_color_manual(values = plotcolors)
     }
   } else {
-    # Because we specify fill in aes, we need to include it here.
     if(parallel_lines) {
       p <- p +
         ggplot2::geom_line(
@@ -275,7 +277,7 @@ strain_lines <- function(
       p <- p +
         ggplot2::geom_smooth(
           method = "lm", se = FALSE, formula = "y ~ x",
-          linewidth = 1, fill = "darkgrey", col = "darkgrey")
+          linewidth = 1, col = "darkgrey")
     }
   }
   p

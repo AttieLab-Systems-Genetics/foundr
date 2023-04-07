@@ -111,7 +111,7 @@ selectSignal <- function(object, traitnames, response,
 #' @rdname traitSolos
 #' @method autoplot traitSolos
 autoplot.traitSolos <- function(object, ...) {
-  ggplot_template(object, xname = "value", ...)
+  ggplot_traitSolos(object, ...)
 }
 #' @export
 #' @rdname traitSolos

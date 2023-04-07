@@ -14,12 +14,7 @@ traitPairs(
   ...
 )
 
-\method{autoplot}{traitPairs}(
-  object,
-  parallel_lines = FALSE,
-  line_strain = (response == "value"),
-  ...
-)
+\method{autoplot}{traitPairs}(object, ...)
 
 \method{plot}{traitPairs}(x, ...)
 }

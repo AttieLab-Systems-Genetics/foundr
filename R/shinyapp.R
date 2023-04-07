@@ -424,23 +424,20 @@ foundrServer <- function(input, output, session,
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
-          3,
+          4,
           shiny::selectInput("time", "Time Unit:", c("week", "minute"))),
         shiny::column(
-          3,
+          4,
           shiny::selectInput("time_trait", "Trait:", NULL)),
         shiny::column(
-          3,
-          shiny::checkboxInput("time_facet_strain", "Facet Strain?", FALSE)),
-        shiny::column(
-          3,
+          4,
           shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
       
       shiny::renderPlot({
         shiny::req(traitTime())
         print(foundr::ggplot_strain_time(
           traitTime(),
-          facet_strain = input$time_facet_strain))
+          facet_strain = input$facet_strain))
       })
     )
   })
@@ -725,6 +722,7 @@ foundrServer <- function(input, output, session,
         traitDataSelectTrait(),
         trait_selection(),
         input$pair),
+      facet_strain = input$facet,
       parallel_lines = TRUE)
     
   })
