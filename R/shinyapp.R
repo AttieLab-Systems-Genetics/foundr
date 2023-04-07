@@ -437,7 +437,7 @@ foundrServer <- function(input, output, session,
         shiny::req(traitTime())
         print(foundr::ggplot_strain_time(
           traitTime(),
-          facet_strain = input$facet_strain))
+          facet_strain = input$facet))
       })
     )
   })

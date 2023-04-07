@@ -4,13 +4,13 @@
 \alias{area_under_curve}
 \title{Calculate area under curve over minutes}
 \usage{
-area_under_curve(object)
+area_under_curve(object, sum_function = auc)
 }
 \arguments{
 \item{object}{data frame with `value` and other columns}
 }
 \value{
-object collapsed over minutes with AUC
+object collapsed over minutes with AUC and other summaries
 }
 \description{
 Calculate area under curve over minutes
