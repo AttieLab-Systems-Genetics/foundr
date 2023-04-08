@@ -20,6 +20,22 @@ ggplot_time <- function(object,
                         xlab = "time",
                         facet_time = NULL,
                         ...) {
+  if(length(unique(object$time)) < 3)
+    smooth_lines <- "lm"
+  else
+    smooth_lines <- "loess"
+  
+  attr(object, "pair") <- c("time", "value")
+  
+  ggplot_onerow(object, facet_strain, pairplot = attr(object, "pair"),
+                xname = "time", line_strain = TRUE, parallel_lines = FALSE,
+                smooth_lines = smooth_lines)
+}
+ggplot_old_time <- function(object,
+                        facet_strain = FALSE,
+                        xlab = "time",
+                        facet_time = NULL,
+                        ...) {
   
   if(is.null(object))
     return(plot_null("no time object to plot"))

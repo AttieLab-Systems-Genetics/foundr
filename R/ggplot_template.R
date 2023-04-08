@@ -47,14 +47,14 @@ ggplot_onerow <- function(object,
                             boxplot = FALSE,
                             horizontal = FALSE,
                             response = "value",
-                            pairplot = FALSE,
+                            pairplot = NULL,
                             title = "",
                             xname = "value",
                             yname = condition,
                             ...) {
   
   # Allow for dataset grouping for traits
-  if(pairplot) {
+  if(!is.null(pairplot)) {
     form <- ". ~"
   } else {
     if("dataset" %in% names(object)) {
@@ -87,8 +87,8 @@ ggplot_onerow <- function(object,
   }
   
   # Code for trait pair plot.
-  if(pairplot)
-    object <- parallels(object, ...)
+  if(!is.null(pairplot))
+    object <- parallels(object, ..., pair = pairplot)
   
   # Make sure strain is in proper order
   object <- dplyr::mutate(
@@ -116,8 +116,8 @@ ggplot_onerow <- function(object,
   }
   
   # Code for trait pair plots.
-  if(pairplot) {
-    p <- strain_lines(object, p, plotcolors, fillname, ...)
+  if(!is.null(pairplot)) {
+    p <- strain_lines(object, p, plotcolors, fillname, pair = pairplot, ...)
   } else {
     if(horizontal) {
       p <- p +

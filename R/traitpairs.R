@@ -131,7 +131,7 @@ ggplot_traitPairs <- function(object, ...) {
   plots <- purrr::map(
     object,
     ggplot_onerow,
-    pairplot = TRUE,
+    pairplot = attr(object, "pair"),
     ...)
   
   # Patch plots together by rows
@@ -206,9 +206,9 @@ parallels <- function(
     object,
     line_strain = (response == "value"),
     parallel_lines = TRUE,
+    pair = NULL,
     ...) {
-  if(parallel_lines) {
-    pair <- attr(object, "pair")
+  if(parallel_lines & !is.null(pair)) {
     response <- attr(object, "response")
     
     if("sex_condition" %in% names(object)) {
@@ -240,9 +240,14 @@ strain_lines <- function(
     fillname = "strain",
     line_strain = (response == "value"),
     parallel_lines = TRUE,
+    smooth_method = "lm",
+    pair = NULL,
     ...) {
+  
+  if(is.null(pair))
+    return(p)
+  
   response <- attr(object, "response")
-  pair <- attr(object, "pair")
   
   # Set x and y to the pair of traits.
   p <- p +
@@ -262,7 +267,7 @@ strain_lines <- function(
         ggplot2::geom_smooth(
           ggplot2::aes(
             group = .data[[fillname]], col = .data[[fillname]]),
-          method = "lm", se = FALSE, formula = "y ~ x",
+          method = smooth_method, se = FALSE, formula = "y ~ x",
           linewidth = 1) +
         ggplot2::scale_color_manual(values = plotcolors)
     }
