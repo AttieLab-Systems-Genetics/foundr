@@ -54,11 +54,14 @@ strain_time <- function(traitData,
     return(NULL)
   
   object <- 
-    tidyr::unite(
-      object,
-      datatraits,
-      dataset, trait,
-      sep = ": ")
+    dplyr::mutate(
+      tidyr::unite(
+        object,
+        datatraits,
+        dataset, trait,
+        sep = ": "),
+      datatraits = factor(datatraits, traitnames))
+  
   object <-
     split(
       object,
@@ -122,7 +125,7 @@ ggplot_strain_time <- function(object,
 #' @export
 #' @importFrom dplyr arrange count desc distinct filter mutate select
 #' @importFrom rlang .data
-timetraits <- function(traitSignal, timecol = "week") {
+timetraitsall <- function(traitSignal) {
   datatraits <- 
     # Filter out traits with no time component.
     dplyr::filter(
@@ -139,6 +142,36 @@ timetraits <- function(traitSignal, timecol = "week") {
             grepl("_[0-9]+wk$", .data$trait)]),
       .data$timetrait != "no")
   
+  if(!nrow(datatraits))
+    return(NULL)
+  else
+    datatraits
+}
+#' @export
+#' @importFrom dplyr arrange count desc distinct filter mutate select
+#' @importFrom rlang .data
+timetraits <- function(traitSignal, timecol = c("week","minute")) {
+  timecol <- match.arg(timecol)
+  
+  datatraits <- 
+    # Filter out traits with no time component.
+    dplyr::filter(
+      # New `timetrait` identifies trait as "no", "week" or "minute"
+      # "week": trait name ends with `_NNwk` (`NN` = week)
+      # "minute": trait name ends with `_MM_NNwk` (`MM` = minute)
+      dplyr::mutate(
+        # Get distinct dataset, trait (with trait including time info).
+        dplyr::distinct(
+          traitSignal,
+          .data$dataset, .data$trait),
+        timetrait = c("no", "week", "minute")[
+          1 + grepl("_[0-9]+_[0-9]+wk$", .data$trait) +
+            grepl("_[0-9]+wk$", .data$trait)]),
+      .data$timetrait != "no")
+  
+  if(!nrow(datatraits))
+    return(NULL)
+
   # Get traitnames without time information.
   traitnames <- 
     unite_datatraits(

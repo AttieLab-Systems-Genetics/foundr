@@ -23,15 +23,15 @@ ggplot_time <- function(object,
   if(is.null(object) || !nrow(object[[1]]))
     return(plot_null("No Time Plots."))
   
-  plots <- purrr::map(
+  ggplot_template(
     object,
-    ggplot_onerow,
     line_strain = TRUE,
     parallel_lines = FALSE,
+    facet_strain = facet_strain,
+    xlab = xlab,
+    facet_time = facet_time,
+    drop_xlab = TRUE,
     ...)
-  
-  # Patch plots together by rows
-  cowplot::plot_grid(plotlist = plots, nrow = length(plots))
 }
 ggplot_old_time <- function(object,
                         facet_strain = FALSE,

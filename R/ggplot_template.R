@@ -53,6 +53,9 @@ ggplot_onerow <- function(object,
                             yname = condition,
                             ...) {
   
+  # Used for optional lines.
+  smooth_method <- attr(object, "smooth_method")
+  
   # Allow for dataset grouping for traits
   if(!is.null(pairplot)) {
     form <- ". ~"
@@ -117,7 +120,9 @@ ggplot_onerow <- function(object,
   
   if(!is.null(pairplot)) {
     # Code for trait pair plots and time plots.
-    p <- strain_lines(object, p, plotcolors, fillname, pair = pairplot, ...)
+    p <- strain_lines(object, p, plotcolors, fillname,
+                      pair = pairplot, smooth_method = smooth_method,
+                      ...)
   } else {
     if(horizontal) {
       p <- p +

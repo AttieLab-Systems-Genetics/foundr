@@ -428,7 +428,7 @@ foundrServer <- function(input, output, session,
           shiny::selectInput("time", "Time Unit:", c("week", "minute"))),
         shiny::column(
           4,
-          shiny::selectInput("time_trait", "Trait:", NULL)),
+          shiny::selectizeInput("time_trait", "Traits:", NULL, multiple = TRUE)),
         shiny::column(
           4,
           shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
@@ -444,29 +444,43 @@ foundrServer <- function(input, output, session,
   shiny::observeEvent(
     timetraits(),
     {
-      shiny::updateSelectInput(
-        session, "time_trait",
-        choices = timetraits(),
-        selected = timetraits()[1])
+      # Use current selection of trait_selection().
+      # But make sure they are still in the traitNamesArranged().
+      selected <- timetrait_selection()
+      choices <- timetraits()
+      selected <- selected[selected %in% choices]
+      if(!length(selected))
+        selected <- NULL
+      shiny::updateSelectizeInput(session, "time_trait", choices = choices,
+                                  server = TRUE, selected = selected)
+    })
+  timetrait_selection <- shiny::reactiveVal(NULL)
+  shiny::observeEvent(input$time_trait, {
+    timetrait_selection(input$time_trait)
   })
+  
+  # Hide Time tab unless we have time entries.
   shiny::observeEvent(
-    timetraits(),
+    input$order,
     {
-      if(length(timetraits())) {
+      if(length(timetraitsall())) {
         shiny::showTab(inputId = "tabpanel", target = "Time")
       } else {
         shiny::hideTab(inputId = "tabpanel", target = "Time")
       }
     })
+  timetraitsall <- shiny::reactive({
+    foundr::timetraitsall(traitSignalInput())
+  })
   timetraits <- shiny::reactive({
     shiny::req(input$time)
     foundr::timetraits(traitSignalInput(), input$time)
   })
   traitTime <- shiny::reactive({
-    shiny::req(input$time_trait, input$time_response, input$time)
+    shiny::req(timetrait_selection(), input$time_response, input$time)
     foundr::strain_time(
       traitDataInput(), traitSignalInput(),
-      input$time_trait, input$time_response, input$time)
+      timetrait_selection(), input$time_response, input$time)
   })
   
   output$tab_volcano <- shiny::renderUI({
