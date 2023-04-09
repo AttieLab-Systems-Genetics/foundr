@@ -47,7 +47,7 @@ ggplot_onerow <- function(object,
                             boxplot = FALSE,
                             horizontal = FALSE,
                             response = "value",
-                            pairplot = NULL,
+                            pairplot = attr(object, "pair"),
                             title = "",
                             xname = "value",
                             yname = condition,
@@ -115,8 +115,8 @@ ggplot_onerow <- function(object,
     fillname <- "strain"
   }
   
-  # Code for trait pair plots.
   if(!is.null(pairplot)) {
+    # Code for trait pair plots and time plots.
     p <- strain_lines(object, p, plotcolors, fillname, pair = pairplot, ...)
   } else {
     if(horizontal) {

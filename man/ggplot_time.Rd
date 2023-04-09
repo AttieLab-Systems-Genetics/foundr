@@ -13,7 +13,7 @@ ggplot_time(
 )
 }
 \arguments{
-\item{object}{}
+\item{object}{of class `strain_time`}
 
 \item{facet_strain}{facet by strain if `TRUE`}
 

@@ -131,7 +131,6 @@ ggplot_traitPairs <- function(object, ...) {
   plots <- purrr::map(
     object,
     ggplot_onerow,
-    pairplot = attr(object, "pair"),
     ...)
   
   # Patch plots together by rows
@@ -240,12 +239,15 @@ strain_lines <- function(
     fillname = "strain",
     line_strain = (response == "value"),
     parallel_lines = TRUE,
-    smooth_method = "lm",
+    smooth_method = attr(object, "smooth_method"),
     pair = NULL,
     ...) {
   
   if(is.null(pair))
     return(p)
+  
+  if(is.null(smooth_method))
+    smooth_method <- "lm"
   
   response <- attr(object, "response")
   

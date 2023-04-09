@@ -52,6 +52,34 @@ strain_time <- function(traitData,
   
   if(!nrow(object))
     return(NULL)
+  
+  object <- 
+    tidyr::unite(
+      object,
+      datatraits,
+      dataset, trait,
+      sep = ": ")
+  object <-
+    split(
+      object,
+      object$datatraits)
+  object <- 
+    purrr::map(
+      purrr::set_names(names(object)),
+      function(x, object) {
+        object <- object[[x]]
+        names(object)[match("value", names(object))] <- x
+        
+        attr(object, "pair") <- c("time", x)
+        if(length(unique(object[[timecol]])) < 3)
+          smooth_method <- "lm"
+        else
+          smooth_method <- "loess"
+        
+        attr(object, "smooth_method") <- smooth_method
+        
+        object
+      }, object)
 
   class(object) <- c("strain_time", class(object))
   attr(object, "traitnames") <- traitnames
@@ -72,13 +100,16 @@ strain_time <- function(traitData,
 #'
 ggplot_strain_time <- function(object,
                                ...) {
-  if(is.null(object) || !nrow(object))
+  if(is.null(object) || !nrow(object[[1]]))
     return(plot_null("no data for strain_time plot"))
   
   timecol <- attr(object, "time")
   
   # Rename timecol to `time`.
-  object <- dplyr::rename(object, time = timecol)
+  object <- 
+    purrr::map(
+      object,
+      function(x) dplyr::rename(x, time = timecol))
   
   if(timecol == "minute") {
     facet_time <- "week"

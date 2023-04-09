@@ -1,6 +1,6 @@
 #' GGplot of object over time
 #'
-#' @param object 
+#' @param object of class `strain_time`
 #' @param facet_strain facet by strain if `TRUE`
 #' @param xlab label for X axis
 #' @param facet_time name of column to facet on if not `NULL`
@@ -20,22 +20,45 @@ ggplot_time <- function(object,
                         xlab = "time",
                         facet_time = NULL,
                         ...) {
-  if(length(unique(object$time)) < 3)
-    smooth_lines <- "lm"
-  else
-    smooth_lines <- "loess"
+  if(is.null(object) || !nrow(object[[1]]))
+    return(plot_null("No Time Plots."))
   
-  attr(object, "pair") <- c("time", "value")
+  plots <- purrr::map(
+    object,
+    ggplot_onerow,
+    line_strain = TRUE,
+    parallel_lines = FALSE,
+    ...)
   
-  ggplot_onerow(object, facet_strain, pairplot = attr(object, "pair"),
-                xname = "time", line_strain = TRUE, parallel_lines = FALSE,
-                smooth_lines = smooth_lines)
+  # Patch plots together by rows
+  cowplot::plot_grid(plotlist = plots, nrow = length(plots))
 }
 ggplot_old_time <- function(object,
                         facet_strain = FALSE,
                         xlab = "time",
                         facet_time = NULL,
                         ...) {
+  
+  #####################################
+  # Parked here for now
+  if(length(unique(object$time)) < 3)
+    smooth_method <- "lm"
+  else
+    smooth_method <- "loess"
+  
+  # Kludge to put `traitname` = `dataset: trait` on y axis.
+  traitname <- paste(
+    object$dataset[1],
+    object$trait[1],
+    sep = ": ")
+  names(object)[match("value", names(object))] <- traitname
+  
+  attr(object, "pair") <- c("time", traitname)
+  
+  ggplot_onerow(object, facet_strain, pairplot = attr(object, "pair"),
+                xname = "time", line_strain = TRUE, parallel_lines = FALSE,
+                smooth_method = smooth_method)
+  #####################################
   
   if(is.null(object))
     return(plot_null("no time object to plot"))
