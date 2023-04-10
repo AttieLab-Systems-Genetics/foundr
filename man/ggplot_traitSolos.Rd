@@ -2,9 +2,15 @@
 % Please edit documentation in R/ggplot_traitSolos.R
 \name{ggplot_traitSolos}
 \alias{ggplot_traitSolos}
+\alias{autoplot.traitSolos}
+\alias{plot.traitSolos}
 \title{GGplot by strain and condition}
 \usage{
 ggplot_traitSolos(object, ...)
+
+\method{autoplot}{traitSolos}(object, ...)
+
+\method{plot}{traitSolos}(x, ...)
 }
 \arguments{
 \item{object, x}{data frame to be plotted}

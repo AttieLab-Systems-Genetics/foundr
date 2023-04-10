@@ -106,19 +106,6 @@ selectSignal <- function(object, traitnames, response,
     strain = factor(.data$strain, names(foundr::CCcolors)),
     value = signif(.data$value, 4))
 }
-#' @export
-#' @importFrom ggplot2 autoplot
-#' @rdname traitSolos
-#' @method autoplot traitSolos
-autoplot.traitSolos <- function(object, ...) {
-  ggplot_traitSolos(object, ...)
-}
-#' @export
-#' @rdname traitSolos
-#' @method plot traitSolos
-plot.traitSolos <- function(x, ...) {
-  autoplot.traitSolos(x, ...)
-}
 #' Summary of traitSolos object
 #'
 #' @param object object of class `traitSolos`

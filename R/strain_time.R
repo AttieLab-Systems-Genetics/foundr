@@ -119,7 +119,14 @@ ggplot_strain_time <- function(object,
   } else
     facet_time <- NULL
   
-  ggplot_time(object, xlab = timecol, facet_time = facet_time, ...)
+  ggplot_template(
+    object,
+    line_strain = TRUE,
+    parallel_lines = FALSE,
+    xlab = timecol,
+    facet_time = facet_time,
+    drop_xlab = TRUE,
+    ...)
 }
 
 #' @export
@@ -151,27 +158,13 @@ timetraitsall <- function(traitSignal) {
 #' @importFrom dplyr arrange count desc distinct filter mutate select
 #' @importFrom rlang .data
 timetraits <- function(traitSignal, timecol = c("week","minute")) {
+  
+  datatraits <- timetraitsall(traitSignal)
+  if(is.null(datatraits))
+    return(NULL)
+  
   timecol <- match.arg(timecol)
   
-  datatraits <- 
-    # Filter out traits with no time component.
-    dplyr::filter(
-      # New `timetrait` identifies trait as "no", "week" or "minute"
-      # "week": trait name ends with `_NNwk` (`NN` = week)
-      # "minute": trait name ends with `_MM_NNwk` (`MM` = minute)
-      dplyr::mutate(
-        # Get distinct dataset, trait (with trait including time info).
-        dplyr::distinct(
-          traitSignal,
-          .data$dataset, .data$trait),
-        timetrait = c("no", "week", "minute")[
-          1 + grepl("_[0-9]+_[0-9]+wk$", .data$trait) +
-            grepl("_[0-9]+wk$", .data$trait)]),
-      .data$timetrait != "no")
-  
-  if(!nrow(datatraits))
-    return(NULL)
-
   # Get traitnames without time information.
   traitnames <- 
     unite_datatraits(

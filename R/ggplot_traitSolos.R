@@ -61,3 +61,17 @@ ggplot_traitSolos <- function(object,
   
   ggplot_template(object, ..., drop_xlab = TRUE)
 }
+#' @export
+#' @importFrom ggplot2 autoplot
+#' @rdname ggplot_traitSolos
+#' @method autoplot traitSolos
+autoplot.traitSolos <- function(object, ...) {
+  ggplot_traitSolos(object, ...)
+}
+#' @export
+#' @rdname ggplot_traitSolos
+#' @method plot traitSolos
+plot.traitSolos <- function(x, ...) {
+  autoplot.traitSolos(x, ...)
+}
+

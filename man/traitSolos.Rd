@@ -2,8 +2,6 @@
 % Please edit documentation in R/traitSolos.R
 \name{traitSolos}
 \alias{traitSolos}
-\alias{autoplot.traitSolos}
-\alias{plot.traitSolos}
 \alias{summary_traitSolos}
 \alias{summary.traitSolos}
 \title{Select Traits and Strains for Response}
@@ -17,10 +15,6 @@ traitSolos(
   abbrev = FALSE,
   sep = ": "
 )
-
-\method{autoplot}{traitSolos}(object, ...)
-
-\method{plot}{traitSolos}(x, ...)
 
 summary_traitSolos(object, customSettings = NULL, ...)
 
@@ -41,9 +35,9 @@ summary_traitSolos(object, customSettings = NULL, ...)
 
 \item{object}{object of class `traitSolos`}
 
-\item{...}{additional parameters}
-
 \item{customSettings}{list of custom settings (including "condition_name" and "dataset")}
+
+\item{...}{additional parameters}
 }
 \value{
 data frame
