@@ -55,7 +55,6 @@ ggplot_onerow <- function(object,
                             shape_sex = FALSE,
                             boxplot = FALSE,
                             horizontal = FALSE,
-                            response = "value",
                             pairplot = attr(object, "pair"),
                             title = "",
                             xname = "value",
@@ -64,6 +63,8 @@ ggplot_onerow <- function(object,
   
   # Used for optional lines.
   smooth_method <- attr(object, "smooth_method")
+  # Response
+  response <- attr(object, "response")
   
   # Allow for dataset grouping for traits
   if(!is.null(pairplot)) {
@@ -137,6 +138,9 @@ ggplot_onerow <- function(object,
     p <- strain_lines(object, p, plotcolors, fillname,
                       pair = pairplot, smooth_method = smooth_method,
                       ...)
+    # Make -log10(p.value) scale further rescaled.
+    if(response == "p.value")
+      p <- p + ggplot2::scale_y_log10()
   } else {
     if(horizontal) {
       p <- p +
@@ -180,3 +184,94 @@ ggplot_onerow <- function(object,
       legend.position = legend_position,
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
 }
+
+parallels <- function(
+    object,
+    line_strain = (response == "value"),
+    parallel_lines = TRUE,
+    pair = NULL,
+    ...) {
+  if(parallel_lines & !is.null(pair)) {
+    response <- attr(object, "response")
+    
+    if("sex_condition" %in% names(object)) {
+      groupsex <- "sex_condition"
+    } else {
+      groupsex <- "sex"
+    }
+    if(line_strain) {
+      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
+                             "` + strain * `", groupsex, "`"))
+      bys <- c(pair, "strain", groupsex)
+    } else {
+      form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
+                             "` + `", groupsex, "`"))
+      bys <- c(pair, groupsex)
+    }
+    dplyr::left_join(
+      object,
+      broom::augment(lm(form, object)),
+      by = bys)
+  } else {
+    object
+  }
+}
+strain_lines <- function(
+    object,
+    p,
+    plotcolors = foundr::CCcolors,
+    fillname = "strain",
+    line_strain = (response == "value"),
+    parallel_lines = TRUE,
+    smooth_method = attr(object, "smooth_method"),
+    pair = NULL,
+    span = 0.4,
+    ...) {
+  
+  if(is.null(pair))
+    return(p)
+  
+  if(is.null(smooth_method))
+    smooth_method <- "lm"
+  
+  response <- attr(object, "response")
+  
+  # Set x and y to the pair of traits.
+  p <- p +
+    ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
+  
+  if(line_strain) {
+    if(parallel_lines) {
+      p <- p +
+        ggplot2::geom_line(
+          ggplot2::aes(
+            group = .data[[fillname]], col = .data[[fillname]],
+            y = .data$.fitted),
+          linewidth = 1) +
+        ggplot2::scale_color_manual(values = plotcolors)
+    } else {
+      p <- p +
+        ggplot2::geom_smooth(
+          ggplot2::aes(
+            group = .data[[fillname]], col = .data[[fillname]]),
+          method = smooth_method, se = FALSE, formula = "y ~ x",
+          span = span, linewidth = 1) +
+        ggplot2::scale_color_manual(values = plotcolors)
+    }
+  } else {
+    if(parallel_lines) {
+      p <- p +
+        ggplot2::geom_line(
+          ggplot2::aes(y = .data$.fitted),
+          span = span, linewidth = 1, col = "darkgrey")
+      
+    } else {
+      p <- p +
+        ggplot2::geom_smooth(
+          method = smooth_method, se = FALSE, formula = "y ~ x",
+          span = span, linewidth = 1, col = "darkgrey")
+    }
+  }
+  p
+}
+
