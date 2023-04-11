@@ -241,6 +241,7 @@ strain_lines <- function(
     parallel_lines = TRUE,
     smooth_method = attr(object, "smooth_method"),
     pair = NULL,
+    span = 0.4,
     ...) {
   
   if(is.null(pair))
@@ -270,7 +271,7 @@ strain_lines <- function(
           ggplot2::aes(
             group = .data[[fillname]], col = .data[[fillname]]),
           method = smooth_method, se = FALSE, formula = "y ~ x",
-          linewidth = 1) +
+          span = span, linewidth = 1) +
         ggplot2::scale_color_manual(values = plotcolors)
     }
   } else {
@@ -278,13 +279,13 @@ strain_lines <- function(
       p <- p +
         ggplot2::geom_line(
           ggplot2::aes(y = .data$.fitted),
-          linewidth = 1, col = "darkgrey")
+          span = span, linewidth = 1, col = "darkgrey")
       
     } else {
       p <- p +
         ggplot2::geom_smooth(
-          method = "lm", se = FALSE, formula = "y ~ x",
-          linewidth = 1, col = "darkgrey")
+          method = smooth_method, se = FALSE, formula = "y ~ x",
+          span = span, linewidth = 1, col = "darkgrey")
     }
   }
   p

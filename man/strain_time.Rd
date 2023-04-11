@@ -2,6 +2,7 @@
 % Please edit documentation in R/strain_time.R
 \name{strain_time}
 \alias{strain_time}
+\alias{stats_time}
 \title{Strains over Time}
 \usage{
 strain_time(
@@ -9,6 +10,14 @@ strain_time(
   traitSignal,
   traitnames = timetraits(traitSignal, timecol)[1],
   response = c("value", "cellmean", "signal"),
+  timecol = c("week", "minute"),
+  ...
+)
+
+stats_time(
+  traitStats,
+  traitnames = timetraits(traitStats, timecol)[1],
+  response = c("p.value", "SD"),
   timecol = c("week", "minute"),
   ...
 )
@@ -25,10 +34,16 @@ strain_time(
 \item{timecol}{column to use for time}
 
 \item{...}{additional parameters ignored}
+
+\item{traitStats}{data frame with trait stats}
 }
 \value{
+object of class `strain_time`
+
 object of class `strain_time`
 }
 \description{
 Strains over Time
+
+Stats over Time
 }

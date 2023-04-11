@@ -53,6 +53,9 @@ strain_time <- function(traitData,
   if(!nrow(object))
     return(NULL)
   
+  # Object has column labeled `timecol`.
+  
+  # Unite `dataset: trait` as datatraits ordered by `traitnames`
   object <- 
     dplyr::mutate(
       tidyr::unite(
@@ -62,10 +65,110 @@ strain_time <- function(traitData,
         sep = ": "),
       datatraits = factor(datatraits, traitnames))
   
+  # Split object based on `traitnames`.
   object <-
     split(
       object,
       object$datatraits)
+  
+  template_time(object, traitnames, timecol, response)
+}
+#' Stats over Time
+#'
+#' @param traitStats data frame with trait stats
+#' @param traitnames names of `dataset: trait`
+#' @param response character string for type of response
+#' @param timecol column to use for time
+#' @param ... additional parameters ignored
+#'
+#' @return object of class `strain_time`
+#' @export
+#' @rdname strain_time
+#' @importFrom dplyr rename select
+#' @importFrom rlang .data
+#'
+stats_time <- function(traitStats,
+                       traitnames = timetraits(traitStats, timecol)[1],
+                       response = c("p.value","SD"),
+                       timecol = c("week", "minute"),
+                       ...) {
+  response <- match.arg(response)
+  
+  if(is.null(traitStats))
+    return(NULL)
+  
+  # Select object based on `response`.
+  object <- switch(
+    response,
+    p.value = {
+      dplyr::select(
+        dplyr::rename(
+          dplyr::mutate(
+            dplyr::filter(
+              traitStats,
+              .data$term != "noise"),
+            p.value = -log10(p.value)),
+          value = "p.value"),
+        -SD)
+    },
+    SD = {
+      dplyr::select(
+        dplyr::rename(
+          traitStats,
+          value = "SD"),
+        -p.value)
+    })
+  
+  # Create phony `strain` column as datatraits 
+  # and datatraits as model `parts` and `terms`.
+  object <- 
+    dplyr::mutate(
+      object,
+      model = ifelse(
+        .data$term %in% c("cellmean","signal","rest","noise"),
+        "parts", "terms"))
+  
+  # Rename timecol to `time`. Add "wk" to `week column if it is "minute".
+  timecol <- match.arg(timecol)
+  
+  # Filter object based on `traitnames`. Separate out `timecol`
+  object <- separate_time(object, traitnames, timecol)
+  
+  if(!nrow(object))
+    return(NULL)
+  
+  if(is.null(object))
+    return(NULL)
+  
+  # Object has column labeled `timecol`.
+  
+  # Unite `dataset: trait` as datatraits ordered by `traitnames`
+  object <- 
+    dplyr::mutate(
+      tidyr::unite(
+        object,
+        datatraits,
+        dataset, trait,
+        sep = ": "),
+      datatraits = factor(datatraits, traitnames))
+  
+  # Split object based on `traitnames`.
+  object <-
+    split(
+      dplyr::rename(
+        object,
+        strain = datatraits),
+      object$model)
+  
+  template_time(object, traitnames, timecol, response)
+}
+template_time <- function(object,
+                          traitnames = names(object),
+                          timecol = c("week", "minute"),
+                          response = "value",
+                          ...) {
+  
+  # Rename `value` by names of object. Add attributes.
   object <- 
     purrr::map(
       purrr::set_names(names(object)),
@@ -83,7 +186,7 @@ strain_time <- function(traitData,
         
         object
       }, object)
-
+  
   class(object) <- c("strain_time", class(object))
   attr(object, "traitnames") <- traitnames
   attr(object, "response") <- response
@@ -95,6 +198,8 @@ strain_time <- function(traitData,
 #'
 #' @param object object of class `strain_time`
 #' @param ... additional parameters
+#' @param drop_xlab drop xlab for all but last plot if `TRUE`
+#' @param legend_position position of legend ("none" for none)
 #'
 #' @return ggplot object
 #' @export
@@ -102,7 +207,9 @@ strain_time <- function(traitData,
 #' @importFrom rlang .data
 #'
 ggplot_strain_time <- function(object,
-                               ...) {
+                               ...,
+                               drop_xlab = TRUE,
+                               legend_position = "bottom") {
   if(is.null(object) || !nrow(object[[1]]))
     return(plot_null("no data for strain_time plot"))
   
@@ -125,7 +232,8 @@ ggplot_strain_time <- function(object,
     parallel_lines = FALSE,
     xlab = timecol,
     facet_time = facet_time,
-    drop_xlab = TRUE,
+    drop_xlab = drop_xlab,
+    legend_position = legend_position,
     ...)
 }
 

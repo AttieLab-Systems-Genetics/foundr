@@ -7,6 +7,7 @@
 #' @param horizontal flip vertical and horizontal axis if `TRUE`
 #' @param ... additional parameters
 #' @param drop_xlab drop `xlab` except last if `TRUE`
+#' @param legend_position show legend if `TRUE`
 #'
 #' @return object of class ggplot
 #' @importFrom RColorBrewer brewer.pal
@@ -21,7 +22,8 @@
 #'
 ggplot_template <- function(object,
                             ...,
-                            drop_xlab = FALSE) {
+                            drop_xlab = FALSE,
+                            legend_position = "none") {
   
   if(is.null(object))
     return(plot_null("No Traits to Plot."))
@@ -29,13 +31,20 @@ ggplot_template <- function(object,
   response <- attr(object, "response")
 
   plots <- purrr::map(object, ggplot_onerow,
-                      response = response, ...)
+                      response = response,
+                      legend_position = legend_position, ...)
   
+  lplots <- length(plots)
+  
+  # Remove x label and legend for multiple plots
   if(drop_xlab) {
-    lplots <- length(plots)
-    
-    for(i in seq_len(lplots - 1))
-      plots[[i]] <- plots[[i]] + ggplot2::xlab("")
+    for(i in seq_len(lplots - 1)) {
+      plots[[i]] <- plots[[i]] +
+        ggplot2::xlab("")
+      if(legend_position != "none")
+        plots[[i]] <- plots[[i]] +
+          ggplot2::theme(legend.position = "none")
+    }
   }
   
   # Patch plots together by rows
@@ -50,7 +59,7 @@ ggplot_onerow <- function(object,
                             pairplot = attr(object, "pair"),
                             title = "",
                             xname = "value",
-                            yname = condition,
+                            legend_position = "none",
                             ...) {
   
   # Used for optional lines.
@@ -88,15 +97,18 @@ ggplot_onerow <- function(object,
           remove = FALSE)
     }
   }
+  # Used for plotting Stats.
+  if("term" %in% names(object))
+    condition <- "term"
   
   # Code for trait pair plot.
   if(!is.null(pairplot))
     object <- parallels(object, ..., pair = pairplot)
   
   # Make sure strain is in proper order
-  object <- dplyr::mutate(
-    object,
-    strain = factor(.data$strain, names(foundr::CCcolors)))
+#  object <- dplyr::mutate(
+#    object,
+#    strain = factor(.data$strain, names(foundr::CCcolors)))
   
   p <- ggplot2::ggplot(object)
   
@@ -106,16 +118,18 @@ ggplot_onerow <- function(object,
   }
   
   if(facet_strain) {
-    ncond <- sort(unique(object[[yname]]))
+    fillname <- condition
+    ncond <- sort(unique(object[[condition]]))
     plotcolors <- RColorBrewer::brewer.pal(
       n = max(3, length(ncond)), name = "Dark2")
     names(plotcolors) <- ncond[seq_len(length(ncond))]
+    
     form <- stats::formula(paste(form, "strain"))
-    fillname <- condition
   } else {
-    plotcolors <- foundr::CCcolors
-    form <- stats::formula(paste(form, condition))
     fillname <- "strain"
+    plotcolors <- foundr::CCcolors
+    
+    form <- stats::formula(paste(form, condition))
   }
   
   if(!is.null(pairplot)) {
@@ -152,7 +166,6 @@ ggplot_onerow <- function(object,
     p <- p +
       ggplot2::geom_jitter(
         ggplot2::aes(
-          shape = .data$sex,
           fill = .data[[fillname]]),
         shape = 21, 
         width = 0.25, height = 0,
@@ -164,6 +177,6 @@ ggplot_onerow <- function(object,
   
   p +
     ggplot2::theme(
-      legend.position = "none",
+      legend.position = legend_position,
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
 }

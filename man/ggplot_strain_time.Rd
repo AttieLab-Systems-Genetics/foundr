@@ -4,12 +4,16 @@
 \alias{ggplot_strain_time}
 \title{GGplot of Strains over Time}
 \usage{
-ggplot_strain_time(object, ...)
+ggplot_strain_time(object, ..., drop_xlab = TRUE, legend_position = "bottom")
 }
 \arguments{
 \item{object}{object of class `strain_time`}
 
 \item{...}{additional parameters}
+
+\item{drop_xlab}{drop xlab for all but last plot if `TRUE`}
+
+\item{legend_position}{position of legend ("none" for none)}
 }
 \value{
 ggplot object
