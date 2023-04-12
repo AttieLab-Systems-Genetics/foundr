@@ -434,10 +434,21 @@ foundrServer <- function(input, output, session,
           shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
       
       shiny::renderPlot({
-        shiny::req(traitTime())
-        print(foundr::ggplot_strain_time(
+        shiny::req(traitTime(), traitTimeSum())
+#        print(foundr::ggplot_strain_time(
+#          traitTime(),
+#          facet_strain = input$facet))
+        
+        p1 <- foundr::ggplot_traitTimes(
           traitTime(),
-          facet_strain = input$facet))
+          facet_strain = input$facet)
+        
+        p2 <- foundr::ggplot_traitTimes(
+          traitTimeSum(),
+          facet_strain = TRUE)
+        
+        print(cowplot::plot_grid(p1,p2, ncol = 2, rel_widths = c(2.5,1)))
+        
       })
     )
   })
@@ -478,9 +489,15 @@ foundrServer <- function(input, output, session,
   })
   traitTime <- shiny::reactive({
     shiny::req(timetrait_selection(), input$time_response, input$time)
-    foundr::strain_time(
+    foundr::traitTimes(
       traitDataInput(), traitSignalInput(),
       timetrait_selection(), input$time_response, input$time)
+  })
+  traitTimeSum <- shiny::reactive({
+    shiny::req(timetrait_selection(), input$time)
+    foundr::traitTimes(
+      traitStatsInput(),
+      timetrait_selection(), "p.value", input$time, "terms")
   })
   
   output$tab_volcano <- shiny::renderUI({

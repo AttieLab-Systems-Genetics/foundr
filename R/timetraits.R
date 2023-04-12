@@ -2,6 +2,7 @@
 
 #' @importFrom dplyr arrange count desc distinct filter mutate select
 #' @importFrom rlang .data
+#' @export
 timetraitsall <- function(traitSignal) {
   datatraits <- 
     # Filter out traits with no time component.

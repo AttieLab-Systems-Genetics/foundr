@@ -12,7 +12,7 @@ traitTimes(object, ...)
 ggplot_traitTimes(
   object,
   ...,
-  drop_xlab = (timetype == "strain"),
+  drop_xlab = TRUE,
   facet_strain = (timetype != "strain"),
   legend_position = "bottom"
 )

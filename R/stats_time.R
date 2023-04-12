@@ -4,6 +4,7 @@
 #' @param traitnames names of `dataset: trait`
 #' @param response character string for type of response
 #' @param timecol column to use for time
+#' @param models parts of model to include
 #' @param ... additional parameters ignored
 #' 
 #' @importFrom dplyr filter mutate rename select
@@ -12,6 +13,7 @@ stats_time <- function(traitStats,
                        traitnames = timetraits(traitStats, timecol)[1],
                        response = c("p.value","SD"),
                        timecol = c("week", "minute","minsum"),
+                       models = c("parts","terms"),
                        ...) {
   response <- match.arg(response)
   
@@ -73,17 +75,30 @@ stats_time <- function(traitStats,
         sep = ": "),
       datatraits = factor(datatraits, traitnames))
   
+  # Subset based on `model`
+  models <- models[models %in% unique(object$model)]
+  # Filter to include desired model components.
+  object <-
+    dplyr::filter(
+      object,
+      model %in% models)
+  
   # Split object based on `model`.
   object <-
     split(
+      # Rename model as `strain` to fool `ggplot_template`
       dplyr::rename(
-        object,
-        strain = datatraits),
-      object$model)
+        # Add "SD" or "-log10(p)" to end of model type.
+        dplyr::mutate(
+          object,
+          model= paste(
+            model, 
+            ifelse(response == "p.value",
+                   "-log10(p)", response))), 
+        strain = model),
+      object$datatraits)
   
-  names(object) <- paste(names(object), 
-                         ifelse(response == "p.value",
-                                "-log10(p)", response))
+  names(object) <- 
   
   out <- template_time(object, traitnames, timecol, response)
   attr(out, "timetype") <- "stats"

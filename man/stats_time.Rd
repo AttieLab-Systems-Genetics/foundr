@@ -9,6 +9,7 @@ stats_time(
   traitnames = timetraits(traitStats, timecol)[1],
   response = c("p.value", "SD"),
   timecol = c("week", "minute", "minsum"),
+  models = c("parts", "terms"),
   ...
 )
 }
@@ -20,6 +21,8 @@ stats_time(
 \item{response}{character string for type of response}
 
 \item{timecol}{column to use for time}
+
+\item{models}{parts of model to include}
 
 \item{...}{additional parameters ignored}
 }

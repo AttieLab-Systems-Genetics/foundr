@@ -147,7 +147,7 @@ template_time <- function(object,
 #'
 ggplot_traitTimes <- function(object,
                               ...,
-                              drop_xlab = (timetype == "strain"),
+                              drop_xlab = TRUE,
                               facet_strain = (timetype != "strain"),
                               legend_position = "bottom") {
   
