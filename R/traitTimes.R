@@ -39,7 +39,7 @@ strain_time <- function(traitData,
                         traitSignal,
                         traitnames = timetraits(traitSignal, timecol)[1],
                         response = c("value","cellmean","signal"),
-                        timecol = c("week", "minute","minsum"),
+                        timecol = c("week", "minute","minute_summary","week_summary"),
                         ...) {
   response <- match.arg(response)
   
@@ -69,8 +69,10 @@ strain_time <- function(traitData,
   
   # Rename timecol to `time`. Add "wk" to `week column if it is "minute".
   timecol <- match.arg(timecol)
-  if(timecol == "minsum")
+  if(timecol == "minute_summary")
     timecol <- "minute"
+  if(timecol == "week_summary")
+    timecol <- "week"
   
   # Filter object based on traitnames.
   object <- separate_time(object, traitnames, timecol)

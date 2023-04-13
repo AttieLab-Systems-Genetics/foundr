@@ -16,8 +16,9 @@
 #' @importFrom tidyr all_of unite
 #' @importFrom rlang .data
 #' @importFrom ggplot2 aes element_text facet_grid geom_jitter ggplot ggtitle
-#'             scale_fill_manual scale_shape_manual theme xlab ylab
+#'             guides guide_legend scale_fill_manual scale_shape_manual theme xlab ylab
 #' @importFrom cowplot plot_grid
+#' @importFrom grid unit
 #' @export
 #'
 ggplot_template <- function(object,
@@ -179,10 +180,19 @@ ggplot_onerow <- function(object,
   if(title != "")
     p <- p + ggplot2::ggtitle(title)
   
-  p +
+  p <- p +
     ggplot2::theme(
       legend.position = legend_position,
+      legend.key.width = grid::unit(1, "strwidth","abcdefgh"),
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+  if(legend_position == "bottom")
+    p <- p + ggplot2::guides(
+      color = ggplot2::guide_legend(
+        nrow=3, byrow = TRUE, title = "", label.position = "top"),
+      fill = ggplot2::guide_legend(
+        nrow=3, byrow = TRUE, title = "", label.position = "top"))
+
+  p
 }
 
 parallels <- function(

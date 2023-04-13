@@ -9,7 +9,7 @@ strain_time(
   traitSignal,
   traitnames = timetraits(traitSignal, timecol)[1],
   response = c("value", "cellmean", "signal"),
-  timecol = c("week", "minute", "minsum"),
+  timecol = c("week", "minute", "minute_summary", "week_summary"),
   ...
 )
 }

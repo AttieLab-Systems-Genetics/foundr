@@ -8,8 +8,8 @@ stats_time(
   traitStats,
   traitnames = timetraits(traitStats, timecol)[1],
   response = c("p.value", "SD"),
-  timecol = c("week", "minute", "minsum"),
-  models = c("parts", "terms"),
+  timecol = c("week", "minute", "minute_summary", "week_summary"),
+  models = c("terms", "parts"),
   ...
 )
 }

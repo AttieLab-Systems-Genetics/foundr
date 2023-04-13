@@ -11,7 +11,8 @@
 #' @importFrom tidyr separate_wider_delim
 #' @importFrom stringr str_detect str_replace
 #'
-separate_time <- function(object, traitnames, timeunit = c("week", "minute","minsum")) {
+separate_time <- function(object, traitnames,
+                          timeunit = c("week", "minute","minute_summary","week_summary")) {
   timeunit <- match.arg(timeunit)
   
   if(is.null(object) | !length(traitnames))
@@ -31,10 +32,15 @@ separate_time <- function(object, traitnames, timeunit = c("week", "minute","min
       str_colon <- ":\\1"
       str_names <- c("trait", "week")
     },
-    minsum = {
+    minute_summary = {
       str_time  <- "_(AUC|Emax|Tmax|HalfLife)_([0-9]+wk)$"
       str_colon <- ":\\1:\\2"
-      str_names <- c("trait", "minsum", "week")
+      str_names <- c("trait", "minute_summary", "week")
+    },
+    week_summary = {
+      str_time  <- "_(AUC|Emax|Tmax|HalfLife)$"
+      str_colon <- ":\\1"
+      str_names <- c("trait", "week_summary")
     })
   
   object <-
@@ -74,7 +80,8 @@ separate_time <- function(object, traitnames, timeunit = c("week", "minute","min
         object,        
         week = as.numeric(.data$week))
     },
-    minsum = {
+    minute_summary = ,
+    week_summary = {
       object
     })
 }

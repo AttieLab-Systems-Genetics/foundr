@@ -12,8 +12,8 @@
 stats_time <- function(traitStats,
                        traitnames = timetraits(traitStats, timecol)[1],
                        response = c("p.value","SD"),
-                       timecol = c("week", "minute","minsum"),
-                       models = c("parts","terms"),
+                       timecol = c("week", "minute","minute_summary","week_summary"),
+                       models = c("terms","parts"),
                        ...) {
   response <- match.arg(response)
   
@@ -65,7 +65,8 @@ stats_time <- function(traitStats,
   
   # Object has column labeled `timecol`.
   
-  # Unite `dataset: trait` as datatraits ordered by `traitnames`
+  # Unite `dataset: trait` as datatraits ordered by `traitnames`.
+  # Make sure traitnames actually have entries in `datatraits`.
   object <- 
     dplyr::mutate(
       tidyr::unite(
@@ -73,10 +74,10 @@ stats_time <- function(traitStats,
         datatraits,
         dataset, trait,
         sep = ": "),
-      datatraits = factor(datatraits, traitnames))
+      datatraits = factor(datatraits, traitnames[traitnames %in% unique(datatraits)]))
   
   # Subset based on `model`
-  models <- models[models %in% unique(object$model)]
+  models <- match.arg(models)
   # Filter to include desired model components.
   object <-
     dplyr::filter(
@@ -97,8 +98,6 @@ stats_time <- function(traitStats,
                    "-log10(p)", response))), 
         strain = model),
       object$datatraits)
-  
-  names(object) <- 
   
   out <- template_time(object, traitnames, timecol, response)
   attr(out, "timetype") <- "stats"

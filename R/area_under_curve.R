@@ -1,6 +1,7 @@
 #' Calculate area under curve over minutes
 #'
 #' @param object data frame with `value` and other columns
+#' @param timecol column containing time values
 #'
 #' @return object collapsed over minutes with AUC and other summaries
 #' @export
@@ -8,7 +9,7 @@
 #' @importFrom rlang .data
 #' @importFrom zoo rollmean
 #'
-area_under_curve <- function(object, sum_function = auc) {
+area_under_curve <- function(object, timecol = "minutes") {
   cols <- c("strain", "sex", "condition", "animal", "week", "trait")
   cols <- cols[cols %in% names(object)]
   
@@ -20,15 +21,15 @@ area_under_curve <- function(object, sum_function = auc) {
             dplyr::group_by(
               dplyr::mutate(
                 object,
-                minutes = as.numeric(.data$minutes)),
+                minutes = as.numeric(.data[[timecol]])),
               dplyr::across(dplyr::all_of(cols))),
-            .data$minutes),
+            .data[[timecol]]),
           AUC = sum(
-            diff(.data$minutes) * 
+            diff(.data[[timecol]]) * 
               zoo::rollmean(.data$value, 2)),
           Emax = max(.data$value),
-          Tmax = .data$minutes[which.max(.data$value)],
-          HalfLife = half(Tmax, .data$minutes, .data$value),
+          Tmax = .data[[timecol]][which.max(.data$value)],
+          HalfLife = half(Tmax, .data[[timecol]], .data$value),
           .groups = "drop")),
       AUC:HalfLife, names_to = "sums", values_to = "value"),
     trait,

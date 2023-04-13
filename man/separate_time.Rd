@@ -4,7 +4,11 @@
 \alias{separate_time}
 \title{Separate Time Traits}
 \usage{
-separate_time(object, traitnames, timeunit = c("week", "minute", "minsum"))
+separate_time(
+  object,
+  traitnames,
+  timeunit = c("week", "minute", "minute_summary", "week_summary")
+)
 }
 \arguments{
 \item{object}{data frame}
