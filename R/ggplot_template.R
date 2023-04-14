@@ -138,6 +138,7 @@ ggplot_onerow <- function(object,
     # Code for trait pair plots and time plots.
     p <- strain_lines(object, p, plotcolors, fillname,
                       pair = pairplot, smooth_method = smooth_method,
+                      condition = condition,
                       ...)
     # Make -log10(p.value) scale further rescaled.
     if(response == "p.value")
@@ -239,7 +240,8 @@ strain_lines <- function(
     parallel_lines = TRUE,
     smooth_method = attr(object, "smooth_method"),
     pair = NULL,
-    span = 0.4,
+    span = ifelse(condition == "term", 0.75, 0.4),
+    condition = "sex",
     ...) {
   
   if(is.null(pair))

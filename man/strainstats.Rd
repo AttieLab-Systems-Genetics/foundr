@@ -8,9 +8,11 @@
 \usage{
 strainstats(
   object,
-  signal = ifelse(is_condition, "strain * sex * condition", "strain * sex"),
-  rest = ifelse(is_condition, "strain * sex + sex * condition", "sex"),
-  calc_sd = TRUE
+  signal = ifelse(is_condition, paste("strain * sex *", condition_name), "strain * sex"),
+  rest = ifelse(is_condition, paste("strain * sex + sex *", condition_name), "sex"),
+  calc_sd = TRUE,
+  condition_name = "condition",
+  ...
 )
 
 summary_strainstats(
@@ -33,6 +35,10 @@ summary_strainstats(
 
 \item{calc_sd}{calculate SDs by `term` if `TRUE` (default)}
 
+\item{condition_name}{name of `condition` column if present.}
+
+\item{...}{not used}
+
 \item{terms}{terms to include (overrides `model` and `stats`)}
 
 \item{stats}{choice of `deviation` or `log10.p`}
@@ -40,8 +46,6 @@ summary_strainstats(
 \item{model}{choice of model `parts` or `terms`}
 
 \item{threshold}{named vector for `SD` and `p.value`}
-
-\item{...}{not used}
 }
 \value{
 data frame with summaries by trait

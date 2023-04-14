@@ -21,7 +21,7 @@ harmonize <- function(dataset, links, userHarmony, ...,
     traitData <- normalscores(traitData)
     
   cat("Running statistics on traits ...\n", stderr())
-  traitStats <- strainstats(traitData)
+  traitStats <- strainstats(traitData, ...)
   
   # Reduce to traits that can produce valid stats.
   # Drop traits with any missing p.values

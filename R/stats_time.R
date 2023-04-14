@@ -103,3 +103,26 @@ stats_time <- function(traitStats,
   attr(out, "timetype") <- "stats"
   out
 }
+stats_time_table <- function(object) {
+  class(object) <- "list"
+  for(i in names(object)) {
+    object[[i]] <- as.data.frame(
+      tidyr::separate_wider_delim(
+        dplyr::select(
+          dplyr::mutate(
+            dplyr::rename(
+              object[[i]], 
+              p.value = i),
+            p.value = signif(10 ^ -p.value, 4)),
+          -strain),
+        datatraits,
+        delim = ": ",
+        names = c("dataset", "trait")))
+  }
+  dplyr::arrange(
+    dplyr::as_tibble(
+      dplyr::bind_rows(
+        object)),
+    .data$p.value)
+}
+

@@ -433,24 +433,37 @@ foundrServer <- function(input, output, session,
           4,
           shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
       
-      shiny::renderPlot({
-        shiny::req(traitTime(), traitTimeSum())
-#        print(foundr::ggplot_strain_time(
-#          traitTime(),
-#          facet_strain = input$facet))
-        
-        p1 <- foundr::ggplot_traitTimes(
-          traitTime(),
-          facet_strain = input$facet)
-        
-        p2 <- foundr::ggplot_traitTimes(
-          traitTimeSum(),
-          facet_strain = TRUE)
-        
-        print(cowplot::plot_grid(p1,p2, ncol = 2, rel_widths = c(2.5,1)))
-        
-      })
+      shiny::uiOutput("timeplots")
     )
+  })
+  output$timeplots <- shiny::renderUI({
+    shiny::req(input$height)
+    shiny::tagList(
+      shiny::plotOutput("timeplot", height = paste0(input$height, "in")),
+      
+      DT::renderDataTable(
+        statstable(),
+        escape = FALSE,
+        options = list(scrollX = TRUE, pageLength = 10)))
+  })
+  statstable <- reactive({
+    stats_time_table(traitTimeSum())
+  })
+  timeplots <- reactive({
+    shiny::req(traitTime(), traitTimeSum())
+    
+    p1 <- foundr::ggplot_traitTimes(
+      traitTime(),
+      facet_strain = input$facet)
+    
+    p2 <- foundr::ggplot_traitTimes(
+      traitTimeSum(),
+      facet_strain = TRUE)
+    
+    cowplot::plot_grid(p1,p2, ncol = 2, rel_widths = c(2.5,1))
+  })
+  output$timeplot <- shiny::renderPlot({
+    print(timeplots())
   })
   shiny::observeEvent(
     timetraits(),
@@ -510,7 +523,7 @@ foundrServer <- function(input, output, session,
         shiny::uiOutput("volcano")),
       shiny::conditionalPanel(
         condition = "input.butvol == 'Effects'",
-        shiny::plotOutput("effects")),
+        shiny::plotOutput("effects", height = paste0(input$height, "in"))),
       DT::dataTableOutput("tablesum"))
   })
   effectsplot <- shiny::reactive({
@@ -558,9 +571,9 @@ foundrServer <- function(input, output, session,
 #        ggplot2::xlim(shiny::req(input$volsd), NA) +
         ggplot2::ylim(shiny::req(input$volpval), NA))
   )
-  output$volcanopr <- shiny::renderPlot(
+  output$volcanopr <- shiny::renderPlot({
     print(volcanoplot())
-  )
+  })
   output$volcano <- shiny::renderUI({
     trstats <- shiny::req(traitStatsSelectType())
     shiny::tagList(
@@ -579,7 +592,7 @@ foundrServer <- function(input, output, session,
         plotly::plotlyOutput("volcanoly")),
       shiny::conditionalPanel(
         condition = "input.interact == 'no'",
-        shiny::plotOutput("volcanopr")),
+        shiny::plotOutput("volcanopr", height = paste0(input$height, "in"))),
       shiny::conditionalPanel(
         condition = "input.butvol == 'Volcano'",
         shiny::fluidRow(
@@ -599,20 +612,31 @@ foundrServer <- function(input, output, session,
   })
   
   output$filename <- renderUI({
-    filename <- paste(shiny::req(datasets_selected()), collapse = ".")
-    if(shiny::isTruthy(trait_selection())) {
-      ltrait <- length(trait_selection())
-      if(shiny::req(input$tabpanel) != "Volcano") {
-        filename <- paste0(filename,
-                           "_",
-                           paste(abbreviate(trait_selection(), ceiling(60 / ltrait)),
-                                 collapse = "."))
-      }
-    }
+    switch(
+      shiny::req(input$tabpanel),
+      Traits = {
+        filename <- paste(shiny::req(datasets_selected()), collapse = ".")
+        if(shiny::isTruthy(trait_selection())) {
+          ltrait <- length(trait_selection())
+          if(shiny::req(input$tabpanel) != "Volcano") {
+            filename <- paste0(filename,
+                               "_",
+                               paste(abbreviate(trait_selection(), ceiling(60 / ltrait)),
+                                     collapse = "."))
+          }
+        }
+      },
+      Correlation = ,
+      Volcano = {
+        filename <- paste(shiny::req(datasets_selected()), collapse = ".")
+      },
+      Time = {
+        filename <- paste(shiny::req(timetrait_selection()), collapse = ".")
+      })
+    
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
   output$downloads <- renderUI({
-    shiny::req(trait_selection())
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
@@ -651,6 +675,9 @@ foundrServer <- function(input, output, session,
                  Effects = {
                    fname <- paste0("effect_", fname)
                  })
+        },
+        Time = {
+          fname = paste0("time_", fname)
         })
       fname
     },
@@ -671,6 +698,9 @@ foundrServer <- function(input, output, session,
           switch(input$butvol,
                  Volcano = print(volcanoplot()),
                  Effects = print(effectsplot()))
+        },
+        Time = {
+          print(timeplots())
         },
         plot_null("Tab panel with no output."))
       grDevices::dev.off()
@@ -713,6 +743,9 @@ foundrServer <- function(input, output, session,
         },
         Volcano = {
           fname <- paste0("stats_", fname)
+        },
+        Time = {
+          fname <- paste0("time_", fname)
         })
       fname
     },
@@ -722,7 +755,8 @@ foundrServer <- function(input, output, session,
           shiny::req(input$tabpanel),
           Traits = datameans(),
           Correlation = corobject(),
-          Volcano = traitStatsArranged()),
+          Volcano = traitStatsArranged(),
+          Time = statstable()),
         file, row.names = FALSE)
     }
   )

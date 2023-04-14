@@ -4,6 +4,8 @@
 #' @param signal signal factor combination as string for `formula`
 #' @param rest rest factor combination as string for `formula`
 #' @param calc_sd calculate SDs by `term` if `TRUE` (default)
+#' @param condition_name name of `condition` column if present.
+#' @param ... parameters not used.
 #'
 #' @return data frame with summaries by trait
 #' 
@@ -23,18 +25,28 @@
 strainstats <- function(object,
                     signal = ifelse(
                       is_condition,
-                      "strain * sex * condition",
+                      paste("strain * sex *", condition_name),
                       "strain * sex"),
                     rest = ifelse(
                       is_condition,
-                      "strain * sex + sex * condition",
+                      paste("strain * sex + sex *", condition_name),
                       "sex"),
-                    calc_sd = TRUE) {
+                    calc_sd = TRUE,
+                    condition_name = "condition",
+                    ...) {
   
   # Is condition in the object (and not all NA)?
-  is_condition <- ("condition" %in% names(object))
+  is_condition <- (condition_name %in% names(object))
+  if(!is_condition) {
+    # Rename `condition` column if needed.
+    if("condition" %in% names(object)) {
+      names(object)[names(object) == "condition"] <- condition_name
+      is_condition <- TRUE
+    }
+  }
+  
   if(is_condition) {
-    is_condition <- !all(is.na(object$condition))
+    is_condition <- !all(is.na(object[[condition_name]]))
   }
   
   if(!("dataset" %in% names(object)))
@@ -49,7 +61,7 @@ strainstats <- function(object,
   out <- dplyr::bind_rows(
     purrr::map(
       split(object, object$datatraits),
-      fitsplit, signal, rest),
+      fitsplit, signal, rest, condition_name),
     .id = "datatraits")
   
   # Reorder to agree with data object
@@ -67,7 +79,7 @@ strainstats <- function(object,
   class(out) <- c("strainstats", class(out))
   out
 }
-fitsplit <- function(traitdata, signal, rest) {
+fitsplit <- function(traitdata, signal, rest, condition_name = "condition") {
   sig <- tryCatch(signalfit(traitdata, "value", signal, rest),
                   error = function(e) NULL)
   if(is.null(sig))
@@ -78,8 +90,8 @@ fitsplit <- function(traitdata, signal, rest) {
   
   # Find sign of coefficients for condition and sex
   coefs <- stats::coef(fit)
-  if("condition" %in% names(traitdata) && length(unique(traitdata$condition)) == 2) {
-    condsign <- sign(coefs[stringr::str_detect(names(coefs), "condition") &
+  if(condition_name %in% names(traitdata) && length(unique(traitdata[[condition_name]])) == 2) {
+    condsign <- sign(coefs[stringr::str_detect(names(coefs), condition_name) &
                              !stringr::str_detect(names(coefs), ":")])
   } else
     condsign <- 1
@@ -91,7 +103,7 @@ fitsplit <- function(traitdata, signal, rest) {
       sig,
       strain_stats(stats::drop1(fit, fit, test = "F"))),
     SD = .data$SD / rawSD,
-    SD = ifelse(.data$term == "condition", .data$SD * condsign, .data$SD),
+    SD = ifelse(.data$term == condition_name, .data$SD * condsign, .data$SD),
     SD = ifelse(.data$term == "sex", .data$SD * sexsign, .data$SD))
   out
 }
@@ -104,13 +116,13 @@ traitOrderStats <- function(object, termname) {
     .data$p.value)
 }
 
-termStats <- function(object, signal = TRUE) {
+termStats <- function(object, signal = TRUE, condition_name = "condition") {
   terms <- unique(object$term)
 
   if(signal) {
     # Return the strain terms with condition if present
-    if(any(grepl("condition", terms)))
-      terms <- c("signal", terms[grepl(".*strain.*condition", terms)])
+    if(any(grepl(condition_name, terms)))
+      terms <- c("signal", terms[grepl(paste0(".*strain.*", condition_name), terms)])
     else
       terms <- c("signal", terms[grepl(".*strain", terms)])
   }
@@ -148,7 +160,7 @@ signalfit <- function(traitdata, value, signal, rest) {
 
 strain_stats <- function(fitsum, termname = "") {
   if(all(termname == ""))
-    termfn <- function(term) stringr::str_replace_all(paste0(term), ":", "_")
+    termfn <- function(term) term # stringr::str_replace_all(paste0(term), ":", "_")
   else
     termfn <- function(term) termname
   
