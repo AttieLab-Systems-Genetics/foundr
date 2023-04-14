@@ -69,10 +69,6 @@ strain_time <- function(traitData,
   
   # Rename timecol to `time`. Add "wk" to `week column if it is "minute".
   timecol <- match.arg(timecol)
-  if(timecol == "minute_summary")
-    timecol <- "minute"
-  if(timecol == "week_summary")
-    timecol <- "week"
   
   # Filter object based on traitnames.
   object <- separate_time(object, traitnames, timecol)
@@ -104,7 +100,7 @@ strain_time <- function(traitData,
 }
 template_time <- function(object,
                           traitnames = names(object),
-                          timecol = c("week", "minute"),
+                          timecol = c("week", "minute","week_summary","minute_summary"),
                           response = "value",
                           ...) {
   
@@ -119,8 +115,12 @@ template_time <- function(object,
         attr(object, "pair") <- c("time", x)
         if(length(unique(object[[timecol]])) < 3)
           smooth_method <- "lm"
-        else
-          smooth_method <- "loess"
+        else {
+          if(timecol %in% c("week_summary","minute_summary"))
+            smooth_method <- "line"
+          else
+            smooth_method <- "loess"
+        }
         
         attr(object, "smooth_method") <- smooth_method
         
@@ -185,7 +185,8 @@ ggplot_traitTimes <- function(object,
   ggplot_template(
     object,
     line_strain = TRUE,
-    parallel_lines = FALSE,
+    parallel_lines = (timetype != "stats") &
+      (timecol %in% c("week_summary","minute_summary")),
     xlab = timecol,
     facet_time = facet_time,
     facet_strain = facet_strain,

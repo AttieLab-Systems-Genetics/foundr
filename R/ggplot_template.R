@@ -203,6 +203,10 @@ parallels <- function(
     ...) {
   if(parallel_lines & !is.null(pair)) {
     response <- attr(object, "response")
+    if(class(object[[pair[1]]]) %in% c("character","factor"))
+      inter <- "*"
+    else
+      inter <- "+"
     
     if("sex_condition" %in% names(object)) {
       groupsex <- "sex_condition"
@@ -211,11 +215,11 @@ parallels <- function(
     }
     if(line_strain) {
       form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
-                             "` + strain * `", groupsex, "`"))
+                             "` ", inter, " strain * `", groupsex, "`"))
       bys <- c(pair, "strain", groupsex)
     } else {
       form <- formula(paste0("`", pair[2], "` ~ `", pair[1],
-                             "` + `", groupsex, "`"))
+                             "` ", inter, " `", groupsex, "`"))
       bys <- c(pair, groupsex)
     }
     dplyr::left_join(
@@ -260,13 +264,24 @@ strain_lines <- function(
           linewidth = 1) +
         ggplot2::scale_color_manual(values = plotcolors)
     } else {
-      p <- p +
-        ggplot2::geom_smooth(
-          ggplot2::aes(
-            group = .data[[fillname]], col = .data[[fillname]]),
-          method = smooth_method, se = FALSE, formula = "y ~ x",
-          span = span, linewidth = 1) +
-        ggplot2::scale_color_manual(values = plotcolors)
+      if(smooth_method == "line") {
+        # Used for stats.
+        p <- p +
+          ggplot2::geom_line(
+            ggplot2::aes(
+              group = .data[[fillname]], col = .data[[fillname]]),
+            linewidth = 1) +
+          ggplot2::scale_color_manual(values = plotcolors)
+        
+      } else {
+        p <- p +
+          ggplot2::geom_smooth(
+            ggplot2::aes(
+              group = .data[[fillname]], col = .data[[fillname]]),
+            method = smooth_method, se = FALSE, formula = "y ~ x",
+            span = span, linewidth = 1) +
+          ggplot2::scale_color_manual(values = plotcolors)
+      }
     }
   } else {
     if(parallel_lines) {
@@ -276,10 +291,19 @@ strain_lines <- function(
           span = span, linewidth = 1, col = "darkgrey")
       
     } else {
-      p <- p +
-        ggplot2::geom_smooth(
-          method = smooth_method, se = FALSE, formula = "y ~ x",
-          span = span, linewidth = 1, col = "darkgrey")
+      if(smooth_method == "line") {
+        # Not used.
+        p <- p +
+          ggplot2::geom_line(
+            linewidth = 1, col = "darkgrey") +
+          ggplot2::scale_color_manual(values = plotcolors)
+        
+      } else {
+        p <- p +
+          ggplot2::geom_smooth(
+            method = smooth_method, se = FALSE, formula = "y ~ x",
+            span = span, linewidth = 1, col = "darkgrey")
+      }
     }
   }
   p

@@ -425,7 +425,7 @@ foundrServer <- function(input, output, session,
       shiny::fluidRow(
         shiny::column(
           4,
-          shiny::selectInput("time", "Time Unit:", c("week", "minute"))),
+          shiny::selectInput("time", "Time Unit:", c("week", "minute","week_summary","minute_summary"))),
         shiny::column(
           4,
           shiny::selectizeInput("time_trait", "Traits:", NULL, multiple = TRUE)),

@@ -28,13 +28,17 @@ timetraitsall <- function(traitSignal) {
 #' @importFrom dplyr arrange count desc distinct filter mutate select
 #' @importFrom rlang .data
 #' @export
-timetraits <- function(traitSignal, timecol = c("week","minute")) {
+timetraits <- function(traitSignal, timecol = c("week","minute","week_summary","minute_summary")) {
   
   datatraits <- timetraitsall(traitSignal)
   if(is.null(datatraits))
     return(NULL)
-  
+
   timecol <- match.arg(timecol)
+  if(timecol == "minute_summary")
+    timecol <- "minute"
+  if(timecol == "week_summary")
+    timecol <- "week"
   
   # Get traitnames without time information.
   traitnames <- 
