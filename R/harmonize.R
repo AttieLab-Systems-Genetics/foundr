@@ -5,6 +5,7 @@
 #' @param userHarmony function provided by user
 #' @param ... additional optional parameters to `userHarmony()`
 #' @param normalize apply `normalscores` if `TRUE`
+#' @param condition_name name of `condition` column if present.
 #'
 #' @return side action to save RDS files locally
 #' @export
@@ -12,16 +13,23 @@
 #' @importFrom rlang .data
 #'
 harmonize <- function(dataset, links, userHarmony, ...,
-                      normalize = TRUE) {
+                      normalize = TRUE,
+                      condition_name = "condition") {
   # Harmonize data with user-supplied harmony function.
   # Function must have `dataset` as first argument and include `...` argument.
   cat("Harmonizing raw data ...\n", stderr())
   traitData <- userHarmony(dataset, links, ...)
-  if(normalize)
-    traitData <- normalscores(traitData)
-    
+
   cat("Running statistics on traits ...\n", stderr())
-  traitStats <- strainstats(traitData, ...)
+  # Always run stats on normalized data.
+  if(normalize) {
+    traitData <- normalscores(traitData)
+    traitStats <- strainstats(traitData,
+                              condition_name = condition_name)
+  } else {
+    traitStats <- strainstats(normalscores(traitData),
+                              condition_name = condition_name)
+  }
   
   # Reduce to traits that can produce valid stats.
   # Drop traits with any missing p.values
@@ -39,20 +47,23 @@ harmonize <- function(dataset, links, userHarmony, ...,
   # Additional traits were dropped due to failed fit. Keep what is left.
   keepTraits <- unique(traitStats$trait)
   
-  saveRDS(traitStats, paste0(dataset, "Stats.rds"))
+  if(!dir.exists(dataset))
+    dir.create(dataset)
+  
+  saveRDS(traitStats, file.path(dataset, paste0(dataset, "Stats.rds")))
   
   traitData <-
     dplyr::filter(
       traitData,
       .data$trait %in% keepTraits)
-  saveRDS(traitData, paste0(dataset, "Data.rds"))
+  saveRDS(traitData, file.path(dataset, paste0(dataset, "Data.rds")))
   
   cat("Running partition of traits ...\n", stderr())
   traitSignal <- 
     dplyr::filter(
       partition(traitData),
       .data$trait %in% keepTraits)
-  saveRDS(traitSignal, paste0(dataset, "Signal.rds"))
+  saveRDS(traitSignal, file.path(dataset, paste0(dataset, "Signal.rds")))
   
   invisible()
 }

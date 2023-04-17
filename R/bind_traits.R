@@ -65,7 +65,7 @@ bind_traits_object <- function(datasets, filetype, dirname = ".") {
         function(x) {
           readRDS(
             paste0(
-              file.path(dirname, x),
+              file.path(dirname, x, x),
               filetype,
               ".rds"))
         }),

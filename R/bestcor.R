@@ -1,6 +1,6 @@
 #' Traits with Best Correlation
 #'
-#' Find other traits with best correlation with selected traitnames.
+#' Find other traits with best Spearman correlation with selected traitnames.
 #' 
 #' @param traitSignal data frame from `partition`
 #' @param traitnames names of traits in `traitSignal`
@@ -142,7 +142,8 @@ bestcor <- function(traitSignal,
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
-  out <- as.data.frame(stats::cor(traitSignal, proband, use = "pair"))
+  out <- as.data.frame(stats::cor(traitSignal, proband, use = "pair",
+                                  method = "spearman"))
   out$absmax <- apply(out, 1, function(x) max(abs(x)))
   out$trait <- row.names(out)
   out <- dplyr::arrange(

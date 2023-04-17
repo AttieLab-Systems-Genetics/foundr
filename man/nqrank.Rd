@@ -4,12 +4,14 @@
 \alias{nqrank}
 \title{Normal scores as qnorm of rank}
 \usage{
-nqrank(x, jitter = FALSE)
+nqrank(x, jitter = FALSE, standard = FALSE)
 }
 \arguments{
 \item{x}{vector of measurements}
 
 \item{jitter}{jitter values slightly if `TRUE`}
+
+\item{standard}{standardize to mean 0, variance 1 if `TRUE`}
 }
 \value{
 vector of normal scores

@@ -2,19 +2,15 @@
 #'
 #' @param dataset name of dataset desired
 #' @param links data frame with `shortname`, `address`, `longname`
-#' @param datadir data directory (default is "data")
 #'
-#' @return data frame with
+#' @return data frame with `shortname`, `address`, `longname`
 #' @importFrom dplyr filter
 #' @importFrom rlang .data
 #' @export
 #'
-linkpath <- function(dataset, links, datadir = "data") {
+linkpath <- function(dataset, links) {
   # Data for this repository are identified by `data/source.csv`,
   # which is not saved with the repo.
   
-  filename <- (dplyr::filter(links, .data$shortname == dataset))$address
-  if(datadir != "")
-    filename <- file.path(datadir, filename)
-  filename
+  (dplyr::filter(links, .data$shortname == dataset))$address
 }

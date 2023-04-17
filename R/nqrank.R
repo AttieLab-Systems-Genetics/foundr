@@ -3,6 +3,7 @@
 #' Copied from github.com/kbroman/broman package
 #' @param x vector of measurements
 #' @param jitter jitter values slightly if `TRUE`
+#' @param standard standardize to mean 0, variance 1 if `TRUE`
 #'
 #' @return vector of normal scores
 #' @export
@@ -10,7 +11,7 @@
 #'
 #' @examples
 #' nqrank(1:10)
-nqrank <- function (x, jitter = FALSE)
+nqrank <- function (x, jitter = FALSE, standard = FALSE)
 {
   ## qtl::nqrank(x, jitter)
   y <- x[!is.na(x)]
@@ -22,5 +23,7 @@ nqrank <- function (x, jitter = FALSE)
     y <- rank(y + stats::runif(length(y)) / (stats::sd(y) * 10^8))
   else y <- rank(y)
   x[!is.na(x)] <- stats::qnorm((y - 0.5)/length(y))
-  x * thesd / stats::sd(x, na.rm = TRUE) - mean(x, na.rm = TRUE) + themean
+  if(!standard)
+    x <- x * thesd / stats::sd(x, na.rm = TRUE) - mean(x, na.rm = TRUE) + themean
+  x
 }

@@ -4,17 +4,15 @@
 \alias{linkpath}
 \title{Title}
 \usage{
-linkpath(dataset, links, datadir = "data")
+linkpath(dataset, links)
 }
 \arguments{
 \item{dataset}{name of dataset desired}
 
 \item{links}{data frame with `shortname`, `address`, `longname`}
-
-\item{datadir}{data directory (default is "data")}
 }
 \value{
-data frame with
+data frame with `shortname`, `address`, `longname`
 }
 \description{
 Title

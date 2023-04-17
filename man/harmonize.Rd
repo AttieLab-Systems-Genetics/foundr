@@ -4,7 +4,14 @@
 \alias{harmonize}
 \title{Harmonize Dataset}
 \usage{
-harmonize(dataset, links, userHarmony, ..., normalize = TRUE)
+harmonize(
+  dataset,
+  links,
+  userHarmony,
+  ...,
+  normalize = TRUE,
+  condition_name = "condition"
+)
 }
 \arguments{
 \item{dataset}{name of dataset}
@@ -16,6 +23,8 @@ harmonize(dataset, links, userHarmony, ..., normalize = TRUE)
 \item{...}{additional optional parameters to `userHarmony()`}
 
 \item{normalize}{apply `normalscores` if `TRUE`}
+
+\item{condition_name}{name of `condition` column if present.}
 }
 \value{
 side action to save RDS files locally

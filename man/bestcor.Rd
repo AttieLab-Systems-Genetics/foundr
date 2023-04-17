@@ -41,7 +41,7 @@ ggplot object
 data frame
 }
 \description{
-Find other traits with best correlation with selected traitnames.
+Find other traits with best Spearman correlation with selected traitnames.
 }
 \examples{
 sampleSignal <- partition(sampleData)
