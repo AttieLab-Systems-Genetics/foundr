@@ -612,10 +612,12 @@ foundrServer <- function(input, output, session,
   })
   
   output$filename <- renderUI({
+    shiny::req(input$tabpanel, datasets_selected())
     switch(
-      shiny::req(input$tabpanel),
+      input$tabpanel,
+      About =,
       Traits = {
-        filename <- paste(shiny::req(datasets_selected()), collapse = ".")
+        filename <- paste(datasets_selected(), collapse = ".")
         if(shiny::isTruthy(trait_selection())) {
           ltrait <- length(trait_selection())
           if(shiny::req(input$tabpanel) != "Volcano") {
@@ -628,10 +630,10 @@ foundrServer <- function(input, output, session,
       },
       Correlation = ,
       Volcano = {
-        filename <- paste(shiny::req(datasets_selected()), collapse = ".")
+        filename <- paste(datasets_selected(), collapse = ".")
       },
       Time = {
-        filename <- paste(shiny::req(timetrait_selection()), collapse = ".")
+        filename <- paste(timetrait_selection(), collapse = ".")
       })
     
     shiny::textAreaInput("filename", "File Prefix", filename)
