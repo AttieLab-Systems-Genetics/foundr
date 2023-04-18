@@ -104,6 +104,9 @@ stats_time <- function(traitStats,
   out
 }
 stats_time_table <- function(object) {
+  if(is.null(object))
+    return(NULL)
+  
   class(object) <- "list"
   for(i in names(object)) {
     object[[i]] <- as.data.frame(

@@ -1,13 +1,43 @@
 #' GGplot template for other routines
 #'
-#' @param object,x data frame to be plotted
+#' This routine is used by multiple others (`traitSolos`, `traitPairs`, `traitTimes`),
+#' providing one place for specialized plotting code to avoid duplication and improve
+#' visualization. However, it has some quirks to meet all needs. See details.
+#' @param object list of data frames to be plotted
 #' @param facet_strain facet by strain if `TRUE` 
 #' @param shape_sex use different shape by sex if `TRUE`
 #' @param boxplot overlay boxplot if `TRUE`
-#' @param horizontal flip vertical and horizontal axis if `TRUE`
 #' @param ... additional parameters
 #' @param drop_xlab drop `xlab` except last if `TRUE`
 #' @param legend_position show legend if `TRUE`
+#' 
+#' @details The template consists of a wrapper (`ggplot_template`) to make multiple
+#' calls to create individual ggplot objects (`ggplot_onerow`). The `object` is a
+#' list constructed by other routines
+#' (`ggpot_traitSolos`, `ggplot_traitPairs`, `ggplot_traitTimes`)
+#' in distinct ways. Signals are passed in subtle ways about how the routines are
+#' adapted for distinct uses:
+#' \itemize{
+#' \item{shape_sex}{different shapes by `sex` if `TRUE` (all)}
+#' \item{facet_strain}{facet by `strain` if `TRUE` (Solos, Pairs); used in tricky ways for Times}
+#' \item{legend_position}{"none" (Solos, Pairs) or "bottom" (Times)}
+#' \item{drop_xlab}{drop xlab from all but last ggplot object (Solos, Times)}
+#' \item{parallel_lines}{}
+#' }
+#' Other peculiarities are more deeply embedded in attributes either to the `object`
+#' or to the elements of the list in `object.`
+#' \itemize{
+#' \item{traitnames}{trait names as `dataset: trait` (`object` for all)}
+#' \item{response}{"value","cellmean","signal" (Solos,Pairs)}
+#' \item{smooth_method}{"lm" (Solos,Pairs), "loess" (timetype == "strain"; Times), "line" (timetype == "stats"; Times)}
+#' \item{pair}{pair of traits (Pairs), "time" and trait name (Times)}
+#' \item{sep}{separator " ON " (Pairs)}
+#' \item{timetype}{"strain","stats" (Times)}
+#' \item{time}{"minute","week" (timetype == "strain") or "minute_summary","week_summary" (timetype == "stats") (Times)}
+#' }
+#' In addition the presence or absence of a column for "condition" affects whether
+#' faceting or coloring is based on "sex" or "sex_condition".
+#' **Want to facet on strain and sex_condition if response==value and Times (not implemented yet).**
 #'
 #' @return object of class ggplot
 #' @importFrom RColorBrewer brewer.pal
@@ -55,7 +85,6 @@ ggplot_onerow <- function(object,
                             facet_strain = FALSE,
                             shape_sex = FALSE,
                             boxplot = FALSE,
-                            horizontal = FALSE,
                             pairplot = attr(object, "pair"),
                             title = "",
                             xname = "value",
@@ -66,10 +95,26 @@ ggplot_onerow <- function(object,
   smooth_method <- attr(object, "smooth_method")
   # Response
   response <- attr(object, "response")
-  
+  timetype <- attr(object, "timetype")
+
   # Allow for dataset grouping for traits
   if(!is.null(pairplot)) {
-    form <- ". ~"
+    # If called from ggplot_traitTimes and timetype == "strain"
+    if(gpname <- (pairplot[1] == "time" &&
+       timetype == "strain" &&
+       response == "value")) {
+      if(facet_strain) {
+        if("condition" %in% names(object))
+          form <- "sex_condition ~"
+        else
+          form <- "sex ~"
+      } else {
+        form <- "strain ~"
+      }
+    } else {
+      # If called from ggplot_traitPairs or timetype == "stats
+      form <- ". ~"
+    }
   } else {
     if("dataset" %in% names(object)) {
       tmp <- dplyr::distinct(object, .data$dataset, .data$trait)
@@ -104,13 +149,11 @@ ggplot_onerow <- function(object,
     condition <- "term"
   
   # Code for trait pair plot.
-  if(!is.null(pairplot))
+  if(!is.null(pairplot)) {
     object <- parallels(object, ..., pair = pairplot)
-  
-  # Make sure strain is in proper order
-#  object <- dplyr::mutate(
-#    object,
-#    strain = factor(.data$strain, names(foundr::CCcolors)))
+    # Jitter x slightly if 
+    #object <- 
+  }
   
   p <- ggplot2::ggplot(object)
   
@@ -120,23 +163,28 @@ ggplot_onerow <- function(object,
   }
   
   if(facet_strain) {
+    form <- stats::formula(paste(form, "strain"))
+  } else {
+    form <- stats::formula(paste(form, condition))
+  }
+  if(facet_strain & !gpname) {
     fillname <- condition
     ncond <- sort(unique(object[[condition]]))
     plotcolors <- RColorBrewer::brewer.pal(
       n = max(3, length(ncond)), name = "Dark2")
     names(plotcolors) <- ncond[seq_len(length(ncond))]
-    
-    form <- stats::formula(paste(form, "strain"))
   } else {
     fillname <- "strain"
     plotcolors <- foundr::CCcolors
-    
-    form <- stats::formula(paste(form, condition))
   }
-  
+  if(gpname)
+    gpname <- "animal"
+  else
+    gpname <- fillname
+
   if(!is.null(pairplot)) {
     # Code for trait pair plots and time plots.
-    p <- strain_lines(object, p, plotcolors, fillname,
+    p <- strain_lines(object, p, plotcolors, fillname, gpname,
                       pair = pairplot, smooth_method = smooth_method,
                       condition = condition,
                       ...)
@@ -144,21 +192,18 @@ ggplot_onerow <- function(object,
     if(response == "p.value")
       p <- p + ggplot2::scale_y_log10()
   } else {
-    if(horizontal) {
-      p <- p +
-        ggplot2::aes(.data[[xname]], .data[[fillname]]) +
-        ggplot2::xlab("")
-    } else {
-      p <- p +
-        ggplot2::aes(.data[[fillname]], .data[[xname]]) +
-        ggplot2::ylab("")
-    }
+    p <- p +
+      ggplot2::aes(.data[[fillname]], .data[[xname]]) +
+      ggplot2::ylab("")
   }
   
   p <- p +
     ggplot2::scale_fill_manual(values = plotcolors) +
     ggplot2::facet_grid(form, scales = "free_y")
   
+  size <- 3
+  if(pairplot[1] == "time")
+    size <- 1
   if(shape_sex) {
     p <- p +
       ggplot2::geom_jitter(
@@ -166,7 +211,7 @@ ggplot_onerow <- function(object,
           shape = .data$sex,
           fill = .data[[fillname]]),
         width = 0.25, height = 0,
-        size = 3, color = "black", alpha = 0.65) +
+        size = size, color = "black", alpha = 0.65) +
       ggplot2::scale_shape_manual(values = c(23, 22))
   } else {
     p <- p +
@@ -175,7 +220,7 @@ ggplot_onerow <- function(object,
           fill = .data[[fillname]]),
         shape = 21, 
         width = 0.25, height = 0,
-        size = 3, color = "black", alpha = 0.65)
+        size = size, color = "black", alpha = 0.65)
   }
   
   if(title != "")
@@ -236,6 +281,7 @@ strain_lines <- function(
     p,
     plotcolors = foundr::CCcolors,
     fillname = "strain",
+    gpname = fillname,
     line_strain = (response == "value"),
     parallel_lines = TRUE,
     smooth_method = attr(object, "smooth_method"),
@@ -253,8 +299,10 @@ strain_lines <- function(
   response <- attr(object, "response")
   
   # Set x and y to the pair of traits.
-  p <- p +
-    ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
+  if(smooth_method == "loess")
+    p <- p + ggplot2::aes(jitter(.data[[pair[1]]], 0.2), .data[[pair[2]]])
+  else
+    p <- p + ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
   
   if(line_strain) {
     if(parallel_lines) {
@@ -271,7 +319,7 @@ strain_lines <- function(
         p <- p +
           ggplot2::geom_line(
             ggplot2::aes(
-              group = .data[[fillname]], col = .data[[fillname]]),
+              group = .data[[gpname]], col = .data[[fillname]]),
             linewidth = 1) +
           ggplot2::scale_color_manual(values = plotcolors)
         
@@ -279,7 +327,7 @@ strain_lines <- function(
         p <- p +
           ggplot2::geom_smooth(
             ggplot2::aes(
-              group = .data[[fillname]], col = .data[[fillname]]),
+              group = .data[[gpname]], col = .data[[fillname]]),
             method = smooth_method, se = FALSE, formula = "y ~ x",
             span = span, linewidth = 1) +
           ggplot2::scale_color_manual(values = plotcolors)

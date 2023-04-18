@@ -7,7 +7,7 @@
 ggplot_template(object, ..., drop_xlab = FALSE, legend_position = "none")
 }
 \arguments{
-\item{object, x}{data frame to be plotted}
+\item{object}{list of data frames to be plotted}
 
 \item{...}{additional parameters}
 
@@ -20,12 +20,41 @@ ggplot_template(object, ..., drop_xlab = FALSE, legend_position = "none")
 \item{shape_sex}{use different shape by sex if `TRUE`}
 
 \item{boxplot}{overlay boxplot if `TRUE`}
-
-\item{horizontal}{flip vertical and horizontal axis if `TRUE`}
 }
 \value{
 object of class ggplot
 }
 \description{
-GGplot template for other routines
+This routine is used by multiple others (`traitSolos`, `traitPairs`, `traitTimes`),
+providing one place for specialized plotting code to avoid duplication and improve
+visualization. However, it has some quirks to meet all needs. See details.
+}
+\details{
+The template consists of a wrapper (`ggplot_template`) to make multiple
+calls to create individual ggplot objects (`ggplot_onerow`). The `object` is a
+list constructed by other routines
+(`ggpot_traitSolos`, `ggplot_traitPairs`, `ggplot_traitTimes`)
+in distinct ways. Signals are passed in subtle ways about how the routines are
+adapted for distinct uses:
+\itemize{
+\item{shape_sex}{different shapes by `sex` if `TRUE` (all)}
+\item{facet_strain}{facet by `strain` if `TRUE` (Solos, Pairs); used in tricky ways for Times}
+\item{legend_position}{"none" (Solos, Pairs) or "bottom" (Times)}
+\item{drop_xlab}{drop xlab from all but last ggplot object (Solos, Times)}
+\item{parallel_lines}{}
+}
+Other peculiarities are more deeply embedded in attributes either to the `object`
+or to the elements of the list in `object.`
+\itemize{
+\item{traitnames}{trait names as `dataset: trait` (`object` for all)}
+\item{response}{"value","cellmean","signal" (Solos,Pairs)}
+\item{smooth_method}{"lm" (Solos,Pairs), "loess" (timetype == "strain"; Times), "line" (timetype == "stats"; Times)}
+\item{pair}{pair of traits (Pairs), "time" and trait name (Times)}
+\item{sep}{separator " ON " (Pairs)}
+\item{timetype}{"strain","stats" (Times)}
+\item{time}{"minute","week" (timetype == "strain") or "minute_summary","week_summary" (timetype == "stats") (Times)}
+}
+In addition the presence or absence of a column for "condition" affects whether
+faceting or coloring is based on "sex" or "sex_condition".
+**Want to facet on strain and sex_condition if response==value and Times (not implemented yet).**
 }

@@ -174,6 +174,7 @@ ggplot_traitTimes <- function(object,
       function(x) {
         out <- dplyr::rename(x, time = timecol)
         attr(out, "response") <- response
+        attr(out, "timetype") <- timetype
         out
       })
   
