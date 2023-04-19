@@ -101,6 +101,7 @@ ggplot_onerow <- function(object,
   timetype <- attr(object, "timetype")
 
   # Allow for dataset grouping for traits
+  gpname <- FALSE
   if(!is.null(pairplot)) {
     # If called from ggplot_traitTimes and timetype == "strain"
     if(gpname <- (pairplot[1] == "time" &&
@@ -205,7 +206,7 @@ ggplot_onerow <- function(object,
     ggplot2::facet_grid(form, scales = "free_y")
   
   size <- 3
-  if(pairplot[1] == "time")
+  if(!is.null(pairplot) && pairplot[1] == "time")
     size <- 1
   if(shape_sex) {
     p <- p +

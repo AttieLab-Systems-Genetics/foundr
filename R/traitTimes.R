@@ -67,7 +67,7 @@ strain_time <- function(traitData,
         -.data$cellmean)
     })
   
-  # Rename timecol to `time`. Add "wk" to `week column if it is "minute".
+  # Rename timecol to `time`. 
   timecol <- match.arg(timecol)
   
   # Filter object based on traitnames.
