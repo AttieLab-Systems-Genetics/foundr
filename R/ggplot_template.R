@@ -37,7 +37,10 @@
 #' }
 #' In addition the presence or absence of a column for "condition" affects whether
 #' faceting or coloring is based on "sex" or "sex_condition".
-#' **Want to facet on strain and sex_condition if response==value and Times (not implemented yet).**
+#' Typically, parameter `facet_strain` controls facet vs color:
+#' if `TRUE`, facet by `strain` and color by `sex` and `condition`;
+#' if `FALSE` facet by `sex` and `condition` and color by `strain`;
+#' however, if a Times plot with `response` == "value", then color by `strain`.
 #'
 #' @return object of class ggplot
 #' @importFrom RColorBrewer brewer.pal
@@ -300,7 +303,8 @@ strain_lines <- function(
   
   # Set x and y to the pair of traits.
   if(smooth_method == "loess")
-    p <- p + ggplot2::aes(jitter(.data[[pair[1]]], 0.2), .data[[pair[2]]])
+    p <- p + ggplot2::aes(jitter(.data[[pair[1]]], 0.2), .data[[pair[2]]]) +
+    ggplot2::xlab(pair[1])
   else
     p <- p + ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
   
