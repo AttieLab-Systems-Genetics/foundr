@@ -18,7 +18,7 @@ strain_time(
 
 \item{traitSignal}{data from with trait signals}
 
-\item{traitnames}{names of `dataset: trait`}
+\item{traitnames}{names of `dataset: trait` without `timecol` information}
 
 \item{response}{character string for type of response}
 

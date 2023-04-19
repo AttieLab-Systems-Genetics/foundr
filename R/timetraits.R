@@ -45,12 +45,21 @@ timetraits <- function(traitSignal, timecol = c("week","minute","week_summary","
     unite_datatraits(
       dplyr::mutate(
         datatraits,
+        # Replace _MM_NNwk by _NNwk:MM
+        trait =
+          stringr::str_replace(
+            .data$trait,
+            "_([0-9]+)_([0-9]+wk)$",
+            "_\\2:\\1"),
+        # Remove _NNwk or :MM only at end of name.
         trait = 
+          # Remove :MM$
           stringr::str_remove(
+            # Remove _NNwk$
             stringr::str_remove(
               .data$trait,
               "_[0-9]+wk$"),
-            "_[0-9]+$")))
+            ":[0-9]+$")))
   
   # Unite dataset, trait into `traitnames` = `dataset: trait` vector.
   unite_datatraits(

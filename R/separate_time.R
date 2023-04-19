@@ -24,8 +24,8 @@ separate_time <- function(object, traitnames,
     timeunit,
     minute = {
       str_time  <- "_([0-9]+)_([0-9]+wk)$"
-      str_colon <- ":\\1:\\2"
-      str_names <- c("trait", "minute", "week")
+      str_colon <- "_\\2:\\1"
+      str_names <- c("trait", "minute")
     },
     week   = {
       str_time  <- "_([0-9]+)wk$"
@@ -34,8 +34,8 @@ separate_time <- function(object, traitnames,
     },
     minute_summary = {
       str_time  <- "_(AUC|Emax|Tmax|HalfLife)_([0-9]+wk)$"
-      str_colon <- ":\\1:\\2"
-      str_names <- c("trait", "minute_summary", "week")
+      str_colon <- "_\\2:\\1"
+      str_names <- c("trait", "minute_summary")
     },
     week_summary = {
       str_time  <- "_(Ave|Vmax|Tmax|Slope)$"

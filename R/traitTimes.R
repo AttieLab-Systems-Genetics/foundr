@@ -26,7 +26,7 @@ traitTimes <- function(object, ...) {
 #' 
 #' @param traitData data frame with trait data
 #' @param traitSignal data from with trait signals
-#' @param traitnames names of `dataset: trait`
+#' @param traitnames names of `dataset: trait` without `timecol` information
 #' @param response character string for type of response
 #' @param timecol column to use for time
 #' @param ... additional parameters ignored
