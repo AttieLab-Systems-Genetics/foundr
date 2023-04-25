@@ -62,10 +62,7 @@ ggplot_template <- function(object,
   if(is.null(object))
     return(plot_null("No Traits to Plot."))
   
-  response <- attr(object, "response")
-
   plots <- purrr::map(object, ggplot_onerow,
-                      response = response,
                       legend_position = legend_position, ...)
   
   lplots <- length(plots)
@@ -199,6 +196,7 @@ ggplot_onerow <- function(object,
     p <- strain_lines(object, p, plotcolors, fillname, gpname,
                       pair = pairplot, smooth_method = smooth_method,
                       condition = condition,
+                      response = response,
                       ...)
     # Make -log10(p.value) scale further rescaled.
     if(response == "p.value")
@@ -298,8 +296,9 @@ strain_lines <- function(
     parallel_lines = TRUE,
     smooth_method = attr(object, "smooth_method"),
     pair = NULL,
-    span = ifelse(condition == "term", 0.75, 0.4),
+    span = 0.4,
     condition = "sex",
+    response = "value",
     ...) {
   
   if(is.null(pair))
@@ -309,8 +308,6 @@ strain_lines <- function(
     smooth_method <- "lm"
   if(length(unique(object[[pair[1]]])) < 4 & smooth_method == "loess")
     smooth_method <- "line"
-  
-  response <- attr(object, "response")
   
   # Set x and y to the pair of traits.
   if(smooth_method == "loess")
@@ -324,7 +321,7 @@ strain_lines <- function(
       p <- p +
         ggplot2::geom_line(
           ggplot2::aes(
-            group = .data[[fillname]], col = .data[[fillname]],
+            group = .data[[gpname]], col = .data[[fillname]],
             y = .data$.fitted),
           linewidth = 1) +
         ggplot2::scale_color_manual(values = plotcolors)

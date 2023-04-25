@@ -186,7 +186,7 @@ ggplot_traitTimes <- function(object,
   ggplot_template(
     object,
     line_strain = TRUE,
-    parallel_lines = (timetype != "stats") &
+    parallel_lines = FALSE &
       (timecol %in% c("week_summary","minute_summary")),
     xlab = timecol,
     facet_time = facet_time,
