@@ -155,25 +155,19 @@ ggplot_onerow <- function(object,
   # Code for trait pair plot.
   if(!is.null(pairplot)) {
     object <- parallels(object, ..., pair = pairplot)
-    # Jitter x slightly if 
-    #object <- 
   }
   
-  p <- ggplot2::ggplot(object)
-  
-  if(boxplot) {
-    p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA,
-                                   outlier.shape = NA)
-  }
-  
+  # Facet formula.
   if(facet_strain) {
     form <- stats::formula(paste(form, "strain"))
   } else {
     form <- stats::formula(paste(form, condition))
   }
+  
+  # Plot colors.
+  ncond <- unique(object[[condition]])
   if(facet_strain & !gpname) {
     fillname <- condition
-    ncond <- sort(unique(object[[condition]]))
     plotcolors <- RColorBrewer::brewer.pal(
       n = max(3, length(ncond)), name = "Dark2")
     names(plotcolors) <- ncond[seq_len(length(ncond))]
@@ -181,10 +175,24 @@ ggplot_onerow <- function(object,
     fillname <- "strain"
     plotcolors <- foundr::CCcolors
   }
+  
+  # Group for plotting by animal.
   if(gpname)
     gpname <- "animal"
   else
     gpname <- fillname
+  
+  # Factor for condition and strain to keep in right order.
+  object[[condition]] <- factor(object[[condition]], ncond)
+  if("strain" %in% names(object) & condition != "term")
+    object$strain <- factor(object$strain, names(foundr::CCcolors))
+
+  p <- ggplot2::ggplot(object)
+  
+  if(boxplot) {
+    p <- p + ggplot2::geom_boxplot(col = "gray", fill = NA,
+                                   outlier.shape = NA)
+  }
 
   if(!is.null(pairplot)) {
     # Code for trait pair plots and time plots.

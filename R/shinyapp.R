@@ -119,62 +119,25 @@ foundrServer <- function(input, output, session,
   })
   
   traitDataInput <- shiny::reactive({
-    newdata <- newtraitdata()
-    if(!is.null(newdata)) {
-      if(is.null(traitdata)) {
-        traitdata <- newdata
-      } else {
-        # Append new data
-        trnames <- names(traitdata)
-        newtrnames <- names(newtraitdata())
-        keepcol <- match(newtrnames, trnames, nomatch = 0)
-        if(any(keepcol == 0)) {
-          # Drop unused columns (see verifyColumns for column handling)
-          newtrnames[newtrnames[keepcol == 0]] <- NULL
-        }
-        traitdata <- dplyr::bind_rows(
-          traitdata,
-          newtraitdata()[trnames[keepcol]])
-      }
-    }
-    #mutate_datasets(traitdata, customSettings$dataset)
-    traitdata
+    bindNewTraitData(newtraitdata(), traitdata)
   })
   # Trait Stats: <dataset>, trait, term, SD, p.value
   traitStatsInput <- shiny::reactive({
     shiny::req(traitDataInput(), datasets())
 
-    # Create stats for new data
-    if(!is.null(newtraitdata())) {
-      newtraitstats <- progress(newtraitdata(), strainstats, "Stats")
-      if(!is.null(newtraitstats)) {
-        traitstats <- dplyr::bind_rows(
-          traitstats,
-          newtraitstats)
-      }
-    }
-    if(!is.null(traitstats)) {
-      if(!"dataset" %in% names(traitstats))
-        traitstats$dataset <- unique(traitDataInput()$dataset)[1]
-    }
-    #mutate_datasets(traitstats, customSettings$dataset)
-    traitstats
+    progress(
+      "Stats",
+      bindNewTraitStats,
+      newtraitdata(), traitDataInput(), traitstats)
   })
   # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, cellmean
   traitSignalInput <- shiny::reactive({
     shiny::req(traitDataInput(), datasets())
 
-    # Create signal for new data
-    if(!is.null(newtraitdata())) {
-      newtraitsignal <- progress(newtraitdata(), partition, "Signal")
-      if(!is.null(newtraitsignal)) {
-        traitsignal <- dplyr::bind_rows(
-          traitsignal,
-          newtraitsignal)
-      }
-    }
-    #mutate_datasets(traitsignal, customSettings$dataset)
-    traitsignal
+    progress(
+      "Signal",
+      bindNewTraitSignal,
+      newtraitdata(), traitsignal)
   })
 
   # SELECTING SUBSETS OF INPUT DATA by dataset

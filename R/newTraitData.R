@@ -14,8 +14,8 @@ newTraitData <- function(datapath, condition_name, dataset_name) {
   trnames <- names(newdata)
   
   # Need error handling here with useful message.
-  cnames <- c("dataset","trait", "strain", "sex", "condition", "value")
-  if(!all(cnames[-c(1,5)] %in% trnames))
+  cnames <- c("dataset","trait", "strain", "sex", "animal", "condition", "value")
+  if(!all(cnames[-c(1,6)] %in% trnames))
     return(NULL)
   
   if(condition_name %in% trnames) {
@@ -50,4 +50,70 @@ newTraitData <- function(datapath, condition_name, dataset_name) {
     dplyr::mutate(
       dplyr::group_by(newdata, .data$dataset, .data$trait),
       value = nqrank(.data$value, jitter = TRUE)))
+}
+bindNewTraitData <- function(newdata = NULL, traitdata = NULL, ...) {
+  # Trait Data: <dataset>, strain, sex, animal, <condition>, trait, value 
+  if(!is.null(newdata)) {
+    if(is.null(traitdata)) {
+      traitdata <- newdata
+    } else {
+      # Append new data
+      trnames <- names(traitdata)
+      newtrnames <- names(newdata)
+      keepcol <- match(newtrnames, trnames, nomatch = 0)
+      if(any(keepcol == 0)) {
+        # Drop unused columns (see verifyColumns for column handling)
+        newtrnames[newtrnames[keepcol == 0]] <- NULL
+      }
+      traitdata <- dplyr::bind_rows(
+        traitdata,
+        newdata[trnames[keepcol]])
+    }
+  }
+  traitdata
+}
+
+bindNewTraitStats <- function(newdata = NULL, traitdata = NULL, traitstats = NULL, ...) {
+  # Trait Stats: <dataset>, trait, term, SD, p.value
+  
+  # Create stats for new data
+  if(!is.null(newdata)) {
+    newtraitstats <- strainstats(newdata)
+    if(!is.null(newtraitstats)) {
+      traitstats <- dplyr::bind_rows(
+        traitstats,
+        newtraitstats)
+    }
+  }
+  if(!is.null(traitstats)) {
+    if(!"dataset" %in% names(traitstats))
+      traitstats$dataset <- unique(traitdata$dataset)[1]
+  }
+  traitstats
+}
+
+bindNewTraitSignal <- function(newdata = NULL, traitsignal = NULL, ...) {
+  # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, cellmean
+
+  # Create signal for new data
+  if(!is.null(newdata)) {
+    newtraitsignal <- partition(newdata)
+    if(!is.null(newtraitsignal)) {
+      traitsignal <- dplyr::bind_rows(
+        traitsignal,
+        newtraitsignal)
+    }
+  }
+  traitsignal
+}
+
+checkdata <- function(data) {
+  dplyr::filter(
+    dplyr::summarise(
+      dplyr::group_by(
+        data,
+        dataset, sex, condition, trait, strain),
+      n = dplyr::n(),
+      .groups = "drop"),
+    n > 1L)
 }

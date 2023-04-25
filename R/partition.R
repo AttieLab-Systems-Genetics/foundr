@@ -17,6 +17,7 @@
 #' @importFrom dplyr across arrange bind_rows distinct everything filter mutate select
 #' @importFrom purrr map
 #' @importFrom stats formula lm predict resid
+#' @importFrom broom augment
 #' @importFrom rlang .data
 #' 
 #' @export
@@ -42,26 +43,27 @@ partition <- function(object,
   }
   
   # Somehow this give extra entries when there are missing values.
-  
+
   redfit <- function(object) {
+    # Reduced model: value ~ rest
     formred <- stats::formula(paste(value, "~", rest))
     fitred <- stats::lm(formred, object)
-    resids <- rep(NA, nrow(object))
-    resids[!is.na(object[[value]])] <- stats::resid(fitred)
-    preds <- rep(NA, nrow(object))
-    preds[!is.na(object[[value]])] <- stats::predict(fitred)
     object <- 
-      dplyr::mutate(
-        object,
-        residred = resids,
-        rest = preds)
+      dplyr::select(
+        dplyr::rename(
+          broom::augment(fitred, object),
+          rest = ".fitted",
+          residred = ".resid"),
+        strain:residred)
+
+    # Full model: value ~ signal + rest, or resids ~ signal
     formful <- stats::formula(paste("residred", "~", signal))
     fitful <- stats::lm(formful, object)
-    preds <- rep(NA, nrow(object))
-    preds[!is.na(object[[value]])] <- stats::predict(fitful)
-    object <- dplyr::mutate(
-      dplyr::select(object, -.data$residred),
-      signal = preds)
+    dplyr::select(
+      dplyr::rename(
+        broom::augment(fitful, object),
+        signal = ".fitted"),
+      strain:signal, -residred)
   }
   
   signal_terms <- 
@@ -80,6 +82,7 @@ partition <- function(object,
       sep = ": ")
   }
   
+  # For each trait, run redfit()
   out <- dplyr::bind_rows(
     purrr::map(
       split(object, object[[trait]]),
@@ -96,12 +99,20 @@ partition <- function(object,
   out <- dplyr::select(
     dplyr::mutate(
       dplyr::distinct(
-        dplyr::filter(
-          out,
-          !is.na(.data[[value]])),
-        dplyr::across(c(signal_terms, "trait", "signal", "rest"))),
+        dplyr::select(
+          dplyr::filter(
+            out,
+            !is.na(.data[[value]])),
+          -animal, -value),
+        dplyr::across(c(signal_terms, "trait")), .keep_all = TRUE),
       cellmean = .data$signal + .data$rest),
-    -.data$rest)
+    -rest)
+  
+  # *** At this point have duplicated data for ***
+  # sex   condition strain
+  #   M     HF_LC   WSB
+  # with Emax, HalfLife, Tmax, AUC for many traits.
+  # Look at area_under_curve(?)
   
   if(is_dataset) {
     # If dataset was in object, restore it from `dataset: trait`
