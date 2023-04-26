@@ -40,7 +40,7 @@ module_band1 <- function(response, traitModule) {
   tModule <- traitModule[[response]]
   
   # Order of traits on traitTree
-  order <- tModule$geneTree$order
+  order <- tModule$dendro$order
   
   # Modules in order of traits on traitTree
   module <- tModule$modules$module[order]

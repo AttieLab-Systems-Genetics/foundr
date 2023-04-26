@@ -20,11 +20,11 @@ ggplot_wgcnaModules <- function(object,
                                   
   p <- list()
   
-  miny <- min(object[[response]]$geneTree$height)
+  miny <- min(object[[response]]$dendro$height)
   p[[1]] <- 
     cowplot::plot_grid(
       plot_null("Height = Dissimilarity", angle = 90),
-      ggdendro::ggdendrogram(object[[response]]$geneTree, labels = FALSE, ...) +
+      ggdendro::ggdendrogram(object[[response]]$dendro, labels = FALSE, ...) +
         ggplot2::ylim(c(miny, 1)) +
         ggplot2::ggtitle(main), # This causes message; how to pass as arg?
       rel_widths = c(1,12))
@@ -71,11 +71,11 @@ ggplot_listof_wgcnaModules <- function(object,
   
   p <- list()
   
-  miny <- min(object[[response]]$geneTree$height)
+  miny <- min(object[[response]]$dendro$height)
   p[[1]] <- 
     cowplot::plot_grid(
       plot_null("Height = Dissimilarity", size = 3, angle = 90),
-      ggdendro::ggdendrogram(object[[response]]$geneTree, labels = FALSE, ...) +
+      ggdendro::ggdendrogram(object[[response]]$dendro, labels = FALSE, ...) +
         ggplot2::ylim(c(miny, 1)) +
         ggplot2::ggtitle(main) +
         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)),

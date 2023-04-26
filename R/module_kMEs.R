@@ -21,12 +21,12 @@ module_kMEs <- function(object) {
       object$modules),
     dplyr::as_tibble)
 
-  if(is_tree <- !is.null(object$geneTree)) {
+  if(is_tree <- !is.null(object$dendro)) {
     # Transpose to get order from module tree.
     ords <- 
       dplyr::as_tibble(
         purrr::transpose(
-          object$geneTree)$order)
+          object$dendro)$order)
     names(ords) <- paste0(names(ords), "_ord")
   }
 

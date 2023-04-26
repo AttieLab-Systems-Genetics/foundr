@@ -23,7 +23,7 @@ join_dataset_modules <- function(dmods, response) {
   dmods <- purrr::transpose(dmods)
   
   # Cannot combine trees, so drop them.
-  dmods$geneTree <- NULL
+  dmods$dendro <- NULL
   
   # Reduce to common IDs
   if(is_animal <- ("animal" %in% names(dmods$ID[[1]])))
