@@ -39,7 +39,7 @@ harmonize <- function(dataset, links, userHarmony, ...,
       dplyr::filter(
         traitStats,
         .data$term != "noise"),
-      is.na(.data$p.value)))$trait
+      is.na(.data$p.value))$trait)
   traitStats <-
     dplyr::filter(
       traitStats,

@@ -24,6 +24,9 @@ moduleHarmony <- function(datasetname,
   
   responsename <- match.arg(responsename)
   
+  # This needs to be modified:
+  # 1) add minSize and cutHeight
+  # 2) specific to dataset$response
   params <- attr(object[[1]], "params")
   params_sign_power <- paste0(
     stringr::str_sub(params$signType, 1, 1),
@@ -52,6 +55,8 @@ moduleHarmony <- function(datasetname,
                     #.    pivot module columns longer into trait and value,
                     #.    bind together across datasets.
                     function(x) {
+                      nonnull_dataset <- !sapply(x, is.null)
+                      x <- x[nonnull_dataset]
                       dplyr::bind_rows(
                         lapply(
                           purrr::transpose(x)$eigen,
