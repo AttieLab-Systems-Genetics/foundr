@@ -89,6 +89,7 @@ ggplot_onerow <- function(object,
                             title = "",
                             xname = "value",
                             legend_position = "none",
+                          legend_nrow = 3,
                             ...) {
   
   # Used for optional lines.
@@ -244,9 +245,9 @@ ggplot_onerow <- function(object,
   if(legend_position == "bottom")
     p <- p + ggplot2::guides(
       color = ggplot2::guide_legend(
-        nrow=3, byrow = TRUE, title = "", label.position = "top"),
+        nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"),
       fill = ggplot2::guide_legend(
-        nrow=3, byrow = TRUE, title = "", label.position = "top"))
+        nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"))
 
   p
 }

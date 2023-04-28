@@ -117,24 +117,27 @@ trait_pairs <- function(traitnames, sep = " ON ") {
 #'
 #' @param object,x object of class `traitPairs`
 #' @param ... 
+#' @param drop_xlab drop xlab for all but last plot if `TRUE`
+#' @param legend_position position of legend ("none" for none)
+#' @param legend_nrow number of rows for legend
 #'
 #' @return ggplot object
 #' @export
 #' @importFrom purrr map
 #' @importFrom cowplot plot_grid
 #'
-ggplot_traitPairs <- function(object, ...) {
+ggplot_traitPairs <- function(object,
+                              ...,
+                              drop_xlab = TRUE,
+                              legend_position = "bottom",
+                              legend_nrow = 1) {
 
-  if(is.null(object) || !nrow(object[[1]]))
-    return(plot_null("No Trait Pairs to Plot."))
-
-  plots <- purrr::map(
+  ggplot_template(
     object,
-    ggplot_onerow,
+    drop_xlab = drop_xlab,
+    legend_position = legend_position,
+    legend_nrow = 1,
     ...)
-  
-  # Patch plots together by rows
-  cowplot::plot_grid(plotlist = plots, nrow = length(plots))
 }
 #' @export
 #' @rdname traitPairs

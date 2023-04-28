@@ -4,12 +4,24 @@
 \alias{ggplot_traitPairs}
 \title{GGplot of trait pairs}
 \usage{
-ggplot_traitPairs(object, ...)
+ggplot_traitPairs(
+  object,
+  ...,
+  drop_xlab = TRUE,
+  legend_position = "bottom",
+  legend_nrow = 1
+)
 }
 \arguments{
 \item{object, x}{object of class `traitPairs`}
 
 \item{...}{}
+
+\item{drop_xlab}{drop xlab for all but last plot if `TRUE`}
+
+\item{legend_position}{position of legend ("none" for none)}
+
+\item{legend_nrow}{number of rows for legend}
 }
 \value{
 ggplot object
