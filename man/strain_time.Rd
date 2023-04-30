@@ -10,6 +10,7 @@ strain_time(
   traitnames = timetraits(traitSignal, timecol)[1],
   response = c("value", "cellmean", "signal"),
   timecol = c("week", "minute", "minute_summary", "week_summary"),
+  strains = names(foundr::CCcolors),
   ...
 )
 }
@@ -23,6 +24,8 @@ strain_time(
 \item{response}{character string for type of response}
 
 \item{timecol}{column to use for time}
+
+\item{strains}{names of strains to subset}
 
 \item{...}{additional parameters ignored}
 }

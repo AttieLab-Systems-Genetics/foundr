@@ -11,6 +11,7 @@ traitTimes(object, ...)
 
 ggplot_traitTimes(
   object,
+  objectSum = NULL,
   ...,
   drop_xlab = TRUE,
   facet_strain = (timetype != "strain"),
@@ -22,7 +23,7 @@ ggplot_traitTimes(
 \method{plot}{traitTimes}(x, ...)
 }
 \arguments{
-\item{object}{object of class `strain_time`}
+\item{object}{data frame with trait data or trait stats from `strainstats`}
 
 \item{...}{additional parameters}
 
@@ -37,6 +38,8 @@ ggplot_traitTimes(
 \item{response}{character string for type of response}
 
 \item{timecol}{column to use for time}
+
+\item{object, objectSum}{object of class `strain_time`}
 }
 \value{
 object of class `traitTimes`

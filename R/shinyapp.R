@@ -37,7 +37,8 @@ foundrUI <- function(title) {
           shiny::tabPanel("Traits", shiny::uiOutput("tab_trait")),
           shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
           shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano")),
-          shiny::tabPanel("Time", shiny::uiOutput("tab_time")),
+          shiny::tabPanel("Time", shinyTimesUI("shinytimes")),
+#          shiny::tabPanel("Time", shiny::uiOutput("tab_time")),
           shiny::tabPanel("About", shiny::uiOutput("intro"))
         )
       )
@@ -64,7 +65,7 @@ foundrUI <- function(title) {
 #'
 #' @return A Server definition that can be passed to the `shinyServer` function.
 #' @export
-#' @importFrom shiny a br checkboxGroupInput checkboxInput column conditionalPanel
+#' @importFrom shiny a br callModule checkboxGroupInput checkboxInput column conditionalPanel
 #'             downloadButton downloadHandler fluidRow isTruthy observeEvent
 #'             plotOutput radioButtons reactive reactiveVal renderPlot renderUI req
 #'             selectInput selectizeInput tagList textInput textAreaInput uiOutput updateSelectizeInput
@@ -84,6 +85,10 @@ foundrServer <- function(input, output, session,
                          traitstats = NULL,
                          traitsignal = NULL,
                          customSettings = NULL) {
+
+  shiny::callModule(shinyTimes, "shinytimes", 
+                    input, 
+                    traitDataInput, traitSignalInput, traitStatsInput)
   
   # Turn customSettings into list if it is scalar.
   if(!is.list(customSettings)) {
@@ -108,7 +113,7 @@ foundrServer <- function(input, output, session,
   
   # INPUT DATA (changes at server call or upload)
   # Trait Data: <dataset>, trait, strain, sex, <condition>, value
-  newtraitdata <- reactive({
+  newtraitdata <- shiny::reactive({
     if(shiny::isTruthy(input$upload)) {
       newTraitData(input$upload$datapath,
                    customSettings$condition,
@@ -218,7 +223,7 @@ foundrServer <- function(input, output, session,
     out
   })
 
-  corobject <- reactive({
+  corobject <- shiny::reactive({
     bestcor(traitSignalSelectType(),
             trait_selection(),
             input$corterm)
@@ -409,10 +414,10 @@ foundrServer <- function(input, output, session,
         escape = FALSE,
         options = list(scrollX = TRUE, pageLength = 10)))
   })
-  statstable <- reactive({
+  statstable <- shiny::reactive({
     stats_time_table(traitTimeSum())
   })
-  timeplots <- reactive({
+  timeplots <- shiny::reactive({
     shiny::req(traitTime(), traitTimeSum())
     
     p1 <- foundr::ggplot_traitTimes(
@@ -517,11 +522,11 @@ foundrServer <- function(input, output, session,
     shiny::plotOutput("distPlot", height = paste0(input$height, "in"))
   })
   
-  termstats <- reactive({
+  termstats <- shiny::reactive({
     shiny::req(traitStatsSelectType())
     termStats(traitStatsSelectType(), FALSE)
   }) 
-  volcanoplot <- reactive({
+  volcanoplot <- shiny::reactive({
     shiny::req(traitStatsSelectType(), input$interact, input$term, input$volsd, input$volpval)
     volcano(traitStatsSelectType(), input$term,
             threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
@@ -745,7 +750,7 @@ foundrServer <- function(input, output, session,
       shiny::plotOutput("scatplot", height = paste0(input$height, "in"))
     )
   })
-  scatsplot <- reactive({
+  scatsplot <- shiny::reactive({
     shiny::req(traitDataSelectTrait(), trait_selection(), input$pair)
     ggplot_traitPairs(
       traitPairs(

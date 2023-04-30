@@ -29,6 +29,7 @@ traitTimes <- function(object, ...) {
 #' @param traitnames names of `dataset: trait` without `timecol` information
 #' @param response character string for type of response
 #' @param timecol column to use for time
+#' @param strains names of strains to subset
 #' @param ... additional parameters ignored
 #'
 #' @importFrom dplyr rename select
@@ -40,6 +41,7 @@ strain_time <- function(traitData,
                         traitnames = timetraits(traitSignal, timecol)[1],
                         response = c("value","cellmean","signal"),
                         timecol = c("week", "minute","minute_summary","week_summary"),
+                        strains = names(foundr::CCcolors),
                         ...) {
   response <- match.arg(response)
   
@@ -70,8 +72,11 @@ strain_time <- function(traitData,
   # Rename timecol to `time`. 
   timecol <- match.arg(timecol)
   
-  # Filter object based on traitnames.
-  object <- separate_time(object, traitnames, timecol)
+  # Filter object based on traitnames and strains.
+  object <- 
+    dplyr::filter(
+      separate_time(object, traitnames, timecol),
+      .data$strain %in% strains)
   
   if(!nrow(object))
     return(NULL)
@@ -136,7 +141,7 @@ template_time <- function(object,
 }
 #' GGplot of Strains over Time
 #'
-#' @param object object of class `strain_time`
+#' @param object,objectSum object of class `strain_time`
 #' @param ... additional parameters
 #' @param drop_xlab drop xlab for all but last plot if `TRUE`
 #' @param legend_position position of legend ("none" for none)
@@ -148,6 +153,7 @@ template_time <- function(object,
 #' @rdname traitTimes
 #'
 ggplot_traitTimes <- function(object,
+                              objectSum = NULL,
                               ...,
                               drop_xlab = TRUE,
                               facet_strain = (timetype != "strain"),
@@ -155,6 +161,15 @@ ggplot_traitTimes <- function(object,
   
   if(is.null(object) || !nrow(object[[1]]))
     return(plot_null("no data for strain_time plot"))
+  
+  if(!is.null(objectSum))
+    return(ggplot_traitTimes_twoplot(
+      object,
+      objectSum,
+      ...,
+      drop_xlab = drop_xlab,
+      facet_strain = facet_strain,
+      legend_position = legend_position))
   
   response <- attr(object, "response")
   
@@ -206,4 +221,33 @@ autoplot.traitTimes <- function(object, ...) {
 #' @method plot traitTimes
 plot.traitTimes <- function(x, ...) {
   autoplot.traitTimes(x, ...)
+}
+
+ggplot_traitTimes_twoplot <- function(
+  object,
+  objectSum,
+  ...,
+  drop_xlab = TRUE,
+  facet_strain = (timetype != "strain"),
+  legend_position = "bottom") {
+  
+  if(!inherits(objectSum, "traitTimes"))
+    return(plot_null("Second argument should be traitTimes object"))
+
+  p1 <- ggplot_traitTimes(
+    object,
+    ...,
+    drop_xlab = drop_xlab,
+    facet_strain = facet_strain,
+    legend_position = legend_position,
+    legend_nrow = 2)
+  
+  p2 <- ggplot_traitTimes(
+    objectSum,
+    ...,
+    drop_xlab = drop_xlab,
+    facet_strain = TRUE,
+    legend_position = legend_position)
+  
+  cowplot::plot_grid(p1,p2, ncol = 2, rel_widths = c(2.5,1))
 }
