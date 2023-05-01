@@ -38,7 +38,6 @@ foundrUI <- function(title) {
           shiny::tabPanel("Correlation", shiny::uiOutput("tab_cor")),
           shiny::tabPanel("Volcano", shiny::uiOutput("tab_volcano")),
           shiny::tabPanel("Time", shinyTimesUI("shinytimes")),
-#          shiny::tabPanel("Time", shiny::uiOutput("tab_time")),
           shiny::tabPanel("About", shiny::uiOutput("intro"))
         )
       )
@@ -86,9 +85,10 @@ foundrServer <- function(input, output, session,
                          traitsignal = NULL,
                          customSettings = NULL) {
 
-  shiny::callModule(shinyTimes, "shinytimes", 
-                    input, 
-                    traitDataInput, traitSignalInput, traitStatsInput)
+  timeout <- shiny::callModule(
+    shinyTimes, "shinytimes", 
+    input, 
+    traitDataInput, traitSignalInput, traitStatsInput)
   
   # Turn customSettings into list if it is scalar.
   if(!is.list(customSettings)) {
@@ -388,69 +388,6 @@ foundrServer <- function(input, output, session,
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
   
-  output$tab_time <- shiny::renderUI({
-    shiny::tagList(
-      shiny::fluidRow(
-        shiny::column(
-          4,
-          shiny::selectInput("time", "Time Unit:", c("week", "minute","week_summary","minute_summary"))),
-        shiny::column(
-          4,
-          shiny::selectizeInput("time_trait", "Traits:", NULL, multiple = TRUE)),
-        shiny::column(
-          4,
-          shiny::selectInput("time_response", "Response:", c("value", "cellmean", "signal")))),
-      
-      shiny::uiOutput("timeplots")
-    )
-  })
-  output$timeplots <- shiny::renderUI({
-    shiny::req(input$height)
-    shiny::tagList(
-      shiny::plotOutput("timeplot", height = paste0(input$height, "in")),
-      
-      DT::renderDataTable(
-        statstable(),
-        escape = FALSE,
-        options = list(scrollX = TRUE, pageLength = 10)))
-  })
-  statstable <- shiny::reactive({
-    stats_time_table(traitTimeSum())
-  })
-  timeplots <- shiny::reactive({
-    shiny::req(traitTime(), traitTimeSum())
-    
-    p1 <- foundr::ggplot_traitTimes(
-      traitTime(),
-      facet_strain = input$facet)
-    
-    p2 <- foundr::ggplot_traitTimes(
-      traitTimeSum(),
-      facet_strain = TRUE)
-    
-    cowplot::plot_grid(p1,p2, ncol = 2, rel_widths = c(2.5,1))
-  })
-  output$timeplot <- shiny::renderPlot({
-    print(timeplots())
-  })
-  shiny::observeEvent(
-    timetraits(),
-    {
-      # Use current selection of trait_selection().
-      # But make sure they are still in the traitNamesArranged().
-      selected <- timetrait_selection()
-      choices <- timetraits()
-      selected <- selected[selected %in% choices]
-      if(!length(selected))
-        selected <- NULL
-      shiny::updateSelectizeInput(session, "time_trait", choices = choices,
-                                  server = TRUE, selected = selected)
-    })
-  timetrait_selection <- shiny::reactiveVal(NULL)
-  shiny::observeEvent(input$time_trait, {
-    timetrait_selection(input$time_trait)
-  })
-  
   # Hide Time tab unless we have time entries.
   shiny::observeEvent(
     input$order,
@@ -464,23 +401,7 @@ foundrServer <- function(input, output, session,
   timetraitsall <- shiny::reactive({
     foundr::timetraitsall(traitSignalInput())
   })
-  timetraits <- shiny::reactive({
-    shiny::req(input$time)
-    foundr::timetraits(traitSignalInput(), input$time)
-  })
-  traitTime <- shiny::reactive({
-    shiny::req(timetrait_selection(), input$time_response, input$time)
-    foundr::traitTimes(
-      traitDataInput(), traitSignalInput(),
-      timetrait_selection(), input$time_response, input$time)
-  })
-  traitTimeSum <- shiny::reactive({
-    shiny::req(timetrait_selection(), input$time)
-    foundr::traitTimes(
-      traitStatsInput(),
-      timetrait_selection(), "p.value", input$time, "terms")
-  })
-  
+
   output$tab_volcano <- shiny::renderUI({
     shiny::tagList(
       shiny::radioButtons("butvol", "Volcano & Effects Plots",
@@ -601,7 +522,7 @@ foundrServer <- function(input, output, session,
         filename <- paste(datasets_selected(), collapse = ".")
       },
       Time = {
-        filename <- paste(timetrait_selection(), collapse = ".")
+        filename <- paste(timeout()$timetraits, collapse = ".")
       })
     
     shiny::textAreaInput("filename", "File Prefix", filename)
@@ -670,7 +591,7 @@ foundrServer <- function(input, output, session,
                  Effects = print(effectsplot()))
         },
         Time = {
-          print(timeplots())
+          print(timeout()$timeplots)
         },
         plot_null("Tab panel with no output."))
       grDevices::dev.off()
@@ -726,7 +647,7 @@ foundrServer <- function(input, output, session,
           Traits = datameans(),
           Correlation = corobject(),
           Volcano = traitStatsArranged(),
-          Time = statstable()),
+          Time = timeout()$statstable),
         file, row.names = FALSE)
     }
   )

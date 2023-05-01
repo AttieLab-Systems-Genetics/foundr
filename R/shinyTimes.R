@@ -45,7 +45,9 @@ shinyTimes <- function(input, output, session,
   # output$timeplots is displayed in parent output$tab_time
   
   # RETURNS
-  # nothing for now
+  # list with
+  #   timeplots() (see timeplots() below)
+  #   statstable() (see statstable() below)
 
   # Not used for now. Refer to shinyapp.R
   output$shiny_time <- shiny::renderUI({
@@ -130,7 +132,14 @@ shinyTimes <- function(input, output, session,
       timetrait_selection(), "p.value", input$time, "terms")
   })
   
-  # Nothing returned for now.
+  # List returned
+  reactive({
+    shiny::req(timetrait_selection(), timeplots(), statstable())
+    list(
+      timeplots = timeplots(),
+      statstable = statstable(),
+      timetraits = timetrait_selection())
+  })
 }
 
       
