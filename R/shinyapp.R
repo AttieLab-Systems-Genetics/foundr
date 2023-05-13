@@ -85,11 +85,13 @@ foundrServer <- function(input, output, session,
                          traitsignal = NULL,
                          customSettings = NULL) {
 
+  # Call Shiny Modules here.
   timeout <- shiny::callModule(
     shinyTimes, "shinytimes", 
     input, 
     traitDataInput, traitSignalInput, traitStatsInput)
   
+  #############################################################
   # Turn customSettings into list if it is scalar.
   if(!is.list(customSettings)) {
     if(length(customSettings) > 1) {
@@ -111,7 +113,42 @@ foundrServer <- function(input, output, session,
       customSettings$dataset["uploaded"] <- "Uploaded"
   }
   
+  #############################################################
   # INPUT DATA (changes at server call or upload)
+  
+  # Parse Data input.
+  # Either have traitData as data frame or `traitObject` (or NULL).
+  
+  traitDataParam <- shiny::reactive({
+    if(inherits(traitdata, "traitObject")) {
+      traitdata$Data
+    } else {
+      traitdata
+    }
+  })
+  traitSignalParam <- shiny::reactive({
+    if(inherits(traitdata, "traitObject")) {
+      traitdata$Signal
+    } else {
+      traitsignal
+    }
+  })
+  traitStatsParam <- shiny::reactive({
+    if(inherits(traitdata, "traitObject")) {
+      traitdata$Stats
+    } else {
+      traitstats
+    }
+  })
+  # New component for Modules. Placeholder for now.
+  traitModulesParam <- shiny::reactive({
+    if(inherits(traitdata, "traitObject")) {
+      traitdata$Modules
+    } else {
+      NULL
+    }
+  })
+  
   # Trait Data: <dataset>, trait, strain, sex, <condition>, value
   newtraitdata <- shiny::reactive({
     if(shiny::isTruthy(input$upload)) {
@@ -124,7 +161,7 @@ foundrServer <- function(input, output, session,
   })
   
   traitDataInput <- shiny::reactive({
-    bindNewTraitData(newtraitdata(), traitdata)
+    bindNewTraitData(newtraitdata(), traitDataParam())
   })
   # Trait Stats: <dataset>, trait, term, SD, p.value
   traitStatsInput <- shiny::reactive({
@@ -133,8 +170,9 @@ foundrServer <- function(input, output, session,
     progress(
       "Stats",
       bindNewTraitStats,
-      newtraitdata(), traitDataInput(), traitstats)
+      newtraitdata(), traitDataInput(), traitStatsParam())
   })
+
   # Trait Signal: <dataset>, strain, sex, <condition>, trait, signal, cellmean
   traitSignalInput <- shiny::reactive({
     shiny::req(traitDataInput(), datasets())
@@ -142,7 +180,7 @@ foundrServer <- function(input, output, session,
     progress(
       "Signal",
       bindNewTraitSignal,
-      newtraitdata(), traitsignal)
+      newtraitdata(), traitSignalParam())
   })
 
   # SELECTING SUBSETS OF INPUT DATA by dataset
@@ -252,6 +290,7 @@ foundrServer <- function(input, output, session,
                 shiny::req(input$strains))
   })
   
+  #############################################################
   # Render UIs for shiny UI
   output$intro <- foundrIntro(customSettings$help)
   output$upload <- shiny::renderUI({
@@ -325,6 +364,7 @@ foundrServer <- function(input, output, session,
     trait_selection(input$trait)
   })
   
+  #############################################################
   # Output: Plots or Data
   output$tab_trait <- shiny::renderUI({
     shiny::tagList(
@@ -527,6 +567,8 @@ foundrServer <- function(input, output, session,
     
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
+  
+  #############################################################
   output$downloads <- renderUI({
     shiny::tagList(
       shiny::fluidRow(
@@ -652,6 +694,7 @@ foundrServer <- function(input, output, session,
     }
   )
   
+  #############################################################
   output$pair <- shiny::renderUI({
     # Somehow when input$height is changed this is reset.
     shiny::req(trait_selection())

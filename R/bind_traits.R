@@ -32,8 +32,6 @@ bind_traits <- function(datasets, dirname = ".") {
   saveRDS(traitStats, "traitStats.rds")
   readr::write_csv(traitStats, "traitStats.csv")
   
-  rm(traitStats)
-  
   traitData <- 
     dplyr::filter(
       bind_traits_object(datasets, "Data", dirname),
@@ -41,8 +39,6 @@ bind_traits <- function(datasets, dirname = ".") {
   
   saveRDS(traitData, "traitData.rds")
   readr::write_csv(traitData, "traitData.csv")
-  
-  rm(traitData)
   
   traitSignal <-
     dplyr::filter(
@@ -52,9 +48,14 @@ bind_traits <- function(datasets, dirname = ".") {
   saveRDS(traitSignal, "traitSignal.rds")
   readr::write_csv(traitSignal, "traitSignal.csv")
   
-  rm(traitSignal)
+  traitObject <- list(
+    Data = traitData,
+    Signal = traitSignal,
+    Stats = traitStats)
+  class(traitObject) <- c("traitObject", class(traitObject))
+  saveRDS(traitObject, "traitObject.rds")
   
-  invisible()
+  invisible(traitObject)
 }
 bind_traits_object <- function(datasets, filetype, dirname = ".") {
   # This assumes columns are in right order.
