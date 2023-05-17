@@ -562,7 +562,7 @@ foundrServer <- function(input, output, session,
         filename <- paste(datasets_selected(), collapse = ".")
       },
       Time = {
-        filename <- paste(timeout()$timetraits, collapse = ".")
+        filename <- paste(timeout()$traits, collapse = ".")
       })
     
     shiny::textAreaInput("filename", "File Prefix", filename)
@@ -633,7 +633,7 @@ foundrServer <- function(input, output, session,
                  Effects = print(effectsplot()))
         },
         Time = {
-          print(timeout()$timeplots)
+          print(timeout()$plot)
         },
         plot_null("Tab panel with no output."))
       grDevices::dev.off()
@@ -689,7 +689,7 @@ foundrServer <- function(input, output, session,
           Traits = datameans(),
           Correlation = corobject(),
           Volcano = traitStatsArranged(),
-          Time = timeout()$statstable),
+          Time = timeout()$table),
         file, row.names = FALSE)
     }
   )

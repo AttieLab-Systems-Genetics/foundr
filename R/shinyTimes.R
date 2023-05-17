@@ -138,9 +138,9 @@ shinyTimes <- function(input, output, session,
   reactive({
     shiny::req(timetrait_selection(), timeplots(), statstable())
     list(
-      timeplots = timeplots(),
-      statstable = statstable(),
-      timetraits = timetrait_selection())
+      plot = timeplots(),
+      table = statstable(),
+      traits = timetrait_selection())
   })
 }
 
