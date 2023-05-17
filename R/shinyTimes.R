@@ -4,6 +4,7 @@
 #'
 #' @return nothing returned
 #' @rdname shinyTimes
+#' @export
 #'
 shinyTimesUI <- function(id) {
   ns <- NS(id)
@@ -24,6 +25,7 @@ shinyTimesUI <- function(id) {
 #'             tagList uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
 #' @importFrom cowplot plot_grid
+#' @export
 #'
 shinyTimes <- function(input, output, session,
                        main_par,
