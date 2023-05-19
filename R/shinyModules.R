@@ -4,11 +4,12 @@
 #'
 #' @return nothing returned
 #' @rdname shinyModules
+#' @export
 #'
 shinyModulesUI <- function(id) {
   ns <- NS(id)
   shiny::tagList(
-    shiny::uiOutput(ns("shiny_time"))
+    shiny::uiOutput(ns("shiny_module"))
   )
 }
 
@@ -24,11 +25,18 @@ shinyModulesUI <- function(id) {
 #'             tagList uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
 #' @importFrom cowplot plot_grid
+#' @export
 #'
 shinyModules <- function(input, output, session,
                        main_par,
-                       traitDataInput, traitSignalInput, traitStatsInput) {
+                       traitDataInput, traitSignalInput, traitStatsInput,
+                       traitModule) {
   ns <- session$ns
+  
+  # Call Shiny Modules here.
+  dendroOut <- shiny::callModule(
+    shinyDendro, "shinydendro", 
+    input, main_par, traitModule)
   
   # INPUTS
   # passed inputs: (see shinyapp.R)
@@ -49,96 +57,85 @@ shinyModules <- function(input, output, session,
   #   timeplots() (see timeplots() below)
   #   statstable() (see statstable() below)
 
-  # Not used for now. Refer to shinyapp.R
-  output$shiny_time <- shiny::renderUI({
+  datasets <- shiny::reactive(
+    c("LivMet","PlaMet0","PlaMet120","Metab"))
+  responses <- shiny::reactive(
+    c("value","cellmean","signal","rest","noise"))
+  
+  output$shiny_module <- shiny::renderUI({
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(
           4,
-          shiny::selectInput(ns("time"), "Time Unit:",
-                             c("week", "minute","week_summary","minute_summary"))),
+          shiny::selectInput(
+            ns("dataset"), "Dataset:",
+            datasets())),
         shiny::column(
           4,
-          shiny::selectizeInput(ns("time_trait"), "Traits:",
-                                NULL, multiple = TRUE)),
-        shiny::column(
+          shiny::selectInput(
+            ns("response"), "Response:",
+            responses())),
+          shiny::column(
           4,
-          shiny::selectInput(ns("time_response"), "Response:",
-                             c("value", "cellmean", "signal")))),
+          shiny::radioButtons(
+            ns("butmod"), "Module Plots",
+            c("Dendrogram", "Modules"), "Dendrogram",
+            inline = TRUE))),
       
-      shiny::uiOutput(ns("timeplots"))
-    )
+      shiny::uiOutput(ns("condmod")))
   })
   
-  # Main return
-  output$timeplots <- shiny::renderUI({
-    shiny::req(main_par$height)
+  output$condmod <- shiny::renderUI({
+    switch(
+      input$butmod,
+      Dendrogram = shinyDendroUI(ns("shinydendro")),
+      Modules = shiny::uiOutput(ns("dendro")))
+  })
+  #        shiny::uiOutput(ns("dendro"))))#,
+  
+  
+  ###############################################
+  # Dendrogram
+  output$dendro <- shiny::renderUI({
+    shiny::req(main_par$height, input$dataset, input$response)
     shiny::tagList(
-      shiny::plotOutput(ns("timeplot"), height = paste0(main_par$height, "in")),
-      
+      shiny::plotOutput(ns("moduleplot"),
+                        height = paste0(main_par$height, "in")),
+
       DT::renderDataTable(
-        statstable(),
+        moduletable(),
         escape = FALSE,
         options = list(scrollX = TRUE, pageLength = 10)))
   })
   
-  statstable <- shiny::reactive({
-    stats_time_table(traitModulesum())
+  moduletable <- shiny::reactive({
+    shiny::req(traitModule(), input$dataset, input$response)#, input$butmod)
+    dplyr::filter(
+      summary(traitModule()[[input$dataset]]),
+      response == input$response)
   })
-  timeplots <- shiny::reactive({
-    shiny::req(traitTime(), traitModulesum(), main_par$strains)
+  moduleplots <- shiny::reactive({
+    shiny::req(traitModule(), input$dataset, input$response)#, input$butmod)
 
-    ggplot_traitModules(
-      traitTime(),
-      traitModulesum(),
-      facet_strain = main_par$facet)
+    foundr::ggplot_listof_wgcnaModules(
+      traitModule()[[input$dataset]],
+      input$response)
   })
-  output$timeplot <- shiny::renderPlot({
-    print(timeplots())
+  output$moduleplot <- shiny::renderPlot({
+    print(moduleplots())
   })
-  shiny::observeEvent(
-    timetraits(),
-    {
-      # Use current selection of trait_selection().
-      # But make sure they are still in the traitNamesArranged().
-      selected <- timetrait_selection()
-      choices <- timetraits()
-      selected <- selected[selected %in% choices]
-      if(!length(selected))
-        selected <- NULL
-      shiny::updateSelectizeInput(session, "time_trait", choices = choices,
-                                  server = TRUE, selected = selected)
-    })
-  timetrait_selection <- shiny::reactiveVal(NULL)
-  shiny::observeEvent(input$time_trait, {
-    timetrait_selection(input$time_trait)
-  })
-  
-  timetraits <- shiny::reactive({
-    shiny::req(input$time)
-    foundr::timetraits(traitSignalInput(), input$time)
-  })
-  traitTime <- shiny::reactive({
-    shiny::req(timetrait_selection(), input$time_response, input$time)
-    foundr::traitModules(
-      traitDataInput(), traitSignalInput(),
-      timetrait_selection(), input$time_response, input$time,
-      strains = main_par$strains)
-  })
-  traitModulesum <- shiny::reactive({
-    shiny::req(timetrait_selection(), input$time)
-    foundr::traitModules(
-      traitStatsInput(),
-      timetrait_selection(), "p.value", input$time, "terms")
-  })
+
+  ###############################################
+  # Module comparisons
+  # See WGCNAshiny.Rmd
   
   # List returned
   reactive({
-    shiny::req(timetrait_selection(), timeplots(), statstable())
+    shiny::req(input$dataset, input$response, moduleplots(), moduletable())
     list(
-      timeplots = timeplots(),
-      statstable = statstable(),
-      timetraits = timetrait_selection())
+      plot = print(moduleplots()),
+      table = moduletable(),
+      traits = c(input$dataset, input$response))
   })
 }
 

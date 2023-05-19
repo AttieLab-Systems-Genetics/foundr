@@ -14,7 +14,8 @@ shinyModules(
   main_par,
   traitDataInput,
   traitSignalInput,
-  traitStatsInput
+  traitStatsInput,
+  traitModule
 )
 }
 \arguments{
