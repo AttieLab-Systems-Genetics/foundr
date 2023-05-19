@@ -85,11 +85,21 @@ foundrServer <- function(input, output, session,
                          traitsignal = NULL,
                          customSettings = NULL) {
 
+  ####################################################
   # Call Shiny Modules here.
   timeout <- shiny::callModule(
     shinyTimes, "shinytimes", 
     input, 
     traitDataInput, traitSignalInput, traitStatsInput)
+  
+  # Call module--goes in shinyapp.R or the test app.R
+  volcanoOut <- shiny::callModule(
+    shinyVolcano, "shinyvolcano", 
+    input, 
+    traitStatsSelectType, traitStatsArranged)
+  
+  ####################################################
+  
   
   #############################################################
   # Turn customSettings into list if it is scalar.
@@ -449,6 +459,7 @@ foundrServer <- function(input, output, session,
                           "Volcano", inline = TRUE),
       shiny::conditionalPanel(
         condition = "input.butvol == 'Volcano'",
+        #shinyVolcanoUI("shinyvolcano")
         shiny::uiOutput("volcano")),
       shiny::conditionalPanel(
         condition = "input.butvol == 'Effects'",

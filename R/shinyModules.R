@@ -51,15 +51,6 @@ shinyModules <- function(input, output, session,
   #   input$response
   #   input$butmod
   
-  # OUTPUTS
-  # output$shiny_module is returned via shinyModulesUI
-  # output$timeplots is displayed in parent output$tab_time
-  
-  # RETURNS
-  # list with
-  #   plots() (see timeplots() below)
-  #   table() (see statstable() below)
-
   datasets <- shiny::reactive(
     c("LivMet","PlaMet0","PlaMet120","Metab"))
   responses <- shiny::reactive(
