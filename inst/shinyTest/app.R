@@ -97,7 +97,9 @@ server <- function(input, output, session) {
   # MODULE INPUT: File Prefix
   output$filename <- renderUI({
     shiny::req(moduleOutput())
-    filename <- paste(moduleOutput()$traits, collapse = ".")
+    filename <- paste0(
+      "module_",
+      paste(moduleOutput()$traits, collapse = "."))
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
 

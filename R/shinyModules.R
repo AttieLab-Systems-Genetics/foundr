@@ -36,26 +36,29 @@ shinyModules <- function(input, output, session,
   # Call Shiny Modules here.
   dendroOut <- shiny::callModule(
     shinyDendro, "shinydendro", 
-    input, main_par, traitModule)
+    main_par, traitModule)
+  modcompOut <- shiny::callModule(
+    shinyModuleComp, "shinymodcomp", 
+    main_par, traitModule)
   
   # INPUTS
-  # passed inputs: (see shinyapp.R)
+  # Main inputs: (see shinyapp.R)
   #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
   #   main_par$facet (see shinyapp.R::foundrServer output$settings)
   #.  main_par$strains (see shinyapp.R::foundrServer output$strains)
-  # local inputs: (see output$tab_time below)
-  #   time
-  #   time_trait
-  #   time_response
+  # Modules inputs: (see output$shiny_module below)
+  #   input$dataset
+  #   input$response
+  #   input$butmod
   
   # OUTPUTS
-  # output$tab_time is returned via shinyModulesUI
+  # output$shiny_module is returned via shinyModulesUI
   # output$timeplots is displayed in parent output$tab_time
   
   # RETURNS
   # list with
-  #   timeplots() (see timeplots() below)
-  #   statstable() (see statstable() below)
+  #   plots() (see timeplots() below)
+  #   table() (see statstable() below)
 
   datasets <- shiny::reactive(
     c("LivMet","PlaMet0","PlaMet120","Metab"))
@@ -79,7 +82,7 @@ shinyModules <- function(input, output, session,
           4,
           shiny::radioButtons(
             ns("butmod"), "Module Plots",
-            c("Dendrogram", "Modules"), "Dendrogram",
+            c("Dendrogram", "Modules","Other"), "Dendrogram",
             inline = TRUE))),
       
       shiny::uiOutput(ns("condmod")))
@@ -89,7 +92,8 @@ shinyModules <- function(input, output, session,
     switch(
       input$butmod,
       Dendrogram = shinyDendroUI(ns("shinydendro")),
-      Modules = shiny::uiOutput(ns("dendro")))
+      Modules = shinyModuleCompUI(ns("shinymodcomp")),
+      Other = shiny::uiOutput(ns("dendro")))
   })
   #        shiny::uiOutput(ns("dendro"))))#,
   
@@ -131,11 +135,18 @@ shinyModules <- function(input, output, session,
   
   # List returned
   reactive({
-    shiny::req(input$dataset, input$response, moduleplots(), moduletable())
-    list(
-      plot = print(moduleplots()),
-      table = moduletable(),
-      traits = c(input$dataset, input$response))
+    shiny::req(input$dataset, input$response, moduleplots(), moduletable(),
+               input$butmod)
+    switch(
+      input$butmod,
+      Dendrogram = dendroOut(),
+      Modules = modcompOut(),
+      Other = {
+        list(
+          plot = print(moduleplots()),
+          table = moduletable(),
+          traits = c(input$dataset, input$response))
+      })
   })
 }
 
