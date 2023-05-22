@@ -14,11 +14,21 @@ traitData$dataset <- "Enrich"
 traitSignal$dataset <- "Enrich"
 traitStats$dataset <- "Enrich"
 
+harmonizeddir <- "/mnt/researchdrive/adattie/General/founder_diet_study/HarmonizedData"
+traitDir <- "Normalized" # "Unnormalized"
+filename <- file.path(harmonizeddir, traitDir, "traitModule.rds")
+if(file.exists(filename)) {
+  traitModule <- readRDS(filename)
+} else {
+  traitModule <- NULL
+}
+
+
 ################################################################
 
 title <- "Test Shiny Module"
-testApp <- foundr::shinyTimes
-testUI <- foundr::shinyTimesUI
+testApp <- foundr::shinyModules
+testUI <- foundr::shinyModulesUI
 
 ui <- function() {
   # INPUTS
@@ -73,11 +83,15 @@ server <- function(input, output, session) {
   traitStatsInput <- shiny::reactive({
     traitStats
   })
-
+  traitModuleInput <- shiny::reactive({
+    traitModule
+  })
+  
   moduleOutput <- shiny::callModule(
     testApp, "shinyTest", 
     input, 
-    traitDataInput, traitSignalInput, traitStatsInput)
+    traitDataInput, traitSignalInput, traitStatsInput,
+    traitModuleInput)
   
   # I/O FROM MODULE
   # MODULE INPUT: File Prefix
