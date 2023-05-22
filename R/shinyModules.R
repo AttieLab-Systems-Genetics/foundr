@@ -36,7 +36,7 @@ shinyModules <- function(input, output, session,
   # Call Shiny Modules here.
   dendroOut <- shiny::callModule(
     shinyDendro, "shinydendro", 
-    main_par, traitModule)
+    input, main_par, traitModule)
   modcompOut <- shiny::callModule(
     shinyModuleComp, "shinymodcomp", 
     main_par, traitModule)
@@ -61,6 +61,12 @@ shinyModules <- function(input, output, session,
       shiny::fluidRow(
         shiny::column(
           4,
+          shiny::radioButtons(
+            ns("butmod"), "Module Plots",
+            c("Dendrogram", "Modules","Other"), "Dendrogram",
+            inline = TRUE)),
+        shiny::column(
+          4,
           shiny::selectInput(
             ns("dataset"), "Dataset:",
             datasets())),
@@ -68,13 +74,7 @@ shinyModules <- function(input, output, session,
           4,
           shiny::selectInput(
             ns("response"), "Response:",
-            responses())),
-          shiny::column(
-          4,
-          shiny::radioButtons(
-            ns("butmod"), "Module Plots",
-            c("Dendrogram", "Modules","Other"), "Dendrogram",
-            inline = TRUE))),
+            responses()))),
       
       shiny::uiOutput(ns("condmod")))
   })

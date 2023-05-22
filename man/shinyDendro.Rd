@@ -7,14 +7,14 @@
 \usage{
 shinyDendroUI(id)
 
-shinyDendro(input, output, session, main_par, traitModule)
+shinyDendro(input, output, session, module_par, main_par, traitModule)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
 \item{input, output, session}{standard shiny arguments}
 
-\item{main_par}{reactive arguments from `foundrServer`}
+\item{module_par, main_par}{reactive arguments from `foundrServer` and `shinyModules`}
 
 \item{traitModule}{reactive object with list created by `listof_wgcnamodules`}
 }
