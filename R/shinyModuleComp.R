@@ -14,7 +14,7 @@ shinyModuleCompUI <- function(id) {
 #' Shiny Module Server for Dendro Plots
 #'
 #' @param input,output,session standard shiny arguments
-#' @param main_par reactive arguments from `foundrServer` 
+#' @param module_par,main_par reactive arguments from `foundrServer` and `shinyModules`
 #' @param traitModule reactive object with list created by `listof_wgcnamodules`
 #'
 #' @return reactive object for `shinyModuleCompUI`
@@ -24,73 +24,23 @@ shinyModuleCompUI <- function(id) {
 #' @export
 #'
 shinyModuleComp <- function(input, output, session,
-                        main_par, traitModule) {
+                        module_par, main_par, traitModule) {
   ns <- session$ns
   
   # INPUTS
-  # Main inputs: (see shinyapp.R)
+  # foundrServer inputs: (see shinyapp.R)
   #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
-  # Dendro inputs: (see shinyModules.R)
-  #   input$dataset
-  #   input$response
+  # shinyModules inputs: (see shinyModules.R)
+  #   module_par$dataset
+  #   module_par$response
+  #   module_par$responseF Facet Response
+  #   module_par$responseC Color Response
+  # shinyModuleComp inputs: (see output$shiny_modcomp below)
+  #   input$fmodules  Facet Modules
+  #   input$cmodules  Color Modules
 
-  # OUTPUTS
-  # output$dendro dendro plot and table
-  
-  # RETURNS
-  # list with
-  #   plot (see dendroplots() below)
-  #   table (see dendrotable() below)
-  
-  datasets <- shiny::reactive(
-    c("LivMet","PlaMet0","PlaMet120","Metab"))
-  responses <- shiny::reactive(
-    c("value","cellmean","signal","rest","noise"))
-  
   output$shiny_modcomp <- shiny::renderUI({
     shiny::tagList(
-      shiny::fluidRow(
-        shiny::column(
-          6,
-          shiny::selectInput(
-            ns("dataset"), "Dataset:",
-            datasets())),
-        shiny::column(
-          6,
-          shiny::selectInput(
-            ns("response"), "Response:",
-            responses()))),
-      
-      shiny::uiOutput(ns("modcomp")))
-  })
-  
-  mods <- shiny::reactive({
-    shiny::req(input$dataset)
-    foundr::module_kMEs(traitModule()[[input$dataset]])
-  })
-  fmodules <- shiny::reactive({
-    shiny::req(mods(), input$responseF)
-    levels(mods()[[paste0(input$responseF, "_col")]])
-  })
-  cmodules <- shiny::reactive({
-    shiny::req(mods(), input$responseC)
-    levels(mods()[[paste0(input$responseC, "_col")]])
-  })
-  
-  output$modcomp <- shiny::renderUI({
-    shiny::tagList(
-      shiny::fluidRow(
-        shiny::column(
-          4,
-          shiny::selectInput(
-            ns("responseF"), "Facet Response:",
-            "cellmean")),
-        shiny::column(
-          4,
-          shiny::selectInput(
-            ns("responseC"), "Color Response:",
-            "value"))),
-
       shiny::fluidRow(
         shiny::column(
           4,
@@ -113,37 +63,29 @@ shinyModuleComp <- function(input, output, session,
     )
   })
   
-  responseFs <- shiny::reactive({
-    shiny::req(input$response)
-    unique(c(input$response, responses))
+  # Module kME information
+  mods <- shiny::reactive({
+    shiny::req(module_par$dataset)
+    foundr::module_kMEs(traitModule()[[module_par$dataset]])
   })
-  responseCs <- shiny::reactive({
-    shiny::req(input$responseF)
-    responses()[responses() != input$responseF]
+  fmodules <- shiny::reactive({
+    shiny::req(mods(), module_par$responseF)
+    levels(mods()[[paste0(module_par$responseF, "_col")]])
+  })
+  cmodules <- shiny::reactive({
+    shiny::req(mods(), module_par$responseC)
+    levels(mods()[[paste0(module_par$responseC, "_col")]])
   })
   shiny::observeEvent(
-    input$response,
+    module_par$responseF,
     {
-      shiny::updateSelectInput(
-        session, "responseF",
-        choices = responseFs(),
-        selected = responseFs()[1])
-    })
-  shiny::observeEvent(
-    input$responseF,
-    {
-      shiny::updateSelectInput(
-        session, "responseC",
-        choices = responseCs(),
-        selected = responseCs()[1])
-      
       shiny::updateSelectInput(
         session, "fmodules",
         choices = fmodules(),
         selected = fmodules())
     })
   shiny::observeEvent(
-    input$responseC,
+    module_par$responseC,
     {
       shiny::updateSelectInput(
         session, "cmodules",
@@ -152,31 +94,31 @@ shinyModuleComp <- function(input, output, session,
     })
   
   moddata <- shiny::reactive({
-    shiny::req(mods(), input$responseF, input$responseC,
+    shiny::req(mods(), module_par$responseF, module_par$responseC,
                input$fmodules, input$cmodules)
     
-    foundr::subset_module_kMEs(mods(), input$responseF, input$responseC,
+    foundr::subset_module_kMEs(mods(), module_par$responseF, module_par$responseC,
                                facetmodules = input$fmodules, colormodules = input$cmodules)
   })
 
   modcompplot <- shiny::reactive({
-    shiny::req(moddata(), input$responseF, input$responseC)
+    shiny::req(moddata(), module_par$responseF, module_par$responseC)
     
     ggplot2::autoplot(
       moddata(),
-      input$responseF, input$responseC, input$abs)
+      module_par$responseF, module_par$responseC, input$abs)
   })
   modcomptable <- shiny::reactive({
-    shiny::req(traitModule(), input$dataset, input$response)
+    shiny::req(traitModule(), module_par$dataset, module_par$response)
     
     dplyr::arrange(
       tidyr::pivot_wider(
         dplyr::select(
-          summary(traitModule()[[input$dataset]]),
+          summary(traitModule()[[module_par$dataset]]),
           -maxkME, -minkME),
         names_from = "response", values_from = "count",
         values_fill = 0),
-      dplyr::desc(.data[[input$response]]))
+      dplyr::desc(.data[[module_par$response]]))
   })
   output$modcomply <- shiny::renderUI({
     shiny::req(modcompplot(), modcomptable())
@@ -197,14 +139,11 @@ shinyModuleComp <- function(input, output, session,
   ###############################################
   # List returned
   reactive({
-    shiny::req(input$dataset, input$response,
+    shiny::req(module_par$dataset, module_par$responseF, module_par$responseC,
                modcompplot(), modcomptable())
     list(
       plot = print(modcompplot()),
       table = modcomptable(),
-      traits = c(input$dataset, input$response))
+      traits = c(module_par$dataset, module_par$responseF, module_par$responseC))
   })
 }
-
-      
-  

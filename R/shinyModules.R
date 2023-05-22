@@ -35,18 +35,21 @@ shinyModules <- function(input, output, session,
   
   # Call Shiny Modules here.
   dendroOut <- shiny::callModule(
-    shinyDendro, "shinydendro", 
+    shinyModuleDendro, "shinydendro", 
     input, main_par, traitModule)
   modcompOut <- shiny::callModule(
     shinyModuleComp, "shinymodcomp", 
-    main_par, traitModule)
+    input, main_par, traitModule)
+  eigenOut <- shiny::callModule(
+    shinyModuleEigen, "shinyeigen", 
+    input, main_par, traitModule)
   
   # INPUTS
-  # Main inputs: (see shinyapp.R)
+  # foundrServer inputs: (see shinyapp.R)
   #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
   #   main_par$facet (see shinyapp.R::foundrServer output$settings)
   #.  main_par$strains (see shinyapp.R::foundrServer output$strains)
-  # Modules inputs: (see output$shiny_module below)
+  # shinyModules inputs: (see output$shiny_module below)
   #   input$dataset
   #   input$response
   #   input$butmod
@@ -63,7 +66,7 @@ shinyModules <- function(input, output, session,
           4,
           shiny::radioButtons(
             ns("butmod"), "Module Plots",
-            c("Dendrogram", "Modules","Other"), "Dendrogram",
+            c("Dendrogram", "Modules","Eigens"), "Dendrogram",
             inline = TRUE)),
         shiny::column(
           4,
@@ -80,64 +83,68 @@ shinyModules <- function(input, output, session,
   })
   
   output$condmod <- shiny::renderUI({
-    switch(
-      input$butmod,
-      Dendrogram = shinyDendroUI(ns("shinydendro")),
-      Modules = shinyModuleCompUI(ns("shinymodcomp")),
-      Other = shiny::uiOutput(ns("dendro")))
-  })
-  #        shiny::uiOutput(ns("dendro"))))#,
-  
-  
-  ###############################################
-  # Dendrogram
-  output$dendro <- shiny::renderUI({
-    shiny::req(main_par$height, input$dataset, input$response)
+    shiny::req(input$butmod)
     shiny::tagList(
-      shiny::plotOutput(ns("moduleplot"),
-                        height = paste0(main_par$height, "in")),
-
-      DT::renderDataTable(
-        moduletable(),
-        escape = FALSE,
-        options = list(scrollX = TRUE, pageLength = 10)))
+      shiny::uiOutput(ns("modresp")),
+      
+      switch(
+        input$butmod,
+        Dendrogram = shinyModuleDendroUI(ns("shinydendro")),
+        Modules    = shinyModuleCompUI(ns("shinymodcomp")),
+        Eigens     = shinyModuleEigenUI(ns("shinyeigen")))
+    )
+    
+  })
+  output$modresp <- shiny::renderUI({
+    if(input$butmod %in% c("Modules", "Eigens")) {
+      shiny::fluidRow(
+        shiny::column(
+          4,
+          shiny::selectInput(
+            ns("responseF"), "Facet Response:",
+            "cellmean")),
+        shiny::column(
+          4,
+          shiny::selectInput(
+            ns("responseC"), "Color Response:",
+            "value")))
+    }
   })
   
-  moduletable <- shiny::reactive({
-    shiny::req(traitModule(), input$dataset, input$response)#, input$butmod)
-    dplyr::filter(
-      summary(traitModule()[[input$dataset]]),
-      response == input$response)
+  # Responses for color (C) and facet (F)
+  responseFs <- shiny::reactive({
+    shiny::req(input$response)
+    unique(c(input$response, responses()))
   })
-  moduleplots <- shiny::reactive({
-    shiny::req(traitModule(), input$dataset, input$response)#, input$butmod)
+  responseCs <- shiny::reactive({
+    shiny::req(input$responseF)
+    responses()[responses() != input$responseF]
+  })
+  shiny::observeEvent(
+    input$response,
+    {
+      shiny::updateSelectInput(
+        session, "responseF",
+        choices = responseFs(),
+        selected = responseFs()[1])
+    })
+  shiny::observeEvent(
+    input$responseF,
+    {
+      shiny::updateSelectInput(
+        session, "responseC",
+        choices = responseCs(),
+        selected = responseCs()[1])
+    })
 
-    foundr::ggplot_listof_wgcnaModules(
-      traitModule()[[input$dataset]],
-      input$response)
-  })
-  output$moduleplot <- shiny::renderPlot({
-    print(moduleplots())
-  })
-
-  ###############################################
-  # Module comparisons
-  # See WGCNAshiny.Rmd
-  
   # List returned
   reactive({
-    shiny::req(input$dataset, input$response, moduleplots(), moduletable(),
-               input$butmod)
+    shiny::req(input$dataset, input$response, input$butmod)
     switch(
       input$butmod,
       Dendrogram = dendroOut(),
-      Modules = modcompOut(),
-      Other = {
-        list(
-          plot = print(moduleplots()),
-          table = moduletable(),
-          traits = c(input$dataset, input$response))
-      })
+      Modules    = modcompOut(),
+      Eigens     = eigenOut())
   })
 }
 

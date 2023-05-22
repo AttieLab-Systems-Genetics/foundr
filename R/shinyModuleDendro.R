@@ -3,10 +3,10 @@
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyDendro
+#' @rdname shinyModuleDendro
 #' @export
 #'
-shinyDendroUI <- function(id) {
+shinyModuleDendroUI <- function(id) {
   ns <- NS(id)
   shiny::uiOutput(ns("shiny_dendro"))
 }
@@ -17,20 +17,20 @@ shinyDendroUI <- function(id) {
 #' @param module_par,main_par reactive arguments from `foundrServer` and `shinyModules`
 #' @param traitModule reactive object with list created by `listof_wgcnamodules`
 #'
-#' @return reactive object for `shinyDendroUI`
+#' @return reactive object for `shinyModuleDendroUI`
 #' @importFrom shiny plotOutput reactive renderPlot renderUI req
 #'             tagList uiOutput
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyDendro <- function(input, output, session,
+shinyModuleDendro <- function(input, output, session,
                         module_par, main_par, traitModule) {
   ns <- session$ns
   
   # INPUTS
-  # Main inputs: (see shinyapp.R)
+  # foundrServer inputs: (see shinyapp.R)
   #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
-  # Dendro inputs: (see shinyModules.R)
+  # shinyModules inputs: (see shinyModules.R)
   #   module_par$dataset
   #   module_par$response
 
