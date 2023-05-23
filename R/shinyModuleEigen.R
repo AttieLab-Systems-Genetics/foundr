@@ -60,9 +60,7 @@ shinyModuleEigen <- function(input, output, session,
     # *** also when returning to moduleComp it loses info.
     ggplot2::autoplot(
       eigens(),
-      module_par$responseF, module_par$responseC,
-      facetmodules = input$fmodules,
-      colormodules = input$cmodules)
+      module_par$responseF, module_par$responseC)
   })
   
   eigentable <- shiny::reactive({
