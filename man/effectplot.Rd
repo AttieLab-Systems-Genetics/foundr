@@ -11,7 +11,7 @@ effectplot(object, traitnames = NULL, correlated = NULL, ...)
 
 \item{traitnames}{`traitnames` to show}
 
-\item{correlated}{correlated `traitnames` to overlay on boxplot}
+\item{correlated}{correlated `traitnames` to overlay on boxplot (optional)}
 
 \item{...}{additional parameters}
 }

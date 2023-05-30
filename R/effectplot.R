@@ -2,7 +2,7 @@
 #'
 #' @param object data frame from `strainstats()`
 #' @param traitnames `traitnames` to show
-#' @param correlated correlated `traitnames` to overlay on boxplot
+#' @param correlated correlated `traitnames` to overlay on boxplot (optional)
 #' @param ... additional parameters
 #'
 #' @return ggplot object
@@ -59,6 +59,7 @@ effectplot <- function(object, traitnames = NULL,
     names_to = "stats",
     values_to = "value")
   
+  # Add columns for `model`, `selected` and `sizes`.
   object <- dplyr::arrange(
     dplyr::mutate(
       object,
@@ -86,7 +87,9 @@ effectplot <- function(object, traitnames = NULL,
   ggplot2::ggplot(object) +
     ggplot2::aes(.data$terms, .data$value,
                  col = .data$selected) +
+    # Boxplot for all traits.
     ggplot2::geom_boxplot(color = "black", outlier.size = 0.5, outlier.color = "gray80") +
+    # Add jittered points for `selected` traits coming from `correlated` or `corobj`
     ggplot2::geom_jitter(inherit.aes = FALSE,
                          data = subset(object, !is.na(selected)),
                          ggplot2::aes(.data$terms, .data$value,
@@ -95,15 +98,15 @@ effectplot <- function(object, traitnames = NULL,
                                       stroke = .data$sizes),
                          shape = 1, width = 0.2, height = 0) +
     ggplot2::scale_size(range = c(0.5,2), guide = "none") +
-    ggplot2::facet_grid(stats ~ model, scales = "free") +
+    # Facet on `stats` (type of stats) and `model` (parts and terms)
+    ggplot2::facet_grid(.data$stats ~ .data$model, scales = "free") +
     ggplot2::ylab("") +
     ggplot2::scale_color_manual(values = selected_colors, name = "Traits") +
     ggplot2::theme(
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
 }
 effecthelper <- function(corobj = NULL, mincor = NULL, ...) {
-  # but it is possible trait is compound of condition:trait in some cases.
-  # can ignore that to begin.
+  # Extract datatraits column (`dataset: trait`) from corobj if provided.
   
   if(is.null(corobj) | is.null(mincor))
     return(NULL)
