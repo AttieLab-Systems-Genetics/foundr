@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 rsconnect/
 inst/shinyApp/rsconnect
+^foundr\.Rproj$
