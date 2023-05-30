@@ -1,10 +1,12 @@
-#' Shiny Module UI for Times Plot
+#' Shiny Module UI for Volcano Plot
 #'
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
 #' @rdname shinyVolcano
+#' @export
 #'
+
 shinyVolcanoUI <- function(id) {
   ns <- NS(id)
   shiny::tagList(
@@ -21,8 +23,11 @@ shinyVolcanoUI <- function(id) {
 #' @return reactive object for `shinyVolcanoUI`
 #' @importFrom shiny column fluidRow observeEvent plotOutput reactive
 #'             reactiveVal renderPlot renderUI req selectInput selectizeInput
-#'             tagList uiOutput updateSelectizeInput
-#' @importFrom DT renderDataTable
+#'             tagList uiOutput updateSelectizeInput sliderInput renderUI 
+#' @importFrom DT renderDataTable dataTableOutput
+#' @importFrom plotly plotlyOutput ggplotly renderPlotly
+#' @importFrom ggplot2 ylim
+#' @export
 #'
 shinyVolcano <- function(input, output, session,
                        main_par,
@@ -32,7 +37,7 @@ shinyVolcano <- function(input, output, session,
   # INPUTS
   # Main inputs: (see shinyapp.R)
   #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
-  # Volcano inputs: (see output$tab_time below)
+  # Volcano inputs: (see output$tab_volcano below)
   #   input$term
   #   input$traitnames
   #   input$interact
@@ -49,10 +54,10 @@ shinyVolcano <- function(input, output, session,
           shiny::selectInput(ns("term"), "Volcano term:", termstats())),
         shiny::column(
           4,
-          shiny::selectInput(ns("traitnames"), "Trait names:", c("no","yes"), "yes")),
+          shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
         shiny::column(
           4,
-          shiny::selectInput(ns("interact"), "Interactive?", c("no","yes"), "no"))),
+          shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
       
       # Condition for plot based on `interact` parameter.
       shiny::uiOutput(ns("condinteract")),
@@ -74,7 +79,7 @@ shinyVolcano <- function(input, output, session,
             2, step = 0.5))),
     
       # Data table.
-      DT::dataTableOutput("tablesum"))
+      DT::dataTableOutput(ns("tablesum")))
   })
   
   output$condinteract <- shiny::renderUI({
@@ -86,12 +91,17 @@ shinyVolcano <- function(input, output, session,
     }
   })
   
+  termstats <- shiny::reactive({
+    shiny::req(traitStatsSelectType())
+    termStats(traitStatsSelectType(), FALSE)
+  }) 
+  
   volcanoplot <- shiny::reactive({
-    shiny::req(traitStatsSelectType(), input$interact, input$term, input$volsd, input$volpval)
+    shiny::req(traitStatsSelectType(), input$term, input$volsd, input$volpval)
     volcano(traitStatsSelectType(), input$term,
             threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
-            interact = (input$interact == "yes"),
-            traitnames = (input$traitnames == "yes"))
+            interact = (input$interact),
+            traitnames = (input$traitnames))
   })
   output$volcanoly <- plotly::renderPlotly({
     plotly::ggplotly(
@@ -107,9 +117,10 @@ shinyVolcano <- function(input, output, session,
     {
       shiny::req(traitStatsSelectType(), input$volsd, input$volpval, input$term)
       summary_strainstats(
-        mutate_datasets(
-          traitStatsSelectType(),
-          customSettings$dataset),
+      # do we need this?
+      #  mutate_datasets(
+        traitStatsSelectType(),
+      #    customSettings$dataset),
         terms = input$term,
         threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
     },

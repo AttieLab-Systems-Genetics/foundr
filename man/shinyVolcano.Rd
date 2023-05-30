@@ -3,7 +3,7 @@
 \name{shinyVolcanoUI}
 \alias{shinyVolcanoUI}
 \alias{shinyVolcano}
-\title{Shiny Module UI for Times Plot}
+\title{Shiny Module UI for Volcano Plot}
 \usage{
 shinyVolcanoUI(id)
 
@@ -31,7 +31,7 @@ nothing returned
 reactive object for `shinyVolcanoUI`
 }
 \description{
-Shiny Module UI for Times Plot
+Shiny Module UI for Volcano Plot
 
 Shiny Module Server for Volcano Plots
 }
