@@ -17,40 +17,31 @@ shinyEffectsUI <- function(id) {
 #'
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
-#' @param traitDataInput,traitSignalInput,traitStatsInput reactive objects from `foundrServer`
+#' @param traitStatsSelectType,traitStatsArranged reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyEffectsUI`
-#' @importFrom shiny column fluidRow observeEvent plotOutput reactive
-#'             reactiveVal renderPlot renderUI req selectInput selectizeInput
-#'             tagList uiOutput updateSelectizeInput
-#' @importFrom DT renderDataTable
-#' @importFrom dplyr arrange filter mutate rename
-#' @importFrom ggplot2 aes element_text facet_grid geom_boxplot
-#'             geom_jitter ggplot scale_size theme
-#' @importFrom tidyr pivot_longer unite
-#' @importFrom rlang .data
-#'
+#' @importFrom reactiveVal req renderUI tagList uiOutput renderPlot reactive
+#'             tagList uiOutput updateSelectizeInput sliderInput renderUI
+#' @importFrom DT renderDataTable dataTableOutput
 #' @export
 #'
 shinyEffects <- function(input, output, session,
                          main_par,
-                         traitDataInput, traitSignalInput, traitStats) {
+                         traitStatsSelectType, traitStatsArranged) {
   ns <- session$ns
 
-
+  corobject <- NULL
+  trait_selection <- shiny::reactiveVal(NULL)
 
   # INPUTS
   # Effects inputs: (see output$tab_effects below)
   #   input$corterm
   #   input$mincor
-  #   input$volsd
-  #   input$volpval
   #   input$term
 
   # OUTPUTS
   # output$tab_effects is returned via shinyEffectsUI
-  # output$effects is displayed in parent output$tab_effects
-  # output$corplot
+  # output$effectsplot is displayed in parent output$tab_effects
   # output$tablesum
 
 
@@ -62,7 +53,7 @@ shinyEffects <- function(input, output, session,
 
 
   output$shiny_effects <- shiny::renderUI({
-    trstats <- shiny::req(traitStats())
+    trstats <- shiny::req(traitStatsSelectType())
     shiny::tagList(
 
       # Condition for plot based on `interact` parameter.
@@ -74,35 +65,38 @@ shinyEffects <- function(input, output, session,
 
 
 
-  ###############
-  output$corplot <- shiny::renderPlot({
-    shiny::req(input$mincor, corobject())
-    if(is.null(corobject()) || !nrow(corobject()))
-      return(print(plot_null("Need to specify at least one trait.")))
-
-    print(corplot())
-  })
-
   ######### CHANGE THIS  #########
 
-  # corobject <- shiny::reactive({
-  #   bestcor(traitSignalSelectType(),
-  #           trait_selection(),
-  #           input$corterm)
+  corobject <- shiny::reactive({
+    bestcor(traitSignalSelectType(),
+            trait_selection(),
+            input$corterm)
+  })
+
+
+  #corobject <- NULL
+
+  ####################################
+  # effectsplot <- shiny::reactive({
+  #   if(shiny::isTruthy(corobject()))
+  #     corobj <- corobject()
+  #   else
+  #     corobj <- NULL
+  #   print(effectplot(traitStatsSelectType(), trait_selection(),
+  #                    effecthelper(corobj, input$mincor)))
   # })
 
 
-  corobject <- NULL
 
-  ####################################
   effectsplot <- shiny::reactive({
-    if(shiny::isTruthy(corobject()))
-      corobj <- corobject()
-    else
-      corobj <- NULL
+    corobj <- NULL
+
     print(effectplot(traitStatsSelectType(), trait_selection(),
                      effecthelper(corobj, input$mincor)))
   })
+
+
+  ####################
 
   output$effects <- shiny::renderPlot({
     effectsplot()
@@ -110,25 +104,26 @@ shinyEffects <- function(input, output, session,
 
   output$tablesum <- DT::renderDataTable(
     {
-      shiny::req(traitStatsSelectType(), input$volsd, input$volpval, input$term)
+      shiny::req(traitStatsSelectType())
       summary_strainstats(
-        # do we need this?
+        #  do we need this?
         #  mutate_datasets(
-        traitStatsSelectType(),
-        #    customSettings$dataset),
-        terms = input$term,
-        threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
+        traitStatsSelectType())
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
 
+  datasets <- shiny::reactive({
+    unique(traitStatsArranged()$dataset)
+  })
+
   # List returned
   reactive({
-    shiny::req(timetrait_selection(), timeplots(), statstable())
+    shiny::req(effectsplot(), traitStatsArranged(), datasets())
     list(
-      plot = timeplots(),
-      table = statstable(),
-      traits = timetrait_selection())
+      plot = effectsplot(),
+      table = traitStatsArranged(),
+      traits = datasets())
   })
 }
 

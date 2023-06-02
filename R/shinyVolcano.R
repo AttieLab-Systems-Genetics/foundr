@@ -17,13 +17,13 @@ shinyVolcanoUI <- function(id) {
 #' Shiny Module Server for Volcano Plots
 #'
 #' @param input,output,session standard shiny arguments
-#' @param main_par reactive arguments from `foundrServer` 
+#' @param main_par reactive arguments from `foundrServer`
 #' @param traitStatsSelectType,traitStatsArranged reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyVolcanoUI`
 #' @importFrom shiny column fluidRow observeEvent plotOutput reactive
 #'             reactiveVal renderPlot renderUI req selectInput selectizeInput
-#'             tagList uiOutput updateSelectizeInput sliderInput renderUI 
+#'             tagList uiOutput updateSelectizeInput sliderInput renderUI
 #' @importFrom DT renderDataTable dataTableOutput
 #' @importFrom plotly plotlyOutput ggplotly renderPlotly
 #' @importFrom ggplot2 ylim
@@ -33,7 +33,7 @@ shinyVolcano <- function(input, output, session,
                        main_par,
                        traitStatsSelectType, traitStatsArranged) {
   ns <- session$ns
-  
+
   # INPUTS
   # Main inputs: (see shinyapp.R)
   #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
@@ -43,7 +43,7 @@ shinyVolcano <- function(input, output, session,
   #   input$interact
   #   input$volsd
   #   input$volpval
-  
+
   output$shiny_volcano <- shiny::renderUI({
     trstats <- shiny::req(traitStatsSelectType())
     shiny::tagList(
@@ -58,7 +58,7 @@ shinyVolcano <- function(input, output, session,
         shiny::column(
           4,
           shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
-      
+
       # Condition for plot based on `interact` parameter.
       shiny::uiOutput(ns("condinteract")),
 
@@ -77,11 +77,11 @@ shinyVolcano <- function(input, output, session,
             0, min(10,
                    round(-log10(min(trstats$p.value, na.rm = TRUE)), 1)),
             2, step = 0.5))),
-    
+
       # Data table.
       DT::dataTableOutput(ns("tablesum")))
   })
-  
+
   output$condinteract <- shiny::renderUI({
     if(input$interact) {
       plotly::plotlyOutput(ns("volcanoly"))
@@ -90,12 +90,12 @@ shinyVolcano <- function(input, output, session,
                         height = paste0(main_par$height, "in"))
     }
   })
-  
+
   termstats <- shiny::reactive({
     shiny::req(traitStatsSelectType())
     termStats(traitStatsSelectType(), FALSE)
-  }) 
-  
+  })
+
   volcanoplot <- shiny::reactive({
     shiny::req(traitStatsSelectType(), input$term, input$volsd, input$volpval)
     volcano(traitStatsSelectType(), input$term,
@@ -112,7 +112,7 @@ shinyVolcano <- function(input, output, session,
   output$volcanopr <- shiny::renderPlot({
     print(volcanoplot())
   })
-  
+
   output$tablesum <- DT::renderDataTable(
     {
       shiny::req(traitStatsSelectType(), input$volsd, input$volpval, input$term)
@@ -130,7 +130,7 @@ shinyVolcano <- function(input, output, session,
   datasets <- shiny::reactive({
     unique(traitStatsArranged()$dataset)
   })
-  
+
   # List returned
   reactive({
     shiny::req(volcanoplot(), traitStatsArranged(), datasets())
@@ -141,5 +141,4 @@ shinyVolcano <- function(input, output, session,
   })
 }
 
-      
-  
+
