@@ -12,9 +12,8 @@ shinyEffects(
   output,
   session,
   main_par,
-  traitDataInput,
-  traitSignalInput,
-  traitStats
+  traitStatsSelectType,
+  traitStatsArranged
 )
 }
 \arguments{
@@ -24,7 +23,7 @@ shinyEffects(
 
 \item{main_par}{reactive arguments from `foundrServer`}
 
-\item{traitDataInput, traitSignalInput, traitStatsInput}{reactive objects from `foundrServer`}
+\item{traitStatsSelectType, traitStatsArranged}{reactive objects from `foundrServer`}
 }
 \value{
 nothing returned

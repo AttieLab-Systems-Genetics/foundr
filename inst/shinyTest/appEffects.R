@@ -89,7 +89,7 @@ server <- function(input, output, session) {
   moduleOutput <- shiny::callModule(
     testApp, "shinyTest",
     input,
-    traitDataInput, traitSignalInput, traitStatsInput)
+    traitStatsInput, traitStatsInput)
 
   # I/O FROM MODULE
   # MODULE INPUT: File Prefix
