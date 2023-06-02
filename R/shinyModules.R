@@ -43,6 +43,9 @@ shinyModules <- function(input, output, session,
   eigenOut <- shiny::callModule(
     shinyModuleEigen, "shinyeigen", 
     input, main_par, traitModule)
+  namesOut <- shiny::callModule(
+    shinyModuleNames, "shinynames", 
+    input, main_par, traitModule)
   
   # INPUTS
   # foundrServer inputs: (see shinyapp.R)
@@ -66,7 +69,7 @@ shinyModules <- function(input, output, session,
           4,
           shiny::radioButtons(
             ns("butmod"), "Module Plots",
-            c("Dendrogram", "Modules","Eigens"), "Dendrogram",
+            c("Dendrogram", "Modules","Eigens","Names"), "Dendrogram",
             inline = TRUE)),
         shiny::column(
           4,
@@ -91,12 +94,13 @@ shinyModules <- function(input, output, session,
         input$butmod,
         Dendrogram = shinyModuleDendroUI(ns("shinydendro")),
         Modules    = shinyModuleCompUI(ns("shinymodcomp")),
-        Eigens     = shinyModuleEigenUI(ns("shinyeigen")))
+        Eigens     = shinyModuleEigenUI(ns("shinyeigen")),
+        Names      = shinyModuleNamesUI(ns("shinynames")))
     )
     
   })
   output$modresp <- shiny::renderUI({
-    if(input$butmod %in% c("Modules", "Eigens")) {
+    if(input$butmod != "Dendrogram") {
       shiny::fluidRow(
         shiny::column(
           4,
@@ -144,7 +148,8 @@ shinyModules <- function(input, output, session,
       input$butmod,
       Dendrogram = dendroOut(),
       Modules    = modcompOut(),
-      Eigens     = eigenOut())
+      Eigens     = eigenOut(),
+      names      = namesOut())
   })
 }
 
