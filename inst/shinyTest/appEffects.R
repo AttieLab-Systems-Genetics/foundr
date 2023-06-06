@@ -8,12 +8,9 @@ devtools::install_cran("ggdendro") #  not yet on UW dataviz
 
 library(foundr)
 
-# library(reactlog)
-# reactlog_enable()
-
 # dirpath <- "~/FounderDietStudy"
 
-dirpath <- "C:/Users/ADMIN/Documents/sysgen/foundr/data"
+dirpath <- "C:/Users/ADMIN/Documents/GitHub/foundr/data"
 
 # traitData <- readRDS(file.path(dirpath, "Enrich", "EnrichData.rds"))
 # traitStats <- readRDS(file.path(dirpath, "Enrich", "EnrichStats.rds"))

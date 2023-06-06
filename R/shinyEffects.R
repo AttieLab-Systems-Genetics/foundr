@@ -20,7 +20,7 @@ shinyEffectsUI <- function(id) {
 #' @param traitStatsSelectType,traitStatsArranged reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyEffectsUI`
-#' @importFrom reactiveVal req renderUI tagList uiOutput renderPlot reactive
+#' @importFrom shiny reactiveVal req renderUI tagList uiOutput renderPlot reactive
 #'             tagList uiOutput updateSelectizeInput sliderInput renderUI
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export
@@ -29,8 +29,6 @@ shinyEffects <- function(input, output, session,
                          main_par,
                          traitStatsSelectType, traitStatsArranged) {
   ns <- session$ns
-
-  corobject <- NULL
   trait_selection <- shiny::reactiveVal(NULL)
 
   # INPUTS
@@ -47,59 +45,33 @@ shinyEffects <- function(input, output, session,
 
   # RETURNS
   # list with
-  #   timeplots() (see timeplots() below)
+  #   effectsplot() (see effectsplot() below)
   #   statstable() (see statstable() below)
 
-
-
+  # main return
   output$shiny_effects <- shiny::renderUI({
-    trstats <- shiny::req(traitStatsSelectType())
+    shiny::req(traitStatsSelectType())
     shiny::tagList(
-
-      # Condition for plot based on `interact` parameter.
-      shiny::uiOutput(ns("effects")),
-
+      # Effects Plot
+      shiny::plotOutput(ns("effects"),
+                        height = paste0(main_par$height,"in")),
       # Data table.
       DT::dataTableOutput(ns("tablesum")))
-  })
 
-
-
-  ######### CHANGE THIS  #########
-
-  corobject <- shiny::reactive({
-    bestcor(traitSignalSelectType(),
-            trait_selection(),
-            input$corterm)
-  })
-
-
-  #corobject <- NULL
-
-  ####################################
-  # effectsplot <- shiny::reactive({
-  #   if(shiny::isTruthy(corobject()))
-  #     corobj <- corobject()
-  #   else
-  #     corobj <- NULL
-  #   print(effectplot(traitStatsSelectType(), trait_selection(),
-  #                    effecthelper(corobj, input$mincor)))
-  # })
-
+})
 
 
   effectsplot <- shiny::reactive({
     corobj <- NULL
+    shiny::req(traitStatsSelectType())
 
     print(effectplot(traitStatsSelectType(), trait_selection(),
-                     effecthelper(corobj, input$mincor)))
+                     effecthelper( input$mincor)))
   })
 
 
-  ####################
-
   output$effects <- shiny::renderPlot({
-    effectsplot()
+     shiny::req(effectsplot())
   })
 
   output$tablesum <- DT::renderDataTable(
@@ -121,7 +93,7 @@ shinyEffects <- function(input, output, session,
   reactive({
     shiny::req(effectsplot(), traitStatsArranged(), datasets())
     list(
-      plot = effectsplot(),
+      plot = print(effectsplot()),
       table = traitStatsArranged(),
       traits = datasets())
   })
