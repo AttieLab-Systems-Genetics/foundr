@@ -34,7 +34,7 @@ ggplot_traitSolos <- function(object,
       object$condition <- NULL
   }
   if(!("condition" %in% names(object)))
-    return(ggplot_onetrait(object, ...))
+    return(ggplot_onerow(object, ...))
   
   if(is.null(object$dataset))
     object$dataset <- "unknown"
