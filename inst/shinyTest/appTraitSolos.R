@@ -27,9 +27,6 @@ title <- "Test Shiny Module"
 testApp <- foundr::shinyTraitSolo
 testUI <- foundr::shinyTraitSoloUI
 
-library(reactlog)
-reactlog_enable()
-
 ui <- function() {
   # INPUTS
   #   input$facet
@@ -48,7 +45,7 @@ ui <- function() {
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-        shiny::selectInput("trait","Traits:",c("15N2-Urea_enrichment_120_18wk","N-Methyl-D3-Creatinine_enrichment_0_18wk","5,5,5-D3-Leucine_enrichment_120_18wk","Trimethyl-D9-Carnitine_enrichment_60_18wk")),
+        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
         shiny::fluidRow(
           shiny::column(
             6,
@@ -89,11 +86,14 @@ server <- function(input, output, session) {
   traitStatsInput <- shiny::reactive({
     traitStats
   })
+  datasets<-shiny::reactive({
+    "Enrich"
+  })
 
   moduleOutput <- shiny::callModule(
     testApp, "shinyTest",
     input,
-    traitStatsInput, traitStatsInput)
+    traitSignalInput,traitDataInput,datasets)
 
 
 

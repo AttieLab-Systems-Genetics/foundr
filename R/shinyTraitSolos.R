@@ -28,8 +28,8 @@ shinyTraitSoloUI <- function(id) {
 #'
 
 shinyTraitSolo <- function(input, output, session,
-                         main_par,
-                         datasets_selected,traitSignalInput) {
+                           main_par,
+                           traitSignalInput,traitDataInput,datasets_selected) {
   ns <- session$ns
 
 
@@ -39,11 +39,8 @@ shinyTraitSolo <- function(input, output, session,
   #   main_par$strains
   #   main_par$facet
   #   main_par$height
-  #   main_par$upload
-  #   main_par$upload$datapath
   # TraitSolo inputs:
   #   input$butresp
-  #   input$dataset
 
 
   # OUTPUTS
@@ -55,112 +52,28 @@ shinyTraitSolo <- function(input, output, session,
   # RETURNS
   # list with
   #   distPlot()
-  #   datatable()
+  #   datameans()
+  #   datasets_selected()
 
 
   #############################################################
   # Output: Plots or Data
   output$shiny_traitSolos <- shiny::renderUI({
     shiny::tagList(
-      shiny::fluidRow(
-         shiny::column(
-           6,
-           shiny::radioButtons(ns("buttrait"), "Single Plots",
-                               c("Trait Plots","Pair Plots"),
-                               "Trait Plots", inline = TRUE)),
-        shiny::column(
-          6,
-          shiny::radioButtons(ns("butresp"), "Response",
-                              c("value", "cellmean", "signal"),
-                              "value", inline = TRUE))),
-      shiny::conditionalPanel(
-        condition = "input.buttrait == 'Trait Plots'",
-        shiny::plotOutput(ns("plots"))),
-      shiny::conditionalPanel(
-        condition = "input.buttrait == 'Pair Plots'",
-        shiny::plotOutput(ns("scatPlot"))),
+
+      shiny::radioButtons(ns("butresp"), "Response",
+                          c("value", "cellmean", "signal"),
+                          "value", inline = TRUE),
+
+      shiny::uiOutput(ns("plots")),
       DT::dataTableOutput(ns("datatable"))
     )
   })
 
-  # Trait Data from selected datasets
-  traitDataSelectType <- shiny::reactive({
-    shiny::req(datasets_selected())
-    out <- dplyr::filter(
-      traitDataInput(),
-      .data$dataset %in% datasets_selected())
-    if("condition" %in% names(out)) {
-      if(all(is.na(out$condition)))
-        out$condition <- NULL
-    }
-    out
-  })
-
-  # SELECTING SUBSETS OF INPUT DATA by dataset
-  # Select Data Types
-  datasets <- shiny::reactive({
-    shiny::req(traitDataInput())
-    rename_datasets(
-      traitDataInput(),
-      customSettings$dataset,
-      FALSE)
-  })
-  datasets_selected <- shiny::reactive({
-    rename_datasets(
-      shiny::req(input$dataset),
-      customSettings$dataset,
-      TRUE)
-  })
-
-  # New component for Modules. Placeholder for now.
-  traitModulesParam <- shiny::reactive({
-    if(inherits(traitdata, "traitObject")) {
-      traitdata$Modules
-    } else {
-      NULL
-    }
-  })
-
-  # Trait Data: <dataset>, trait, strain, sex, <condition>, value
-  newtraitdata <- NULL
-  #  newtraitdata <- shiny::reactive({
-  #   if(shiny::isTruthy(main_par$upload)) {
-  #     newTraitData(main_par$upload$datapath,
-  #                  customSettings$condition,
-  #                  customSettings$dataset["uploaded"])
-  #   } else {
-  #     NULL
-  #   }
-  # })
-
-  traitDataInput <- shiny::reactive({
-   bindNewTraitData(newtraitdata(), traitDataParam())
-  })
-
-  # Trait Signal from selected datasets
-  traitSignalSelectType <- shiny::reactive({
-    shiny::req(datasets_selected())
-    out <- dplyr::filter(
-      traitSignalInput(),
-      .data$dataset %in% datasets_selected())
-
-
-    if("condition" %in% names(out)) {
-      if(all(is.na(out$condition)))
-        out$condition <- NULL
-    }
-    out
-  })
+  traitDataSelectType<-traitDataInput
+  traitSignalSelectType<-traitSignalInput
 
   trait_selection <- shiny::reactiveVal(NULL)
-
-  traitDataParam <- shiny::reactive({
-    if(inherits(traitdata, "traitObject")) {
-      traitdata$Data
-    } else {
-      traitdata
-    }
-  })
 
   # now store your current selection in the reactive value
   shiny::observeEvent(main_par$trait, {
@@ -175,7 +88,7 @@ shinyTraitSolo <- function(input, output, session,
                shiny::req(input$butresp),
                shiny::req(main_par$strains))
   })
-  # browser()
+
   # Plots
   distPlot <- shiny::reactive({
     shiny::req(traitDataSelectTrait())
@@ -197,7 +110,7 @@ shinyTraitSolo <- function(input, output, session,
     shiny::req(trait_selection(), main_par$strains)
     response <- shiny::req(input$butresp)
 
-  summary(traitDataSelectTrait(), customSettings)
+    summary(traitDataSelectTrait())
   })
   output$datatable <- DT::renderDataTable(
     shiny::req(datameans()),
@@ -206,14 +119,13 @@ shinyTraitSolo <- function(input, output, session,
 
   #############################################################
 
-
   # List returned
   reactive({
-    shiny::req(distPlot(), datatable(), datasets())
+    shiny::req(distPlot(), datameans(), datasets_selected())
     list(
       plot = print(distPlot()),
-      table = datatable(),
-      traits = datasets())
+      table = datameans(),
+      traits = datasets_selected())
   })
 
-  }
+}
