@@ -210,7 +210,7 @@ foundrServer <- function(input, output, session,
   })
   # Trait Data from selected datasets
   traitDataSelectType <- shiny::reactive({
-    shiny::req(datasets_selected())
+    shiny::req(traitDataInput(), datasets_selected())
     out <- dplyr::filter(
       traitDataInput(),
       .data$dataset %in% datasets_selected())
@@ -222,14 +222,14 @@ foundrServer <- function(input, output, session,
   })
   # Trait Stats from selected datasets
   traitStatsSelectType <- shiny::reactive({
-    shiny::req(datasets_selected())
+    shiny::req(traitStatsInput(), datasets_selected())
     dplyr::filter(
       traitStatsInput(),
       .data$dataset %in% datasets_selected())
   })
   # Trait Signal from selected datasets
   traitSignalSelectType <- shiny::reactive({
-    shiny::req(datasets_selected())
+    shiny::req(traitSignalInput(), datasets_selected())
     out <- dplyr::filter(
       traitSignalInput(),
       .data$dataset %in% datasets_selected())
@@ -354,7 +354,7 @@ foundrServer <- function(input, output, session,
                           choices = NULL, multiple = TRUE)
   })
   shiny::observeEvent(
-    shiny::req(traitDataSelectType(), traitDataInput(), traitNamesArranged()),
+    shiny::req(traitDataSelectType(), traitNamesArranged()),
     {
       # Use current selection of trait_selection().
       # But make sure they are still in the traitNamesArranged().

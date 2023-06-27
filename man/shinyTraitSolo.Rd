@@ -9,8 +9,9 @@ shinyTraitSolo(
   output,
   session,
   main_par,
-  datasets_selected,
-  traitSignalInput
+  traitSignalInput,
+  traitDataInput,
+  datasets_selected
 )
 }
 \arguments{

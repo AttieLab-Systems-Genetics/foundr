@@ -66,7 +66,7 @@ shinyEffects <- function(input, output, session,
     shiny::req(traitStatsSelectType())
 
     print(effectplot(traitStatsSelectType(), trait_selection(),
-                     effecthelper( input$mincor)))
+                     effecthelper(corobj, input$mincor)))
   })
 
 

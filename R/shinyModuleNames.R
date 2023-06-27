@@ -1,4 +1,4 @@
-#' Shiny Module UI for Dendro Plot
+#' Shiny Module UI for Module Names
 #'
 #' @param id identifier for shiny reactive
 #'
@@ -14,8 +14,9 @@ shinyModuleNamesUI <- function(id) {
 #' Shiny Module Server for Dendro Plots
 #'
 #' @param input,output,session standard shiny arguments
-#' @param module_par,main_par reactive arguments from `foundrServer` and `shinyModules`
+#' @param module_par reactive arguments from `foundrServer` and `shinyModules`
 #' @param traitModule reactive object with list created by `listof_wgcnamodules`
+#' @param modrole reactive with name of module role
 #'
 #' @return reactive object for `shinyModuleNamesUI`
 #' @importFrom shiny plotOutput reactive renderPlot renderUI req
@@ -24,71 +25,51 @@ shinyModuleNamesUI <- function(id) {
 #' @export
 #'
 shinyModuleNames <- function(input, output, session,
-                        module_par, main_par, traitModule) {
+                        module_par, traitModule, modrole) {
   ns <- session$ns
   
   # INPUTS
   # shinyModules inputs: (see shinyModules.R)
   #   module_par$dataset
-  #   module_par$responseF Facet Response
-  #   module_par$responseC Color Response
+  #   module_par$modrole
+  #   module_par$response
   # shinyModuleNames inputs: (see output$shiny_modcomp below)
-  #   input$fmodules  Facet Modules
-  #   input$cmodules  Color Modules
-
+  #   input$modulenames  Module Names
+  
   output$shiny_names <- shiny::renderUI({
-    shiny::fluidRow(
-      shiny::column(
-        4,
-        shiny::selectInput(
-          ns("fmodules"), "Facet Modules:",
-          c("gray","turquoise"),
-          multiple = TRUE)),
-      shiny::column(
-        4,
-        shiny::selectInput(
-          ns("cmodules"), "Color Modules:",
-          c("gray","turquoise"),
-          multiple = TRUE)),
-      shiny::column(
-        2,
-        checkboxInput(ns("abs"), "Absolute kME?")))
+    shiny::req(modrole())
+    shiny::selectizeInput(
+      ns("modulenames"), paste(modrole(), "Modules:"),
+      choices = NULL,
+      multiple = TRUE)
   })
   
   # Module kME information
   mods <- shiny::reactive({
     shiny::req(module_par$dataset)
-    browser()
     foundr::module_kMEs(traitModule()[[module_par$dataset]])
   })
-  fmodules <- shiny::reactive({
-    shiny::req(mods(), module_par$responseF)
-    levels(mods()[[paste0(module_par$responseF, "_col")]])
-  })
-  cmodules <- shiny::reactive({
-    shiny::req(mods(), module_par$responseC)
-    levels(mods()[[paste0(module_par$responseC, "_col")]])
+  fmodule_names <- shiny::reactiveVal(NULL)
+  shiny::observeEvent(
+    input$modulenames,
+    fmodule_names(input$modulenames))
+  
+  modulenames <- shiny::reactive({
+    shiny::req(mods(), module_par$response)
+    levels(mods()[[paste0(module_par$response, "_col")]])
   })
   shiny::observeEvent(
-    module_par$responseF,
+    shiny::req(module_par$dataset, module_par$modrole, module_par$response),
     {
-      shiny::updateSelectInput(
-        session, "fmodules",
-        choices = fmodules(),
-        selected = fmodules())
-    })
-  shiny::observeEvent(
-    module_par$responseC,
-    {
-      shiny::updateSelectInput(
-        session, "cmodules",
-        choices = cmodules(),
-        selected = cmodules())
+      selected <- choices <- modulenames()
+      shiny::updateSelectizeInput(
+        session, "modulenames",
+        choices = choices,
+        server = TRUE,
+        selected = selected)
     })
 
   ###############################################
   # List returned
-  reactive({
-    input
-  })
+  fmodule_names
 }
