@@ -1,21 +1,16 @@
 library(shiny)
-
 devtools::install_cran("plotly") #  not yet on UW dataviz
 devtools::install_cran("markdown") #  not yet on UW dataviz
 devtools::install_cran("cowplot") #  not yet on UW dataviz
 devtools::install_cran("ggdendro") #  not yet on UW dataviz
 #devtools::install_github("byandell/foundr")
-
 library(foundr)
-
-library(reactlog)
-reactlog_enable()
 
 # dirpath <- "~/FounderDietStudy"
 
 dirpath <- "C:/Users/ADMIN/Documents/GitHub/foundr/data"
 
-# traitData <- readRDS(file.path(dirpath, "Enrich", "EnrichData.rds"))
+# traitData <- readRDS(file.path(dirpat h, "Enrich", "EnrichData.rds"))
 # traitStats <- readRDS(file.path(dirpath, "Enrich", "EnrichStats.rds"))
 # traitSignal <- readRDS(file.path(dirpath, "Enrich", "EnrichSignal.rds"))
 
@@ -29,8 +24,8 @@ traitStats$dataset <- "Enrich"
 ################################################################
 
 title <- "Test Shiny Module"
-testApp <- foundr::shinyEffects
-testUI <- foundr::shinyEffectsUI
+testApp <- foundr::shinyTraitSolo
+testUI <- foundr::shinyTraitSoloUI
 
 ui <- function() {
   # INPUTS
@@ -46,9 +41,11 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
+        shiny::uiOutput("upload"),
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
+        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
         shiny::fluidRow(
           shiny::column(
             6,
@@ -74,6 +71,10 @@ server <- function(input, output, session) {
     shiny::checkboxGroupInput("strains", "Strains",
                               choices = choices, selected = choices, inline = TRUE)
   })
+  # output$upload <- shiny::renderUI({
+  #   shiny::fileInput("upload", "Upload CSV, XLS, XLSX or RDS:", accept = c(".csv",".xls",".xlsx",".rds"),
+  #                    width = "100%")
+  # })
 
   # DATA OBJECTS
   traitDataInput <- shiny::reactive({
@@ -85,11 +86,16 @@ server <- function(input, output, session) {
   traitStatsInput <- shiny::reactive({
     traitStats
   })
+  datasets<-shiny::reactive({
+    "Enrich"
+  })
 
   moduleOutput <- shiny::callModule(
     testApp, "shinyTest",
     input,
-    traitStatsInput, traitStatsInput)
+    traitSignalInput,traitDataInput,datasets)
+
+
 
   # I/O FROM MODULE
   # MODULE INPUT: File Prefix
