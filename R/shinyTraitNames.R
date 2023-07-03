@@ -21,21 +21,21 @@ shinyTraitNamesUI <- function(id) {
 #' which is decided in the `shinyTraitStats` module.
 #' 
 #' @param input,output,session standard shiny arguments
-#' @param module_par,main_par reactive arguments from `foundrServer` and `shinyModules`
-#' @param traitModule reactive object with list created by `listof_wgcnamodules`
-#' @param modrole reactive with name of module role
+#' @param module_par reactive arguments from `foundrServer` and `shinyModules`
+#' @param traitStats,traitStatsArranged reactive object with list created by `listof_wgcnamodules`
 #' @param multiples reactive logical for multiple trait names
 #'
 #' @return reactive vector of trait names
 #' 
 #' @importFrom shiny observeEvent reactive reactiveVal req
-#'             selectizeInput tagList updateSelectizeInput
+#'             selectizeInput updateSelectizeInput
 #' @importFrom DT renderDataTable
+#' @importFrom dplyr distinct
+#' @importFrom rlang .data
 #' @export
 #'
 shinyTraitNames <- function(input, output, session,
-                        module_par, main_par,
-                        traitData,
+                        module_par,
                         traitStats,
                         traitStatsArranged,
                         multiples = shiny::reactive(FALSE)) {
@@ -43,21 +43,13 @@ shinyTraitNames <- function(input, output, session,
   
   # INPUTS
   # shinyModules inputs: (see shinyModules.R)
-  #   main_par$dataset
+  #   module_par$order
   # shinyTraitNames inputs: (see output$shiny_modcomp below)
   #   input$trait Trait Names
   
-  traitNamesArranged <- shiny::reactive({
-    shiny::req(traitStatsArranged())
-    unite_datatraits(
-      dplyr::distinct(
-        traitStatsArranged(),
-        .data$dataset, .data$trait))
-  })
-  
   # Select traits
   output$shiny_names <- shiny::renderUI({
-    shiny::req(main_par$dataset, traitNamesArranged(), traitData())
+    shiny::req(traitNamesArranged())
     inputId <- ifelse(multiples(), "Related Traits:", "Key Trait:")
     shiny::selectizeInput(ns("trait"), inputId, choices = NULL,
                           multiple = multiples())
@@ -79,8 +71,7 @@ shinyTraitNames <- function(input, output, session,
       
     })
   shiny::observeEvent(
-    shiny::req(main_par$dataset,
-               traitData(), traitNamesArranged()),
+    shiny::req(traitNamesArranged()),
     {
       # Use current selection of trait_selection().
       # But make sure they are still in the traitNamesArranged().
@@ -93,7 +84,14 @@ shinyTraitNames <- function(input, output, session,
                                   server = TRUE, selected = selected)
     })
   
-
+  traitNamesArranged <- shiny::reactive({
+    shiny::req(traitStatsArranged())
+    unite_datatraits(
+      dplyr::distinct(
+        traitStatsArranged(),
+        .data$dataset, .data$trait))
+  })
+  
   ###############################################
   # vector returned as reactive
   trait_selection

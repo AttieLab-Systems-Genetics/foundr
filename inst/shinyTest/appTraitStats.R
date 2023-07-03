@@ -6,18 +6,8 @@ devtools::install_cran("ggdendro") #  not yet on UW dataviz
 #devtools::install_github("byandell/foundr")
 library(foundr)
 
-dirpath <- "~/FounderDietStudy"
-traitData <- readRDS(file.path(dirpath, "Enrich", "EnrichData.rds"))
-traitStats <- readRDS(file.path(dirpath, "Enrich", "EnrichStats.rds"))
-traitSignal <- readRDS(file.path(dirpath, "Enrich", "EnrichSignal.rds"))
-traitData$dataset <- "Enrich"
-traitSignal$dataset <- "Enrich"
-traitStats$dataset <- "Enrich"
-
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-cat(dirpath, "\n", file = stderr())
-traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
@@ -34,10 +24,7 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::tagList(
-          shiny::uiOutput("inputs"),
-          foundr::shinyTraitStatsUI("shinyStat")
-      )),
+        foundr::shinyTraitStatsUI("shinyStat")),
       
       shiny::mainPanel(
         shiny::tagList(
@@ -50,50 +37,18 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-  datasets <- shiny::reactive(
-    c("LivMet","PlaMet0","PlaMet120","Metab"))
-  responses <- shiny::reactive(
-    c("value","cellmean","signal","rest","noise"))
-  output$inputs <- renderUI({
-    shiny::fluidRow(
-      shiny::column(
-        6,
-        shiny::selectInput(
-          "dataset", "Dataset:",
-          datasets(), input$dataset)),
-      shiny::column(
-        6,
-        shiny::selectInput(
-          "response", paste(input$modrole, "Response:"),
-          responses(), input$response))
-    )
-  })
-  
   # DATA OBJECTS 
-  traitDataInput <- shiny::reactive({
-    shiny::req(input$dataset)
-    dplyr::filter(
-      traitData,
-      .data$dataset %in% input$dataset)
-  })
   traitSignalInput <- shiny::reactive({
-    shiny::req(input$dataset)
-    dplyr::filter(
-      traitSignal,
-      .data$dataset %in% input$dataset)
+    traitSignal
   })
   traitStatsInput <- shiny::reactive({
-    shiny::req(input$dataset)
-    dplyr::filter(
-      traitStats,
-      .data$dataset %in% input$dataset)
+    traitStats
   })
   
   # MODULES
   traitOutput <- shiny::callModule(
     foundr::shinyTraitStats, "shinyStat",
-    input,
-    traitDataInput, traitSignalInput, traitStatsInput)
+    traitSignalInput, traitStatsInput)
   
   # I/O FROM MODULE
   output$name <- renderText({

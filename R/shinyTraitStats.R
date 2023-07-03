@@ -4,54 +4,69 @@
 #'
 #' @return nothing returned
 #' @rdname shinyTraitStats
+#' @importFrom shiny NS uiOutput
 #' @export
 #'
 shinyTraitStatsUI <- function(id) {
-  ns <- NS(id)
+  ns <- shiny::NS(id)
   shiny::uiOutput(ns("shiny_stats"))
 }
 
 #' Shiny Module Server for Dendro Plots
 #'
 #' @param input,output,session standard shiny arguments
-#' @param traitData,traitSignal,traitStats reactive data frames
-#' @param module_par reactive list from calling module
+#' @param traitSignal,traitStats reactive data frames
 #'
 #' @return reactive object for `shinyTraitStatsUI`
-#' @importFrom shiny reactive reactiveValues renderUI req
-#'             tagList uiOutput
+#' @importFrom shiny callModule reactive renderUI req
+#'             selectInput tagList uiOutput
 #' @importFrom DT renderDataTable
 #' @export
 #'
 shinyTraitStats <- function(input, output, session,
-                            module_par,
-                            traitData, traitSignal, traitStats) {
+                            traitSignal, traitStats) {
   ns <- session$ns
   
   # INPUTS
-  #   module_par$dataset
-  #   module_par$response
-  # shinyTraitStats inputs: (see output$shiny_stats)
+  # shinyTraitStats inputs
+  #   input$keydataset
+  #   input$order
+  #   input$reldataset
 
   # MODULES
   nameOutput <- shiny::callModule(
-    foundr::shinyTraitNames, "shinyName",
-    input, module_par,
-    traitData, traitStats, orderstats)
+    shinyTraitNames, "shinyName",
+    input, traitStats, orderstats)
   
   namesOutput <- shiny::callModule(
-    foundr::shinyTraitNames, "shinyNames",
-    input, module_par,
-    traitData, traitStats, corobject,
+    shinyTraitNames, "shinyNames",
+    input, traitStats, corobject,
     shiny::reactive(TRUE))
   
   # Shiny UI Server Side
   output$shiny_stats <- shiny::renderUI({
     shiny::tagList(
+      shiny::uiOutput(ns("keydataset")),
       shiny::uiOutput(ns("order")),
       shinyTraitNamesUI(ns("shinyName")),
+      shiny::uiOutput(ns("reldataset")),
       shinyTraitNamesUI(ns("shinyNames"))
     )
+  })
+  
+  datasets <- shiny::reactive({
+    shiny::req(traitStats())
+    unique(traitStats()$dataset)
+  })
+  
+  # Datasets. More work to allow multiple datasets.
+  output$keydataset <- renderUI({
+    shiny::selectInput(ns("keydataset"), "Key Datasets:",
+                       datasets(), input$keydataset)
+  })
+  output$reldataset <- renderUI({
+    shiny::selectInput(ns("reldataset"), "Related Datasets:",
+                       datasets(), input$reldataset)
   })
   
   # Order Criteria for Trait Names
@@ -62,14 +77,30 @@ shinyTraitStats <- function(input, output, session,
   })
   
   orderstats <- shiny::reactive({
-    shiny::req(input$order, traitStats())
-    orderTraitStats(input$order, traitStats())
+    shiny::req(input$keydataset, input$order, traitStats())
+    orderTraitStats(
+      input$order, 
+      dplyr::filter(
+        traitStats(),
+        .data$dataset %in% input$keydataset))
   })
   corobject <- shiny::reactive({
-    shiny::req(traitSignal())
-    bestcor(traitSignal(),
-            nameOutput(),
-            "cellmean") # input$corterm -- see shinyCorrelation
+    shiny::req(input$keydataset, traitSignal())
+    # input$corterm = "cellmean" -- see shinyCorrelation.R
+    bestcor(
+      # Filter to Related Datasets or matching `nameOption()`.
+      dplyr::select(
+        dplyr::filter(
+          tidyr::unite(
+            traitSignal(),
+            datatraits,
+            .data$dataset, .data$trait,
+            sep = ": ", remove = FALSE),
+          (.data$datatraits %in% nameOutput()) |
+            (.data$dataset %in% input$reldataset)),
+        -.data$datatraits),
+      nameOutput(),
+      "cellmean")
   })
 
   # Arrange Trait Stats (order traits for menu and summary table)

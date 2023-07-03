@@ -7,24 +7,14 @@
 \usage{
 shinyTraitStatsUI(id)
 
-shinyTraitStats(
-  input,
-  output,
-  session,
-  module_par,
-  traitData,
-  traitSignal,
-  traitStats
-)
+shinyTraitStats(input, output, session, traitSignal, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
 \item{input, output, session}{standard shiny arguments}
 
-\item{module_par}{reactive list from calling module}
-
-\item{traitData, traitSignal, traitStats}{reactive data frames}
+\item{traitSignal, traitStats}{reactive data frames}
 }
 \value{
 nothing returned

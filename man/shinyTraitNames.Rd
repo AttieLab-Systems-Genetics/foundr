@@ -12,8 +12,6 @@ shinyTraitNames(
   output,
   session,
   module_par,
-  main_par,
-  traitData,
   traitStats,
   traitStatsArranged,
   multiples = shiny::reactive(FALSE)
@@ -24,13 +22,11 @@ shinyTraitNames(
 
 \item{input, output, session}{standard shiny arguments}
 
-\item{module_par, main_par}{reactive arguments from `foundrServer` and `shinyModules`}
+\item{module_par}{reactive arguments from `foundrServer` and `shinyModules`}
+
+\item{traitStats, traitStatsArranged}{reactive object with list created by `listof_wgcnamodules`}
 
 \item{multiples}{reactive logical for multiple trait names}
-
-\item{traitModule}{reactive object with list created by `listof_wgcnamodules`}
-
-\item{modrole}{reactive with name of module role}
 }
 \value{
 nothing returned
