@@ -44,7 +44,6 @@ shinyTraitNames <- function(input, output, session,
   # INPUTS
   # shinyModules inputs: (see shinyModules.R)
   #   main_par$dataset
-  #   main_par$response
   # shinyTraitNames inputs: (see output$shiny_modcomp below)
   #   input$trait Trait Names
   
@@ -80,7 +79,7 @@ shinyTraitNames <- function(input, output, session,
       
     })
   shiny::observeEvent(
-    shiny::req(main_par$dataset, main_par$response,
+    shiny::req(main_par$dataset,
                traitData(), traitNamesArranged()),
     {
       # Use current selection of trait_selection().

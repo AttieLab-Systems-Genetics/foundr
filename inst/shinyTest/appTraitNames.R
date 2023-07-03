@@ -14,6 +14,12 @@ traitData$dataset <- "Enrich"
 traitSignal$dataset <- "Enrich"
 traitStats$dataset <- "Enrich"
 
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+cat(dirpath, "\n", file = stderr())
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
@@ -51,39 +57,35 @@ server <- function(input, output, session) {
   
   datasets <- shiny::reactive(
     c("LivMet","PlaMet0","PlaMet120","Metab"))
-  responses <- shiny::reactive(
-    c("value","cellmean","signal","rest","noise"))
   output$inputs <- renderUI({
-    shiny::fluidRow(
-      shiny::column(
-        6,
-        shiny::selectInput(
-          "dataset", "Dataset:",
-          datasets(), input$dataset)),
-      shiny::column(
-        6,
-        shiny::selectInput(
-          "response", paste(input$modrole, "Response:"),
-          responses(), input$response))
-      )
+    shiny::selectInput(
+      "dataset", "Dataset:",
+      datasets(), input$dataset)
   })
 
   # DATA OBJECTS 
   traitDataInput <- shiny::reactive({
-    traitData
+    shiny::req(input$dataset)
+    dplyr::filter(
+      traitData,
+      .data$dataset %in% input$dataset)
   })
   traitSignalInput <- shiny::reactive({
-    traitSignal
+    shiny::req(input$dataset)
+    dplyr::filter(
+      traitSignal,
+      .data$dataset %in% input$dataset)
   })
   traitStatsInput <- shiny::reactive({
-    traitStats
+    shiny::req(input$dataset)
+    dplyr::filter(
+      traitStats,
+      .data$dataset %in% input$dataset)
   })
-  #proband <- shiny::reactive("Enrich: 15N2-Urea_enrichment_15_18wk")
-  proband <- shiny::reactive(NULL)
-   
+
   moduleOutput <- shiny::callModule(
     testApp, "shinyTest", 
-    input,
+    input, input,
     traitDataInput,
     traitStatsInput,
     traitStatsInput)

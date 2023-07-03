@@ -294,6 +294,9 @@ autoplot.bestcor <- function(object, ...) {
 #' @importFrom rlang .data
 #'
 summary_bestcor <- function(object, mincor = 0.5, ...) {
+  if(is.null(object))
+    return(NULL)
+  
   dplyr::mutate(
     dplyr::select(
       dplyr::filter(

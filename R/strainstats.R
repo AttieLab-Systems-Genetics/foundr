@@ -198,6 +198,9 @@ summary_strainstats <- function(object,
                                 threshold = c(SD = 1, p = 0.01),
                                 ...) {
   
+  if(is.null(object))
+    return(NULL)
+  
   if(!is.null(threshold) && length(threshold)) {
     if(!("log10.p" %in% names(threshold))) {
       if("p" %in% names(threshold))

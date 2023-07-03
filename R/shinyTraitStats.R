@@ -45,6 +45,7 @@ shinyTraitStats <- function(input, output, session,
     traitData, traitStats, corobject,
     shiny::reactive(TRUE))
   
+  # Shiny UI Server Side
   output$shiny_stats <- shiny::renderUI({
     shiny::tagList(
       shiny::uiOutput(ns("order")),
@@ -78,7 +79,7 @@ shinyTraitStats <- function(input, output, session,
       proband = nameOutput(),
       traits = namesOutput(),
       orders = summary_strainstats(orderstats()),
-      cors = summary(corobject())
+      cors = summary_bestcor(corobject())
     )
   })
 }

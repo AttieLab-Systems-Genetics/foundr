@@ -14,6 +14,13 @@ traitData$dataset <- "Enrich"
 traitSignal$dataset <- "Enrich"
 traitStats$dataset <- "Enrich"
 
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+cat(dirpath, "\n", file = stderr())
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+
 ################################################################
 
 title <- "Test Shiny Trait Stats"
@@ -64,15 +71,24 @@ server <- function(input, output, session) {
   
   # DATA OBJECTS 
   traitDataInput <- shiny::reactive({
-    traitData
+    shiny::req(input$dataset)
+    dplyr::filter(
+      traitData,
+      .data$dataset %in% input$dataset)
   })
   traitSignalInput <- shiny::reactive({
-    traitSignal
+    shiny::req(input$dataset)
+    dplyr::filter(
+      traitSignal,
+      .data$dataset %in% input$dataset)
   })
   traitStatsInput <- shiny::reactive({
-    traitStats
+    shiny::req(input$dataset)
+    dplyr::filter(
+      traitStats,
+      .data$dataset %in% input$dataset)
   })
-
+  
   # MODULES
   traitOutput <- shiny::callModule(
     foundr::shinyTraitStats, "shinyStat",
@@ -80,16 +96,26 @@ server <- function(input, output, session) {
     traitDataInput, traitSignalInput, traitStatsInput)
   
   # I/O FROM MODULE
-  output$name <- renderText(
-    shiny::req(traitOutput()$proband))
+  output$name <- renderText({
+    shiny::req(traitOutput())
+    traitOutput()$proband
+  })
   output$datatable <- DT::renderDataTable(
-    shiny::req(traitOutput()$orders),
+    {
+      shiny::req(traitOutput())
+      traitOutput()$orders
+    },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 5))
-  output$names <- renderText(
-    paste(shiny::req(traitOutput()$traits), collapse = ", "))
+  output$names <- renderText({
+    shiny::req(traitOutput())
+    paste(traitOutput()$traits, collapse = ", ")
+  })
   output$datatables <- DT::renderDataTable(
-    shiny::req(traitOutput()$cors),
+    {
+      shiny::req(traitOutput())
+      traitOutput()$cors
+    },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 5))
 }
