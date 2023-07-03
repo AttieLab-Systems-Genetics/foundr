@@ -122,3 +122,22 @@ The `datasets()` is the list of all datasets, while
 - datasets()
   + traitDataInput()
   + customSettings$dataset
+
+This is a bit tricky taking care of the situation where
+traits are ordered by correlation. For all other situations,
+the ordering can be done without regard to the trait_selection().
+However, when ordering by correlation, one uses either the first trait (planned)
+or all selected traits (current) to determine the order of possible next
+traits. Further, one might want to pick one trait from one dataset as
+proband, and then pick other traits from a different dataset(s).
+That is not easy right now, as there is no process (yet) to keep the
+part of the dataset for proband in place. There is some code in bestcor
+for part of this. I may need to rethink this. Makes sense in terms of what
+researchers are asking for.
+
+A slight variant on the current shinyTraitNames can be used with option
+on `multiple` as FALSE for proband might work.
+Need to see if traitStatsArranged() needs to have all terms or only
+the cellmean/signal term. It is used in Volcano.
+Also need to see what to pass for traitStatsArranged for proband;
+probably want a version of traitStatsArranged() without correlation.

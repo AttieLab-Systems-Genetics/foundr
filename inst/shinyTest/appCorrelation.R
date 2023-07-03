@@ -24,8 +24,8 @@ traitStats$dataset <- "Enrich"
 ################################################################
 
 title <- "Test Shiny Module"
-testApp <- foundr::shinyVolcano
-testUI <- foundr::shinyVolcanoUI
+testApp <- foundr::shinyCorrelation
+testUI <- foundr::shinyCorrelationUI
 
 library(reactlog)
 reactlog_enable()
@@ -44,8 +44,6 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-        shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
         shiny::fluidRow(
           shiny::column(
@@ -74,22 +72,14 @@ server <- function(input, output, session) {
   })
   
   # DATA OBJECTS 
-  traitDataInput <- shiny::reactive({
-    traitData
-  })
   traitSignalInput <- shiny::reactive({
     traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
   })
 
   moduleOutput <- shiny::callModule(
     testApp, "shinyTest", 
     input, 
-    traitStatsInput)
-
-  
+    traitSignalInput)
   
   # I/O FROM MODULE
   # MODULE INPUT: File Prefix

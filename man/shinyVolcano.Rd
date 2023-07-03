@@ -7,14 +7,7 @@
 \usage{
 shinyVolcanoUI(id)
 
-shinyVolcano(
-  input,
-  output,
-  session,
-  main_par,
-  traitStatsSelectType,
-  traitStatsArranged
-)
+shinyVolcano(input, output, session, main_par, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -23,7 +16,7 @@ shinyVolcano(
 
 \item{main_par}{reactive arguments from `foundrServer`}
 
-\item{traitStatsSelectType, traitStatsArranged}{reactive objects from `foundrServer`}
+\item{traitStats}{reactive objects from `foundrServer`}
 }
 \value{
 nothing returned

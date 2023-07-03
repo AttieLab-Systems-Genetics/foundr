@@ -3,7 +3,7 @@
 #' @importFrom rlang .data
 #' 
 mutate_datasets <- function(object, datasets, undo = FALSE) {
-  if(is.null(object) | is.null(datasets))
+  if(is.null(object))
     return(NULL)
 
   if(undo) {

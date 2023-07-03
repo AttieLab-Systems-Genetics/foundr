@@ -8,7 +8,7 @@
 \alias{summary.bestcor}
 \title{Traits with Best Correlation}
 \usage{
-bestcor(traitSignal, traitnames = NULL, term = c("signal", "cellmean"))
+bestcor(traitSignal, traitnames = NULL, term = c("cellmean", "signal"))
 
 ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 

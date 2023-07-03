@@ -21,13 +21,11 @@
 #' ggplot_bestcor(out, 0, abscor = FALSE)
 bestcor <- function(traitSignal,
                     traitnames = NULL,
-                    term = c("signal", "cellmean")) {
+                    term = c("cellmean", "signal")) {
   term <- match.arg(term)
 
-  # Check if traitSignal or traitnames are missing.
-  if(is.null(traitSignal) | is.null(traitnames))
-    return(NULL)
-  if(!nrow(traitSignal))
+  # Check if traitSignal is missing.
+  if(is.null(traitSignal) | !nrow(traitSignal))
     return(NULL)
   
   traitSignal <- tidyr::unite(
@@ -36,6 +34,8 @@ bestcor <- function(traitSignal,
     .data$dataset, .data$trait,
     sep = ": ", remove = FALSE)
   
+  if(is.null(traitnames))
+    traitnames <- traitSignal$datatraits[1]
   if(!all(traitnames %in% unique(traitSignal$datatraits)))
     return(NULL)
   
@@ -174,18 +174,26 @@ bestcor <- function(traitSignal,
 }
 
 bestcorStats <- function(traitStats, traitnames = NULL,
-                         bestcorObject) {
+                         bestcorObject,
+                         term = c("signal", "cellmean")) {
+  corterm <- match.arg(term)
 
   if(is.null(traitStats))
     return(NULL)
   
-  traitnames <- unique(c(
-    traitnames,
+  bestcorObject <- 
     tidyr::unite(
       bestcorObject,
       datatraits,
       .data$dataset, .data$trait,
-      sep = ": ")$datatraits
+      sep = ": ")
+  
+  if(is.null(traitnames))
+    traitnames <- traitStats$datatraits[1]
+  
+  traitnames <- unique(c(
+    traitnames,
+    bestcorObject$datatraits
   ))
   
   if(is.null(traitnames))
@@ -203,13 +211,15 @@ bestcorStats <- function(traitStats, traitnames = NULL,
   if(!length(traitnames))
     return(NULL)
   
-  dplyr::select(
-    dplyr::arrange(
-      dplyr::mutate(
-        traitStats,
-        datatraits = factor(.data$datatraits, traitnames)),
-      .data$datatraits),
-    -.data$datatraits)
+  dplyr::filter(
+    dplyr::select(
+      dplyr::arrange(
+        dplyr::mutate(
+          traitStats,
+          datatraits = factor(.data$datatraits, traitnames)),
+        .data$datatraits),
+      -.data$datatraits),
+    .data$term == corterm)
 }
 
 #' GGplot of bestcor object

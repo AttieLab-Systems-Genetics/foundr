@@ -278,10 +278,11 @@ foundrServer <- function(input, output, session,
   })
   traitStatsBestCor <- shiny::reactive({
     shiny::req(traitStatsSelectType(),
-               corobject())
+               corobject(), input$corterm)
     bestcorStats(traitStatsSelectType(),
                  trait_selection(), 
-                 corobject())
+                 corobject(),
+                 input$corterm)
   })
   traitNamesArranged <- shiny::reactive({
     shiny::req(traitStatsArranged())

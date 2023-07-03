@@ -18,7 +18,7 @@ shinyVolcanoUI <- function(id) {
 #'
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
-#' @param traitStatsSelectType,traitStatsArranged reactive objects from `foundrServer`
+#' @param traitStats reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyVolcanoUI`
 #' @importFrom shiny column fluidRow observeEvent plotOutput reactive
@@ -31,7 +31,7 @@ shinyVolcanoUI <- function(id) {
 #'
 shinyVolcano <- function(input, output, session,
                        main_par,
-                       traitStatsSelectType, traitStatsArranged) {
+                       traitStats) {
   ns <- session$ns
 
   # INPUTS
@@ -45,7 +45,7 @@ shinyVolcano <- function(input, output, session,
   #   input$volpval
 
   output$shiny_volcano <- shiny::renderUI({
-    trstats <- shiny::req(traitStatsSelectType())
+    trstats <- shiny::req(traitStats())
     shiny::tagList(
       # Get new input parameters for Volcano.
       shiny::fluidRow(
@@ -81,6 +81,8 @@ shinyVolcano <- function(input, output, session,
       # Data table.
       DT::dataTableOutput(ns("tablesum")))
   })
+  
+  customSettings <- shiny::reactiveValues(dataset = NULL)
 
   output$condinteract <- shiny::renderUI({
     if(input$interact) {
@@ -92,13 +94,13 @@ shinyVolcano <- function(input, output, session,
   })
 
   termstats <- shiny::reactive({
-    shiny::req(traitStatsSelectType())
-    termStats(traitStatsSelectType(), FALSE)
+    shiny::req(traitStats())
+    termStats(traitStats(), FALSE)
   })
 
   volcanoplot <- shiny::reactive({
-    shiny::req(traitStatsSelectType(), input$term, input$volsd, input$volpval)
-    volcano(traitStatsSelectType(), input$term,
+    shiny::req(traitStats(), input$term, input$volsd, input$volpval)
+    volcano(traitStats(), input$term,
             threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
             interact = (input$interact),
             traitnames = (input$traitnames))
@@ -113,30 +115,28 @@ shinyVolcano <- function(input, output, session,
     print(volcanoplot())
   })
 
+  volcano_table <- shiny::reactive({
+    shiny::req(traitStats(), input$volsd, input$volpval, input$term)
+    summary_strainstats(
+      mutate_datasets(traitStats(), customSettings$dataset),
+      terms = input$term,
+      threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
+  })
   output$tablesum <- DT::renderDataTable(
-    {
-      shiny::req(traitStatsSelectType(), input$volsd, input$volpval, input$term)
-      summary_strainstats(
-      # do we need this?
-      #  mutate_datasets(
-        traitStatsSelectType(),
-      #    customSettings$dataset),
-        terms = input$term,
-        threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
-    },
+    volcano_table(),
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 10))
 
   datasets <- shiny::reactive({
-    unique(traitStatsArranged()$dataset)
+    unique(traitStats()$dataset)
   })
 
   # List returned
   reactive({
-    shiny::req(volcanoplot(), traitStatsArranged(), datasets())
+    shiny::req(volcanoplot(), datasets())
     list(
       plot = print(volcanoplot()),
-      table = traitStatsArranged(),
+      table = volcano_table(),
       traits = datasets())
   })
 }
