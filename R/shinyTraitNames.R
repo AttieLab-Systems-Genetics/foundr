@@ -59,7 +59,7 @@ shinyTraitNames <- function(input, output, session,
     trait_selection(input$trait)
   })
   shiny::observeEvent(
-    module_par$order,
+    shiny::req(module_par$order, traitNamesArranged()),
     {
       # Use current selection of trait_selection().
       # But make sure they are still in the traitNamesArranged().
@@ -70,20 +70,7 @@ shinyTraitNames <- function(input, output, session,
                                   server = TRUE, selected = selected)
       
     })
-  shiny::observeEvent(
-    shiny::req(traitNamesArranged()),
-    {
-      # Use current selection of trait_selection().
-      # But make sure they are still in the traitNamesArranged().
-      selected <- trait_selection()
-      choices <- traitNamesArranged()
-      selected <- selected[selected %in% choices]
-      if(!length(selected))
-        selected <- NULL
-      shiny::updateSelectizeInput(session, "trait", choices = choices,
-                                  server = TRUE, selected = selected)
-    })
-  
+
   traitNamesArranged <- shiny::reactive({
     shiny::req(traitStatsArranged())
     unite_datatraits(
