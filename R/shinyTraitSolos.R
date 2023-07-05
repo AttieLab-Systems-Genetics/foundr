@@ -3,64 +3,61 @@
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
+#' 
 #' @rdname shinyTraitSolos
+#' @importFrom shiny NS uiOutput
 #' @export
 #'
 shinyTraitSoloUI <- function(id) {
-  ns <- NS(id)
-  shiny::tagList(
-    shiny::uiOutput(ns("shiny_traitSolos"))
-  )
+  ns <- shiny::NS(id)
+  
+  shiny::uiOutput(ns("shiny_traitSolos"))
 }
 
 #' Shiny Module Server for trait solos Plots
 #'
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
-#' @param datasets_selected traitSignalInput reactive objects from `foundrServer`
+#' @param trait_names reactive with trait names.
+#' @param traitData,traitSignal reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyTaitSolosUI`
-#' @importFrom shiny reactiveVal req renderUI tagList uiOutput renderPlot reactive
-#'             tagList renderUI column conditionalPanel fluidRow plotOutput radioButtons
+#' 
+#' @importFrom shiny observeEvent plotOutput radioButtons reactive reactiveVal 
+#'             renderPlot renderUI req tagList uiOutput
 #' @importFrom DT renderDataTable dataTableOutput
-#' @importFrom dplyr filter
 #' @export
 #'
 
 shinyTraitSolo <- function(input, output, session,
-                           main_par,
-                           traitSignalInput,traitDataInput,datasets_selected) {
+                           main_par, trait_names,
+                           traitData,traitSignal,datasets_selected) {
   ns <- session$ns
-
 
   # INPUTS
   # Main inputs:
-  #   main_par$trait
+  #   main_par$trait (passed as trait_names())
   #   main_par$strains
   #   main_par$facet
   #   main_par$height
   # TraitSolo inputs:
   #   input$butresp
 
-
   # OUTPUTS
   # output$distPlot
   # output$plots
   # output$datatable
 
-
   # RETURNS
-  # list with
-  #   distPlot()
-  #   datameans()
-  #   datasets_selected()
-
+  # list with elements
+  #   plot = distPlot()
+  #   table = datameans()
+  #   traits = datasets_selected()
 
   #############################################################
   # Output: Plots or Data
   output$shiny_traitSolos <- shiny::renderUI({
     shiny::tagList(
-
       shiny::radioButtons(ns("butresp"), "Response",
                           c("value", "cellmean", "signal"),
                           "value", inline = TRUE),
@@ -70,20 +67,15 @@ shinyTraitSolo <- function(input, output, session,
     )
   })
 
-  traitDataSelectType<-traitDataInput
-  traitSignalSelectType<-traitSignalInput
-
   trait_selection <- shiny::reactiveVal(NULL)
-
-  # now store your current selection in the reactive value
-  shiny::observeEvent(main_par$trait, {
-    trait_selection(main_par$trait)
+  shiny::observeEvent(trait_names(), {
+    trait_selection(trait_names())
   })
 
   # Trait Data for Selected Traits
-  traitDataSelectTrait <- shiny::reactive({
-    traitSolos(shiny::req(traitDataSelectType()),
-               shiny::req(traitSignalSelectType()),
+  traitSolosObject <- shiny::reactive({
+    traitSolos(shiny::req(traitData()),
+               shiny::req(traitSignal()),
                shiny::req(trait_selection()),
                shiny::req(input$butresp),
                shiny::req(main_par$strains))
@@ -91,9 +83,10 @@ shinyTraitSolo <- function(input, output, session,
 
   # Plots
   distPlot <- shiny::reactive({
-    shiny::req(traitDataSelectTrait())
+    shiny::req(traitSolosObject())
+    
     ggplot_traitSolos(
-      traitDataSelectTrait(),
+      traitSolosObject(),
       facet_strain = main_par$facet,
       boxplot = TRUE)
   })
@@ -107,10 +100,9 @@ shinyTraitSolo <- function(input, output, session,
 
   # Data Table
   datameans <- shiny::reactive({
-    shiny::req(trait_selection(), main_par$strains)
-    response <- shiny::req(input$butresp)
+    shiny::req(trait_selection(), main_par$strains, input$butresp)
 
-    summary(traitDataSelectTrait())
+    summary(traitSolosObject())
   })
   output$datatable <- DT::renderDataTable(
     shiny::req(datameans()),

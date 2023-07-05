@@ -9,8 +9,9 @@ shinyTraitSolo(
   output,
   session,
   main_par,
-  traitSignalInput,
-  traitDataInput,
+  trait_names,
+  traitData,
+  traitSignal,
   datasets_selected
 )
 }
@@ -19,7 +20,9 @@ shinyTraitSolo(
 
 \item{main_par}{reactive arguments from `foundrServer`}
 
-\item{datasets_selected}{traitSignalInput reactive objects from `foundrServer`}
+\item{trait_names}{reactive with trait names.}
+
+\item{traitData, traitSignal}{reactive objects from `foundrServer`}
 }
 \value{
 reactive object for `shinyTaitSolosUI`

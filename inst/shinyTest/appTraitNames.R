@@ -1,6 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-cat(dirpath, "\n", file = stderr())
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
@@ -11,19 +10,16 @@ reactlog::reactlog_enable()
 
 ui <- function() {
   # INPUTS
-  #   input$facet 
-  #   input$strains 
+  #   see shinyTraitNames 
   #
-  # OUTPUTS
-  #   output$filename
-  #   output$downloadPlot
-  #   output$downloadTable
-  
+  # OUTPUTS (see shinyTraitNames)
+  #   output$name: Traits
+
   shiny::fluidPage(
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::uiOutput("filename")),
+        shiny::uiOutput("name")),
       
       shiny::mainPanel(
         shiny::tagList(
@@ -35,8 +31,16 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-  datasets <- shiny::reactive(
-    c("LivMet","PlaMet0","PlaMet120","Metab"))
+  # INPUTS (see shinyTraitNames)
+  #   input$dataset: Dataset
+  # OUTPUTS (see shinyTraitNames)
+  #   output$name: Traits
+  
+  datasets <- shiny::reactive({
+    unique(traitStats$dataset)
+  })
+
+  # INPUTS  
   output$inputs <- renderUI({
     shiny::selectInput("dataset", "Dataset:", datasets(), input$dataset)
   })
@@ -49,15 +53,16 @@ server <- function(input, output, session) {
       .data$dataset %in% input$dataset)
   })
 
+  # CALL MODULE
   moduleOutput <- shiny::callModule(
     foundr::shinyTraitNames, "shinyTest", 
     traitStatsInput, traitStatsInput)
   
   # I/O FROM MODULE
-  output$filename <- renderUI({
+  output$name <- renderUI({
     shiny::req(moduleOutput())
-    filename <- paste(moduleOutput(), collapse = ", ")
-    shiny::textAreaInput("filename", "Traits", filename)
+    name <- paste(moduleOutput(), collapse = ", ")
+    shiny::textAreaInput("name", "Traits", name)
   })
 }
 

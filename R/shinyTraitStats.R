@@ -33,6 +33,13 @@ shinyTraitStats <- function(input, output, session,
   #   input$keydataset
   #   input$order
   #   input$reldataset
+  #
+  # RETURNS
+  # list with elements
+  #   key_trait = nameOutput(): Key Trait
+  #   rel_traits = namesOutput(): Related Traits
+  #   key_stats = summary_strainstats(): Key Dataset Stats
+  #   rel_cors = summary_bestcor(): Related Dataset Correlations
 
   # MODULES
   nameOutput <- shiny::callModule(
@@ -142,10 +149,10 @@ shinyTraitStats <- function(input, output, session,
   shiny::reactive({
     shiny::req(orderstats(), nameOutput())
     list(
-      proband = nameOutput(),
-      traits = namesOutput(),
-      orders = summary_strainstats(orderstats()),
-      cors = summary_bestcor(corobject(), mincor = 0)
+      key_trait = nameOutput(),
+      rel_traits = namesOutput(),
+      key_stats = summary_strainstats(orderstats()),
+      rel_cors = summary_bestcor(corobject(), mincor = 0)
     )
   })
 }

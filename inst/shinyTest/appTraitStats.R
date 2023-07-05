@@ -8,9 +8,6 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 title <- "Test Shiny Trait Stats"
 
 ui <- function() {
-  # INPUTS
-  # OUTPUTS
-  #   output$datatable
 
   shiny::fluidPage(
     shiny::titlePanel(title),
@@ -20,14 +17,21 @@ ui <- function() {
       
       shiny::mainPanel(
         shiny::tagList(
-          shiny::textOutput("name"),
-          DT::dataTableOutput("datatable"),
-          shiny::textOutput("names"),
-          DT::dataTableOutput("datatables")))
+          shiny::textOutput("key_trait"),
+          DT::dataTableOutput("key_stats"),
+          shiny::textOutput("rel_traits"),
+          DT::dataTableOutput("rel_cors")))
     ))
 }
 
 server <- function(input, output, session) {
+  
+  # INPUTS (see shinyTraitStats)
+  # OUTPUTS (see shinyTraitStats)
+  #   output$key_trait: Key Trait
+  #   output$key_stats: Key Dataset Stats
+  #   output$rel_traits: Related Traits
+  #   output$rel_cors: Related Datasets Correlations
   
   # DATA OBJECTS 
   traitSignalInput <- shiny::reactive({
@@ -37,31 +41,31 @@ server <- function(input, output, session) {
     traitStats
   })
   
-  # MODULES
+  # CALL MODULE
   traitOutput <- shiny::callModule(
     foundr::shinyTraitStats, "shinyStat",
     traitSignalInput, traitStatsInput)
   
   # I/O FROM MODULE
-  output$name <- renderText({
+  output$key_trait <- renderText({
     shiny::req(traitOutput())
-    traitOutput()$proband
+    traitOutput()$key_trait
   })
-  output$datatable <- DT::renderDataTable(
+  output$key_stats <- DT::renderDataTable(
     {
       shiny::req(traitOutput())
-      traitOutput()$orders
+      traitOutput()$key_stats
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 5))
-  output$names <- renderText({
+  output$rel_traits <- renderText({
     shiny::req(traitOutput())
-    paste(traitOutput()$traits, collapse = ", ")
+    paste(traitOutput()$rel_traits, collapse = ", ")
   })
-  output$datatables <- DT::renderDataTable(
+  output$rel_cors <- DT::renderDataTable(
     {
       shiny::req(traitOutput())
-      traitOutput()$cors
+      traitOutput()$rel_cors
     },
     escape = FALSE,
     options = list(scrollX = TRUE, pageLength = 5))
