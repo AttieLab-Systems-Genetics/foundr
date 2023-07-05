@@ -36,7 +36,13 @@ bestcor <- function(traitSignal,
   
   if(is.null(traitnames))
     traitnames <- traitSignal$datatraits[1]
+  
+  # Need traitnames to all be in datatraits for traitSignal.
   if(!all(traitnames %in% unique(traitSignal$datatraits)))
+    return(NULL)
+  
+  # Need datatraits for traitSignal to be more than traitnames.
+  if(all(unique(traitSignal$datatraits) %in% traitnames))
     return(NULL)
   
   # If condition is present, is it the same for all traits?
@@ -77,23 +83,23 @@ bestcor <- function(traitSignal,
     }
   }
   
-  proband <- dplyr::filter(
+  key_trait <- dplyr::filter(
       traitSignal,
       .data$datatraits %in% traitnames)
-  uproband <- dplyr::arrange(
+  ukey_trait <- dplyr::arrange(
     dplyr::mutate(
       dplyr::distinct(
-        proband,
+        key_trait,
         .data$datatraits, .data$dataset, .data$trait),
       datatraits = factor(.data$datatraits, traitnames)),
     .data$datatraits)
   
   # Identify subset of strain, sex, condition included.
-  conds <- condset(proband)
+  conds <- condset(key_trait)
   factors <- unique(
     tidyr::unite(
       dplyr::distinct(
-        proband,
+        key_trait,
         dplyr::across(conds)),
       levels,
       tidyr::matches(conds))$levels)
@@ -134,7 +140,7 @@ bestcor <- function(traitSignal,
       -tidyr::matches(conds))
   }
 
-  proband <- myfun(proband, term, groupsex)
+  key_trait <- myfun(key_trait, term, groupsex)
   traitSignal <- myfun(
     dplyr::filter(
       traitSignal,
@@ -142,7 +148,7 @@ bestcor <- function(traitSignal,
     term, groupsex)
   
   # Create data frame with absmax and columns of correlations.
-  out <- as.data.frame(stats::cor(traitSignal, proband, use = "pair",
+  out <- as.data.frame(stats::cor(traitSignal, key_trait, use = "pair",
                                   method = "spearman"))
   out$absmax <- apply(out, 1, function(x) max(abs(x)))
   out$trait <- row.names(out)
@@ -152,22 +158,22 @@ bestcor <- function(traitSignal,
       .data$trait, .data$absmax, dplyr::everything()),
     dplyr::desc(.data$absmax))
   
-  # Rearrange as dataframe with dataset, trait, absmax, probandset, proband, cors
+  # Rearrange as dataframe with dataset, trait, absmax, key_dataset, key_trait, cors
   out <- 
     dplyr::mutate(
       tidyr::separate_wider_delim(
         tidyr::separate_wider_delim(
           tidyr::pivot_longer(
             out,
-            tidyr::all_of(names(proband)),
-            names_to = "proband", values_to = "cors"),
+            tidyr::all_of(names(key_trait)),
+            names_to = "key_trait", values_to = "cors"),
           trait,
           delim = ": ", names = c("dataset", "trait")),
-        proband,
+        key_trait,
         delim = ": ",
-        names = c("probandset", "proband")),
-      proband = factor(.data$proband, unique(uproband$trait)),
-      probandset = factor(.data$probandset, unique(uproband$dataset)))
+        names = c("key_dataset", "key_trait")),
+      key_trait = factor(.data$key_trait, unique(ukey_trait$trait)),
+      key_dataset = factor(.data$key_dataset, unique(ukey_trait$dataset)))
   
   class(out) <- c("bestcor", class(out))
   out
@@ -265,9 +271,9 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     return(plot_null(paste("No Correlations above", mincor)))
   
   p <- ggplot2::ggplot(object) +
-    ggplot2::aes(.data$trait, .data$cors, col = .data$proband) +
+    ggplot2::aes(.data$trait, .data$cors, col = .data$key_trait) +
     ggplot2::geom_point(size = 2) + 
-    ggplot2::facet_grid(.data$probandset + .data$proband ~ .) +
+    ggplot2::facet_grid(.data$key_dataset + .data$key_trait ~ .) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
   if(!abscor) {
     p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")

@@ -37,12 +37,11 @@ shinyTraitStats <- function(input, output, session,
   # MODULES
   nameOutput <- shiny::callModule(
     shinyTraitNames, "shinyName",
-    input, traitStats, orderstats)
+    traitStats, orderstats)
   
   namesOutput <- shiny::callModule(
     shinyTraitNames, "shinyNames",
-    input, traitStats, corobject,
-    shiny::reactive(TRUE))
+    traitStats, corobject, shiny::reactive(TRUE))
   
   # Shiny UI Server Side
   output$shiny_stats <- shiny::renderUI({
@@ -84,7 +83,7 @@ shinyTraitStats <- function(input, output, session,
     })
   output$reldataset <- renderUI({
     shiny::selectInput(ns("reldataset"), "Related Datasets:",
-                       datasets(), input$reldataset)
+                       datasets(), datasets()[1], multiple = TRUE)
   })
   rel_selection <- shiny::reactiveVal(NULL)
   shiny::observeEvent(input$reldataset, {
@@ -120,7 +119,7 @@ shinyTraitStats <- function(input, output, session,
         .data$dataset %in% input$keydataset))
   })
   corobject <- shiny::reactive({
-    shiny::req(nameOutput(), input$reldataset, traitSignal())
+    shiny::req(nameOutput(), traitSignal())
     # input$corterm = "cellmean" -- see shinyCorrelation.R
     
     bestcor(

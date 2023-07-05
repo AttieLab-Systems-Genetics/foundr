@@ -1,11 +1,3 @@
-library(shiny)
-devtools::install_cran("plotly") #  not yet on UW dataviz
-devtools::install_cran("markdown") #  not yet on UW dataviz
-devtools::install_cran("cowplot") #  not yet on UW dataviz
-devtools::install_cran("ggdendro") #  not yet on UW dataviz
-#devtools::install_github("byandell/foundr")
-library(foundr)
-
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))

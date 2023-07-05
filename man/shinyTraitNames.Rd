@@ -11,7 +11,6 @@ shinyTraitNames(
   input,
   output,
   session,
-  module_par,
   traitStats,
   traitStatsArranged,
   multiples = shiny::reactive(FALSE)
@@ -21,8 +20,6 @@ shinyTraitNames(
 \item{id}{identifier for shiny reactive}
 
 \item{input, output, session}{standard shiny arguments}
-
-\item{module_par}{reactive arguments from `foundrServer` and `shinyModules`}
 
 \item{traitStats, traitStatsArranged}{reactive object with list created by `listof_wgcnamodules`}
 

@@ -21,7 +21,6 @@ shinyTraitNamesUI <- function(id) {
 #' which is decided in the `shinyTraitStats` module.
 #' 
 #' @param input,output,session standard shiny arguments
-#' @param module_par reactive arguments from `foundrServer` and `shinyModules`
 #' @param traitStats,traitStatsArranged reactive object with list created by `listof_wgcnamodules`
 #' @param multiples reactive logical for multiple trait names
 #'
@@ -35,15 +34,12 @@ shinyTraitNamesUI <- function(id) {
 #' @export
 #'
 shinyTraitNames <- function(input, output, session,
-                        module_par,
                         traitStats,
                         traitStatsArranged,
                         multiples = shiny::reactive(FALSE)) {
   ns <- session$ns
   
   # INPUTS
-  # shinyModules inputs: (see shinyModules.R)
-  #   module_par$order
   # shinyTraitNames inputs: (see output$shiny_modcomp below)
   #   input$trait Trait Names
   
@@ -59,7 +55,7 @@ shinyTraitNames <- function(input, output, session,
     trait_selection(input$trait)
   })
   shiny::observeEvent(
-    shiny::req(module_par$order, traitNamesArranged()),
+    shiny::req(traitNamesArranged()),
     {
       # Use current selection of trait_selection().
       # But make sure they are still in the traitNamesArranged().
