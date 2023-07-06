@@ -100,17 +100,26 @@ pairsetup <- function(x, object,
   out  
 }
 
-trait_pairs <- function(traitnames, sep = " ON ") {
-  as.vector(
-    unlist(
-      dplyr::mutate(
-        as.data.frame(utils::combn(traitnames, 2)),
-        dplyr::across(
-          dplyr::everything(), 
-          function(x) {
-            c(paste(x, collapse = sep),
-              paste(rev(x), collapse = sep))
-          }))))
+trait_pairs <- function(traitnames, sep = " ON ", key = TRUE) {
+  if(length(traitnames) < 2)
+    return(NULL)
+  
+  if(key) {
+    # Key Trait vs all others.
+    paste(traitnames[-1], traitnames[1], sep = sep)
+  } else {
+    # All Trait Pairs, both directions.
+    as.vector(
+      unlist(
+        dplyr::mutate(
+          as.data.frame(utils::combn(traitnames, 2)),
+          dplyr::across(
+            dplyr::everything(), 
+            function(x) {
+              c(paste(x, collapse = sep),
+                paste(rev(x), collapse = sep))
+            }))))
+  }
 }
 
 #' GGplot of trait pairs

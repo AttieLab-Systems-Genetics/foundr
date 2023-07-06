@@ -51,7 +51,7 @@ shinyTraitSolos <- function(input, output, session,
     shiny::plotOutput(ns("solosPlot"), height = paste0(main_par$height, "in"))
   })
   
-  # Plots
+  # Plot
   solosPlot <- shiny::reactive({
     shiny::req(traitSolosObject())
     

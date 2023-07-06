@@ -23,7 +23,7 @@ shinyTraitPairs(
 
 \item{main_par}{reactive arguments from `foundrServer`}
 
-\item{trait_names}{reactive with trait names.}
+\item{trait_names}{reactive with trait names}
 
 \item{traitSolosObject}{reactive objects from `foundrServer`}
 }

@@ -18,91 +18,77 @@ shinyTraitPairsUI <- function(id) {
 #'
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
-#' @param trait_names reactive with trait names.
+#' @param trait_names reactive with trait names
 #' @param traitSolosObject reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyTaitSolosUI`
 #' 
-#' @importFrom shiny observeEvent plotOutput radioButtons reactive reactiveVal 
-#'             renderPlot renderUI req tagList uiOutput
+#' @importFrom shiny isTruthy observeEvent plotOutput radioButtons reactive 
+#'             reactiveVal renderPlot renderUI req tagList uiOutput
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export
 #'
 
 shinyTraitPairs <- function(input, output, session,
-                           main_par, trait_names,
-                           traitSolosObject) {
+                           main_par, trait_names, traitSolosObject) {
   ns <- session$ns
 
   # INPUTS
   # Main inputs:
-  #   main_par$trait (passed as trait_names())
-  #   main_par$strains
   #   main_par$facet
   #   main_par$height
   # TraitPairs inputs:
-  #   input$pair
+  #   input$pair (obsolete)
 
   # OUTPUTS
-  # output$scatPlot
+  # output$pairsPlot
 
   # RETURNS
-  # list with elements
-  #   plot = distPlot()
+  # pairsPlot()
 
   #############################################################
   # Output: Plots or Data
   output$shiny_traitPairs <- shiny::renderUI({
-    shiny::tagList(
-      shiny::uiOutput("pair"),
-      
-      shiny::uiOutput(ns("scatplot"))
-    )
+    shiny::req(trait_names(), traitSolosObject())
+    
+    shiny::plotOutput(ns("pairsPlot"), height = paste0(main_par$height, "in"))
+  })
+
+  # Plot
+  pairsPlot <- shiny::reactive({
+    shiny::req(traitSolosObject(), trait_names(), pair())
+    
+    ggplot_traitPairs(
+      traitPairs(
+        traitSolosObject(),
+        trait_names(),
+        pair()),
+      facet_strain = shiny::isTruthy(main_par$facet),
+      parallel_lines = TRUE)
+  })
+  output$pairsPlot <- shiny::renderPlot({
+    print(pairsPlot())
   })
   
-  # Pair
+  # INPUT PAIR
+  pair <- shiny::reactive({
+    trait_pairs(trait_names())
+  })
+  # Obsolete
   output$pair <- shiny::renderUI({
-    # Somehow when input$height is changed this is reset.
+    # Somehow when main_par$height is changed this is reset.
     shiny::req(trait_names())
     if(length(trait_names()) < 2)
       return(NULL)
-    choices <- trait_pairs(trait_names())
+    choices <- trait_pairs(trait_names(), key = FALSE)
     
     shiny::selectInput(
       "pair", "Select pairs for scatterplots",
       choices = choices, selected = choices[1],
       multiple = TRUE, width = '100%')
   })
-
-  # Plot
-  output$scatPlot <- shiny::renderUI({
-    shiny::req(trait_names(), datasets_selected(), input$order)
-    shiny::tagList(
-      shiny::uiOutput("pair"),
-      shiny::plotOutput("scatplot", height = paste0(input$height, "in"))
-    )
-  })
-  output$scatplot <- shiny::renderPlot({
-    print(scatsplot())
-  })
-  scatsplot <- shiny::reactive({
-    shiny::req(traitSolosObject(), trait_names(), input$pair)
-    
-    ggplot_traitPairs(
-      traitPairs(
-        traitSolosObject(),
-        trait_names(),
-        input$pair),
-      facet_strain = input$facet,
-      parallel_lines = TRUE)
-  })
   
   #############################################################
 
-  # List returned
-  reactive({
-    shiny::req(distPlot())
-    list(
-      plot = print(distPlot()))
-  })
+  pairsPlot
 }
