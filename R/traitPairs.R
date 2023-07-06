@@ -132,6 +132,10 @@ ggplot_traitPairs <- function(object,
                               legend_position = "bottom",
                               legend_nrow = 1) {
 
+  if(is.null(object)) {
+    return(print(plot_null("Need to specify at least two traits.")))
+  }
+  
   ggplot_template(
     object,
     drop_xlab = drop_xlab,

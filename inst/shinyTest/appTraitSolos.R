@@ -26,11 +26,11 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::uiOutput("upload"),
+        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
+        foundr::shinyTraitObjectUI("shinyObject"),
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
         shiny::fluidRow(
           shiny::column(
             6,
@@ -44,12 +44,24 @@ ui <- function() {
       ),
 
       shiny::mainPanel(
-        foundr::shinyTraitSoloUI("shinyTest")
+        shiny::tagList(
+          foundr::shinyTraitSolosUI("shinySolos"),
+          foundr::shinyTraitObjectOutput("shinyObject")
+        )
       )))
 }
 
 server <- function(input, output, session) {
-
+  
+  # CALL MODULES
+  objectOutput <- shiny::callModule(
+    foundr::shinyTraitObject, "shinyObject",
+    input, trait_names,
+    traitDataInput, traitSignalInput)
+  solosOutput <- shiny::callModule(
+    foundr::shinyTraitSolos, "shinySolos",
+    input, objectOutput)
+  
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
@@ -67,25 +79,24 @@ server <- function(input, output, session) {
   traitStatsInput <- shiny::reactive({
     traitStats
   })
-  datasets<-shiny::reactive({
-    "Enrich"
-  })
+  
+  # RETURN OBJECTS FROM MODULES
   trait_names <- shiny::reactive({
     shiny::req(input$trait)
   })
-
-  moduleOutput <- shiny::callModule(
-    foundr::shinyTraitSolo, "shinyTest",
-    input, trait_names,
-    traitDataInput, traitSignalInput, datasets)
-
+  datasets <- shiny::reactive({
+    shiny::req(objectOutput())
+    
+    unique(objectOutput()$dataset)
+  })
+  
   # I/O FROM MODULE
   # MODULE INPUT: File Prefix
   output$filename <- renderUI({
-    shiny::req(moduleOutput())
+    shiny::req(datasets())
     filename <- paste0(
       "module_",
-      paste(moduleOutput()$traits, collapse = "."))
+      paste(datasets(), collapse = "."))
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
 
@@ -96,7 +107,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       grDevices::pdf(file, width = 9, height = 6)
-      print(moduleOutput()$plot)
+      print(solosOutput())
       grDevices::dev.off()
     })
 
@@ -107,7 +118,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       utils::write.csv(
-        moduleOutput()$table,
+        objectOutput(),
         file, row.names = FALSE)
     })
 }
