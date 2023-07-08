@@ -8,7 +8,7 @@ traitStats$dataset <- "Enrich"
 
 ################################################################
 
-title <- "Test Shiny Trait Object"
+title <- "Test Shiny Trait Table"
 
 ui <- function() {
   # INPUTS
@@ -17,7 +17,7 @@ ui <- function() {
   #   input$height: Plot Height
   #   input$
   #
-  # OUTPUTS (see shinyTraitObject)
+  # OUTPUTS (see shinyTraitTable)
   #   traitSolosObject()
 
   shiny::fluidPage(
@@ -27,22 +27,27 @@ ui <- function() {
         shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         
-        foundr::shinyTraitObjectUI("shinyTest"),
+        foundr::shinyTraitTableUI("shinyTest"),
         shiny::downloadButton("downloadTable", "Data")
       ),
 
       shiny::mainPanel(
-        foundr::shinyTraitObjectOutput("shinyTest")
+        foundr::shinyTraitTableOutput("shinyTest")
       )))
 }
 
 server <- function(input, output, session) {
-
+  
+  # MODULES
+  moduleOutput <- foundr::shinyTraitTable("shinyTest", input, trait_names,
+                                           traitDataInput, traitSignalInput)
+  
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
-                              choices = choices, selected = choices, inline = TRUE)
+                              choices = choices, selected = choices,
+                              inline = TRUE)
   })
 
   # DATA OBJECTS
@@ -55,11 +60,6 @@ server <- function(input, output, session) {
   trait_names <- shiny::reactive({
     shiny::req(input$trait)
   })
-
-  moduleOutput <- shiny::callModule(
-    foundr::shinyTraitObject, "shinyTest",
-    input, trait_names,
-    traitDataInput, traitSignalInput)
   
   # MODULE OUTPUT: DataTable
   output$downloadTable <- shiny::downloadHandler(

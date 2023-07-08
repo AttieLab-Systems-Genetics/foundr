@@ -5,6 +5,8 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
+shiny::reactlogShow()
+
 title <- "Test Shiny Trait Stats"
 
 ui <- function() {
@@ -41,10 +43,9 @@ server <- function(input, output, session) {
     traitStats
   })
   
-  # CALL MODULE
-  traitOutput <- shiny::callModule(
-    foundr::shinyTraitStats, "shinyStat",
-    traitSignalInput, traitStatsInput)
+  # MODULES
+  traitOutput <- foundr::shinyTraitStats("shinyStat",
+                                         traitSignalInput, traitStatsInput)
   
   # I/O FROM MODULE
   output$key_trait <- renderText({

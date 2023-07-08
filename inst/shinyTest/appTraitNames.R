@@ -6,7 +6,7 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 title <- "Test Shiny Trait Names"
 
-reactlog::reactlog_enable()
+shiny::reactlogShow()
 
 ui <- function() {
   # INPUTS
@@ -36,9 +36,14 @@ server <- function(input, output, session) {
   # OUTPUTS (see shinyTraitNames)
   #   output$name: Traits
   
+  # MODULES
+  moduleOutput <- foundr::shinyTraitNames("shinyTest",
+                                          traitStatsInput, traitStatsInput)
+  
   datasets <- shiny::reactive({
-    unique(traitStats$dataset)
-  })
+      unique(traitStats$dataset)
+    },
+    label = "datasets")
 
   # INPUTS  
   output$inputs <- renderUI({
@@ -51,12 +56,8 @@ server <- function(input, output, session) {
     dplyr::filter(
       traitStats,
       .data$dataset %in% input$dataset)
-  })
-
-  # CALL MODULE
-  moduleOutput <- shiny::callModule(
-    foundr::shinyTraitNames, "shinyTest", 
-    traitStatsInput, traitStatsInput)
+   },
+   label = "traitStatsInput")
   
   # I/O FROM MODULE
   output$name <- renderUI({

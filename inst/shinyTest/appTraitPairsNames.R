@@ -1,14 +1,12 @@
-dirpath <- "~/FounderDietStudy"
-traitData <- readRDS(file.path(dirpath, "Enrich", "EnrichData.rds"))
-traitStats <- readRDS(file.path(dirpath, "Enrich", "EnrichStats.rds"))
-traitSignal <- readRDS(file.path(dirpath, "Enrich", "EnrichSignal.rds"))
-traitData$dataset <- "Enrich"
-traitSignal$dataset <- "Enrich"
-traitStats$dataset <- "Enrich"
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
-title <- "Test Shiny Trait Solos"
+title <- "Test Shiny Trait Pairs with Trait Names"
 
 ui <- function() {
   # INPUTS
@@ -17,7 +15,7 @@ ui <- function() {
   #   input$height: Plot Height
   #   input$
   #
-  # OUTPUTS (see shinyTraitSolos)
+  # OUTPUTS (see shinyTraitPairs)
   #   output$filename: 
   #   output$downloadPlot
   #   output$downloadTable
@@ -26,11 +24,13 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
+        foundr::shinyTraitStatsUI("shinyStat"),
         foundr::shinyTraitTableUI("shinyObject"),
+        
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
+        
         shiny::fluidRow(
           shiny::column(
             6,
@@ -45,7 +45,7 @@ ui <- function() {
 
       shiny::mainPanel(
         shiny::tagList(
-          foundr::shinyTraitSolosUI("shinySolos"),
+          foundr::shinyTraitPairsUI("shinyPairs"),
           foundr::shinyTraitTableOutput("shinyObject")
         )
       )))
@@ -53,10 +53,17 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-  # MODULES
-  tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
-                                           traitDataInput, traitSignalInput)
-  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
+  # CALL MODULES
+  statsOutput <- shiny::callModule(
+    foundr::shinyTraitStats, "shinyStat",
+    traitSignalInput, traitStatsInput)
+  tableOutput <- shiny::callModule(
+    foundr::shinyTraitTable, "shinyObject",
+    input, trait_names,
+    traitDataInput, traitSignalInput)
+  pairsOutput <- shiny::callModule(
+    foundr::shinyTraitPairs, "shinyPairs",
+    input, trait_names, tableOutput)
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -78,11 +85,12 @@ server <- function(input, output, session) {
   
   # RETURN OBJECTS FROM MODULES
   trait_names <- shiny::reactive({
-    shiny::req(input$trait)
-  })
-  datasets <- shiny::reactive({
-    shiny::req(tableOutput())
+    shiny::req(statsOutput())
     
+    c(statsOutput()$key_trait, statsOutput()$rel_traits)
+  })
+  datasets<-shiny::reactive({
+    shiny::req(tableOutput())
     unique(tableOutput()$dataset)
   })
   
@@ -104,7 +112,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       grDevices::pdf(file, width = 9, height = 6)
-      print(solosOutput())
+      print(pairsOutput())
       grDevices::dev.off()
     })
 

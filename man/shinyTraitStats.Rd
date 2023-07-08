@@ -7,14 +7,14 @@
 \usage{
 shinyTraitStatsUI(id)
 
-shinyTraitStats(input, output, session, traitSignal, traitStats)
+shinyTraitStats(id, traitSignal, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{input, output, session}{standard shiny arguments}
-
 \item{traitSignal, traitStats}{reactive data frames}
+
+\item{input, output, session}{standard shiny arguments}
 }
 \value{
 nothing returned
@@ -24,5 +24,5 @@ reactive object for `shinyTraitStatsUI`
 \description{
 Shiny Module UI for Trait Stats
 
-Shiny Module Server for Dendro Plots
+Shiny Module Server for Trait Stats
 }

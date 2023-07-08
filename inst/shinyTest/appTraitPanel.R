@@ -1,14 +1,12 @@
-dirpath <- "~/FounderDietStudy"
-traitData <- readRDS(file.path(dirpath, "Enrich", "EnrichData.rds"))
-traitStats <- readRDS(file.path(dirpath, "Enrich", "EnrichStats.rds"))
-traitSignal <- readRDS(file.path(dirpath, "Enrich", "EnrichSignal.rds"))
-traitData$dataset <- "Enrich"
-traitSignal$dataset <- "Enrich"
-traitStats$dataset <- "Enrich"
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
-title <- "Test Shiny Trait Solos"
+title <- "Test Shiny Trait Pairs with Trait Names"
 
 ui <- function() {
   # INPUTS
@@ -17,7 +15,7 @@ ui <- function() {
   #   input$height: Plot Height
   #   input$
   #
-  # OUTPUTS (see shinyTraitSolos)
+  # OUTPUTS (see shinyTraitPairs)
   #   output$filename: 
   #   output$downloadPlot
   #   output$downloadTable
@@ -26,11 +24,12 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
-        foundr::shinyTraitTableUI("shinyObject"),
+        foundr::shinyTraitPanelUI("shinyPanel"),
+
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
+
         shiny::fluidRow(
           shiny::column(
             6,
@@ -44,25 +43,27 @@ ui <- function() {
       ),
 
       shiny::mainPanel(
-        shiny::tagList(
-          foundr::shinyTraitSolosUI("shinySolos"),
-          foundr::shinyTraitTableOutput("shinyObject")
-        )
+        foundr::shinyTraitPanelOutput("shinyPanel")
       )))
 }
 
 server <- function(input, output, session) {
   
-  # MODULES
-  tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
-                                           traitDataInput, traitSignalInput)
-  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
+  # CALL MODULES
+  panelOutput <- foundr::shinyTraitPanel("shinyPanel", input,
+                                         traitDataInput,
+                                         traitSignalInput,
+                                         traitStatsInput)
   
+  # *** return is corrupted somehow
+  # *** need to arrange NULL pairsplot
+
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput("strains", "Strains",
-                              choices = choices, selected = choices, inline = TRUE)
+    shiny::checkboxGroupInput(
+      "strains", "Strains",
+      choices = choices, selected = choices, inline = TRUE)
   })
 
   # DATA OBJECTS
@@ -78,22 +79,21 @@ server <- function(input, output, session) {
   
   # RETURN OBJECTS FROM MODULES
   trait_names <- shiny::reactive({
-    shiny::req(input$trait)
-  })
-  datasets <- shiny::reactive({
-    shiny::req(tableOutput())
+    shiny::req(panelOutput())
     
-    unique(tableOutput()$dataset)
-  })
-  
+    c(panelOutput()$traits)
+  },
+  label = "trait_names")
+
   # I/O FROM MODULE
   
   # MODULE INPUT: File Prefix
   output$filename <- renderUI({
-    shiny::req(datasets())
+    shiny::req(trait_names())
+    
     filename <- paste0(
       "module_",
-      paste(datasets(), collapse = "."))
+      paste(trait_names(), collapse = "."))
     shiny::textAreaInput("filename", "File Prefix", filename)
   })
 
@@ -103,8 +103,11 @@ server <- function(input, output, session) {
       paste0(shiny::req(input$filename), ".pdf")
     },
     content = function(file) {
+      shiny::req(panelOutput())
       grDevices::pdf(file, width = 9, height = 6)
-      print(solosOutput())
+      print(panelOutput()$solos)
+      if(!is.null(panelOutput()$pairs))
+        print(panelOutput()$pairs)
       grDevices::dev.off()
     })
 
@@ -114,8 +117,9 @@ server <- function(input, output, session) {
       paste0(shiny::req(input$filename), ".csv")
     },
     content = function(file) {
+      shiny::req(panelOutput())
       utils::write.csv(
-        tableOutput(),
+        panelOutput()$object,
         file, row.names = FALSE)
     })
 }

@@ -25,7 +25,7 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         foundr::shinyTraitStatsUI("shinyStat"),
-        foundr::shinyTraitObjectUI("shinyObject"),
+        foundr::shinyTraitTableUI("shinyObject"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
@@ -46,7 +46,7 @@ ui <- function() {
       shiny::mainPanel(
         shiny::tagList(
           foundr::shinyTraitSolosUI("shinySolos"),
-          foundr::shinyTraitObjectOutput("shinyObject")
+          foundr::shinyTraitTableOutput("shinyObject")
         )
       )))
 }
@@ -54,16 +54,11 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # CALL MODULES
-  statsOutput <- shiny::callModule(
-    foundr::shinyTraitStats, "shinyStat",
-    traitSignalInput, traitStatsInput)
-  objectOutput <- shiny::callModule(
-    foundr::shinyTraitObject, "shinyObject",
-    input, trait_names,
-    traitDataInput, traitSignalInput)
-  solosOutput <- shiny::callModule(
-    foundr::shinyTraitSolos, "shinySolos",
-    input, objectOutput)
+  statsOutput <- foundr::shinyTraitStats("shinyStat",
+                                         traitSignalInput, traitStatsInput)
+  tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
+                                         traitDataInput, traitSignalInput)
+  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -90,8 +85,8 @@ server <- function(input, output, session) {
     c(statsOutput()$key_trait, statsOutput()$rel_traits)
   })
   datasets<-shiny::reactive({
-    shiny::req(objectOutput())
-    unique(objectOutput()$dataset)
+    shiny::req(tableOutput())
+    unique(tableOutput()$dataset)
   })
   
   # I/O FROM MODULE
@@ -123,7 +118,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       utils::write.csv(
-        objectOutput(),
+        tableOutput(),
         file, row.names = FALSE)
     })
 }

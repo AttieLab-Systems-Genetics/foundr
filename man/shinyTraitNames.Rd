@@ -7,23 +7,16 @@
 \usage{
 shinyTraitNamesUI(id)
 
-shinyTraitNames(
-  input,
-  output,
-  session,
-  traitStats,
-  traitStatsArranged,
-  multiples = shiny::reactive(FALSE)
-)
+shinyTraitNames(id, traitStats, traitStatsArranged, multiples = FALSE)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
+\item{traitStats, traitStatsArranged}{reactive data frames}
+
+\item{multiples}{fixed logical for multiple trait names}
+
 \item{input, output, session}{standard shiny arguments}
-
-\item{traitStats, traitStatsArranged}{reactive object with list created by `listof_wgcnamodules`}
-
-\item{multiples}{reactive logical for multiple trait names}
 }
 \value{
 nothing returned
@@ -31,7 +24,7 @@ nothing returned
 reactive vector of trait names
 }
 \description{
-Select trait names in one of two modes, depending on the fixed `multiples()`:
+Select trait names in one of two modes, depending on the fixed `multiples`:
 `FALSE` = only one trait name,
 `TRUE` =  multiple names.
 The order of choices depends on `traitStatsArranged()`,

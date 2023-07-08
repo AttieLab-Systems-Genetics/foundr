@@ -29,7 +29,8 @@ ui <- function() {
         shiny::selectInput("trait","Traits:",
                            c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk"),
                            multiple = TRUE),
-        foundr::shinyTraitObjectUI("shinyObject"),
+        foundr::shinyTraitTableUI("shinyObject"),
+        
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
@@ -49,7 +50,7 @@ ui <- function() {
       shiny::mainPanel(
         shiny::tagList(
           foundr::shinyTraitPairsUI("shinyPairs"),
-          foundr::shinyTraitObjectOutput("shinyObject")
+          foundr::shinyTraitTableOutput("shinyObject")
         )
     )))
 }
@@ -57,13 +58,10 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # SHINY MODULES
-  objectOutput <- shiny::callModule(
-    foundr::shinyTraitObject, "shinyObject",
-    input, trait_names,
-    traitDataInput, traitSignalInput)
-  pairsOutput <- shiny::callModule(
-    foundr::shinyTraitPairs, "shinyPairs",
-    input, trait_names, objectOutput)
+  tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
+                                           traitDataInput, traitSignalInput)
+  pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, trait_names,
+                                         tableOutput)
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -88,9 +86,9 @@ server <- function(input, output, session) {
     shiny::req(input$trait)
   })
   datasets <- shiny::reactive({
-    shiny::req(objectOutput())
+    shiny::req(tableOutput())
     
-    unique(objectOutput()$dataset)
+    unique(tableOutput()$dataset)
   })
 
   # I/O FROM MODULE
@@ -122,7 +120,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       utils::write.csv(
-        objectOutput(),
+        tableOutput(),
         file, row.names = FALSE)
     })
 }

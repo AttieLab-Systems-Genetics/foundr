@@ -16,6 +16,7 @@ shinyTraitPairsUI <- function(id) {
 
 #' Shiny Module Server for trait solos Plots
 #'
+#' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
 #' @param trait_names reactive with trait names
@@ -23,72 +24,74 @@ shinyTraitPairsUI <- function(id) {
 #'
 #' @return reactive object for `shinyTaitSolosUI`
 #' 
-#' @importFrom shiny isTruthy observeEvent plotOutput radioButtons reactive 
-#'             reactiveVal renderPlot renderUI req tagList uiOutput
+#' @importFrom shiny isTruthy moduleServer observeEvent plotOutput radioButtons 
+#'             reactive renderPlot renderUI req tagList uiOutput
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export
 #'
-
-shinyTraitPairs <- function(input, output, session,
-                           main_par, trait_names, traitSolosObject) {
-  ns <- session$ns
-
-  # INPUTS
-  # Main inputs:
-  #   main_par$facet
-  #   main_par$height
-  # TraitPairs inputs:
-  #   input$pair (obsolete)
-
-  # OUTPUTS
-  # output$pairsPlot
-
-  # RETURNS
-  # pairsPlot()
-
-  #############################################################
-  # Output: Plots or Data
-  output$shiny_traitPairs <- shiny::renderUI({
-    shiny::req(trait_names(), traitSolosObject())
+shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
     
-    shiny::plotOutput(ns("pairsPlot"), height = paste0(main_par$height, "in"))
-  })
-
-  # Plot
-  pairsPlot <- shiny::reactive({
-    shiny::req(traitSolosObject(), trait_names(), pair())
+    # INPUTS
+    # Main inputs:
+    #   main_par$facet
+    #   main_par$height
+    # TraitPairs inputs:
+    #   input$pair (obsolete)
     
-    ggplot_traitPairs(
-      traitPairs(
-        traitSolosObject(),
-        trait_names(),
-        pair()),
-      facet_strain = shiny::isTruthy(main_par$facet),
-      parallel_lines = TRUE)
-  })
-  output$pairsPlot <- shiny::renderPlot({
-    print(pairsPlot())
-  })
-  
-  # INPUT PAIR
-  pair <- shiny::reactive({
-    trait_pairs(trait_names())
-  })
-  # Obsolete
-  output$pair <- shiny::renderUI({
-    # Somehow when main_par$height is changed this is reset.
-    shiny::req(trait_names())
-    if(length(trait_names()) < 2)
-      return(NULL)
-    choices <- trait_pairs(trait_names(), key = FALSE)
+    # OUTPUTS
+    # output$pairsPlot
     
-    shiny::selectInput(
-      "pair", "Select pairs for scatterplots",
-      choices = choices, selected = choices[1],
-      multiple = TRUE, width = '100%')
+    # RETURNS
+    # pairsPlot()
+    
+    #############################################################
+    # Output: Plots or Data
+    output$shiny_traitPairs <- shiny::renderUI({
+      shiny::req(trait_names(), traitSolosObject())
+      
+      shiny::plotOutput(ns("pairsPlot"), height = paste0(main_par$height, "in"))
+    })
+    
+    # Plot
+    pairsPlot <- shiny::reactive({
+      shiny::req(traitSolosObject(), trait_names(), pair())
+      
+      ggplot_traitPairs(
+        traitPairs(
+          traitSolosObject(),
+          trait_names(),
+          pair()),
+        facet_strain = shiny::isTruthy(main_par$facet),
+        parallel_lines = TRUE)
+      },
+      label = "pairsPlot")
+    output$pairsPlot <- shiny::renderPlot({
+      print(pairsPlot())
+    })
+    
+    # INPUT PAIR
+    pair <- shiny::reactive({
+      trait_pairs(trait_names())
+      },
+      label = "pair")
+    # Obsolete
+    output$pair <- shiny::renderUI({
+      # Somehow when main_par$height is changed this is reset.
+      shiny::req(trait_names())
+      if(length(trait_names()) < 2)
+        return(NULL)
+      choices <- trait_pairs(trait_names(), key = FALSE)
+      
+      shiny::selectInput(
+        "pair", "Select pairs for scatterplots",
+        choices = choices, selected = choices[1],
+        multiple = TRUE, width = '100%')
+    })
+    
+    #############################################################
+    
+    pairsPlot
   })
-  
-  #############################################################
-
-  pairsPlot
 }
