@@ -2,15 +2,20 @@
 % Please edit documentation in R/shinyTraitCors.R
 \name{shinyTraitCorsUI}
 \alias{shinyTraitCorsUI}
+\alias{shinyTraitCorsOutput}
 \alias{shinyTraitCors}
 \title{Shiny Module UI for Trait Correlations}
 \usage{
 shinyTraitCorsUI(id)
 
-shinyTraitCors(id, traitSignal, trait_names)
+shinyTraitCorsOutput(id)
+
+shinyTraitCors(id, stats_par, module_par, key_trait, traitSignal)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
+
+\item{stats_par, module_par}{reactive inputs from calling modules}
 
 \item{traitSignal, traitStats}{reactive data frames}
 
@@ -19,9 +24,13 @@ shinyTraitCors(id, traitSignal, trait_names)
 \value{
 nothing returned
 
+nothing returned
+
 reactive object for `shinyTraitCorsUI`
 }
 \description{
+Shiny Module UI for Trait Correlations
+
 Shiny Module UI for Trait Correlations
 
 Shiny Module Server for Trait Stats

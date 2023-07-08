@@ -106,6 +106,7 @@ server <- function(input, output, session) {
       shiny::req(panelOutput())
       grDevices::pdf(file, width = 9, height = 6)
       print(panelOutput()$solos)
+      print(panelOutput()$corsplot)
       if(!is.null(panelOutput()$pairs))
         print(panelOutput()$pairs)
       grDevices::dev.off()

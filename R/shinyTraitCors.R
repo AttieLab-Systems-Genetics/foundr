@@ -9,7 +9,23 @@
 #'
 shinyTraitCorsUI <- function(id) {
   ns <- shiny::NS(id)
+  
   shiny::uiOutput(ns("shiny_cors"))
+}
+
+#' Shiny Module UI for Trait Correlations
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTraitCors
+#' @importFrom shiny NS uiOutput
+#' @export
+#'
+shinyTraitCorsOutput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::uiOutput(ns("shiny_corsOutput"))
 }
 
 #' Shiny Module Server for Trait Stats
@@ -17,6 +33,7 @@ shinyTraitCorsUI <- function(id) {
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
 #' @param traitSignal,traitStats reactive data frames
+#' @param stats_par,module_par reactive inputs from calling modules
 #'
 #' @return reactive object for `shinyTraitCorsUI`
 #' @importFrom shiny callModule column fluidRow moduleServer observeEvent
@@ -25,26 +42,23 @@ shinyTraitCorsUI <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTraitCors <- function(id, traitSignal, trait_names) {
+shinyTraitCors <- function(id, stats_par, module_par, key_trait, traitSignal) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
+    # Temporary kludge
+    customSettings <- shiny::reactiveValues(dataset = NULL)
+    
     # INPUTS
+    # calling module inputs
+    #   module_par$height
     # shinyTraitCors inputs
-    #   input$keydataset
-    #   input$order
-    #   input$reldataset
+    #   input$corterm
+    #   input$abscor
+    #   input$mincor
     #
     # RETURNS
-    # list with elements
-    #   key_trait = key_traitOutput(): Key Trait
-    #   rel_traits = rel_traitsOutput(): Related Traits
-    #   key_stats = summary_strainstats(): Key Dataset Stats
-    #   rel_cors = summary_bestcor(): Related Dataset Correlations
-    
-    # *** need key_trait (or trait_names()[1]) and rel_dataset from shinyTraitStats ***
-    # *** put these one level up?
-    # *** need to simplify bestcor ***
+    # corobject()
     
     # Shiny UI Server Side
     output$shiny_cors <- shiny::renderUI({
@@ -56,24 +70,28 @@ shinyTraitCors <- function(id, traitSignal, trait_names) {
                                c("cellmean", "signal"), "cellmean")),
           shiny::column(
             6,
-            shiny::checkboxInput(ns("abscor"), "Absolute Correlation?", TRUE)
-          )),
-        shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7),
+            shiny::checkboxInput(ns("abscor"), "Absolute Correlation?", TRUE))),
         
-        shiny::plotOutput(ns("corplot"), height = paste0(input$height, "in")),
-        DT::dataTableOutput(ns("cortable")))
+        shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7))
+    })
+    output$shiny_corsOutput <- shiny::renderUI({
+      shiny::req(module_par$height)
+      
+      shiny::plotOutput(ns("corplot"),
+                        height = paste0(module_par$height, "in"))
     })
 
     corplot <- shiny::reactive({
+      shiny::req(input$mincor, corobject())
+      
+      if(is.null(corobject()) || !nrow(corobject()))
+        return(plot_null("Need to specify at least one trait."))
+      
       ggplot_bestcor(
         mutate_datasets(corobject(), customSettings$dataset, undo = TRUE), 
         input$mincor, input$abscor)
     })
     output$corplot <- shiny::renderPlot({
-      shiny::req(input$mincor, corobject())
-      if(is.null(corobject()) || !nrow(corobject()))
-        return(print(plot_null("Need to specify at least one trait.")))
-      
       print(corplot())
     })
     output$cortable <- DT::renderDataTable(
@@ -89,11 +107,9 @@ shinyTraitCors <- function(id, traitSignal, trait_names) {
       options = list(scrollX = TRUE, pageLength = 10))
     
     corobject <- shiny::reactive({
-      shiny::req(trait_names(), traitSignal(), input$corterm)
+      shiny::req(key_trait(), stats_par$reldataset, traitSignal(),
+                 input$corterm)
       
-      # *** need reldataset ***
-      
-      # *** This code should be simplified into bestcor(). ***
       bestcor(
         # Filter to Related Datasets or matching `nameOption()`.
         dplyr::select(
@@ -103,15 +119,20 @@ shinyTraitCors <- function(id, traitSignal, trait_names) {
               datatraits,
               .data$dataset, .data$trait,
               sep = ": ", remove = FALSE),
-            (.data$datatraits %in% trait_names()[1]) |
-              (.data$dataset %in% reldataset)),
+            (.data$datatraits %in% key_trait()) |
+              (.data$dataset %in% stats_par$reldataset)),
           -.data$datatraits),
-        key_traitOutput(),
+        key_trait(),
         input$corterm)
     })
     
     ##############################################################
     # Return
-    corobject
+    shiny::reactive({
+      list(
+        table = corobject(),
+        plot = corplot())
+      },
+      label = "shinyTraitCors_return")
   })
 }

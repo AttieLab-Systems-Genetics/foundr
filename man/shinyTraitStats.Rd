@@ -2,15 +2,20 @@
 % Please edit documentation in R/shinyTraitStats.R
 \name{shinyTraitStatsUI}
 \alias{shinyTraitStatsUI}
+\alias{shinyTraitStatsOutput}
 \alias{shinyTraitStats}
 \title{Shiny Module UI for Trait Stats}
 \usage{
 shinyTraitStatsUI(id)
 
-shinyTraitStats(id, traitSignal, traitStats)
+shinyTraitStatsOutput(id)
+
+shinyTraitStats(id, module_par, traitSignal, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
+
+\item{module_par}{reactive input from calling module}
 
 \item{traitSignal, traitStats}{reactive data frames}
 
@@ -19,10 +24,14 @@ shinyTraitStats(id, traitSignal, traitStats)
 \value{
 nothing returned
 
+nothing returned
+
 reactive object for `shinyTraitStatsUI`
 }
 \description{
 Shiny Module UI for Trait Stats
+
+Shiny Module Output for Trait Stats
 
 Shiny Module Server for Trait Stats
 }

@@ -9,13 +9,30 @@
 #'
 shinyTraitStatsUI <- function(id) {
   ns <- shiny::NS(id)
+  
   shiny::uiOutput(ns("shiny_stats"))
+}
+
+#' Shiny Module Output for Trait Stats
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTraitStats
+#' @importFrom shiny NS uiOutput
+#' @export
+#'
+shinyTraitStatsOutput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shinyTraitCorsOutput(ns("shinyCors"))
 }
 
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
+#' @param module_par reactive input from calling module
 #' @param traitSignal,traitStats reactive data frames
 #'
 #' @return reactive object for `shinyTraitStatsUI`
@@ -25,7 +42,7 @@ shinyTraitStatsUI <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTraitStats <- function(id, traitSignal, traitStats) {
+shinyTraitStats <- function(id, module_par, traitSignal, traitStats) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -39,13 +56,18 @@ shinyTraitStats <- function(id, traitSignal, traitStats) {
     # list with elements
     #   key_trait = key_traitOutput(): Key Trait
     #   rel_traits = rel_traitsOutput(): Related Traits
-    #   key_stats = summary_strainstats(): Key Dataset Stats
-    #   rel_cors = summary_bestcor(): Related Dataset Correlations
+    #   key_stats = summary_strainstats(): Table of Key Dataset Stats
+    #   corstable = summary_bestcor(): Table of Dataset Correlations
+    #   corsplot = plot of Dataset Correlations
     
     # MODULES
     key_traitOutput <- shinyTraitNames("shinyName", traitStats, orderstats)
-    rel_traitsOutput <- shinyTraitNames("shinyNames", traitStats, corobject,
-                                        TRUE)
+    corsOutput <- shinyTraitCors("shinyCors", input, module_par,
+                                 key_traitOutput, traitSignal)
+    rel_traitsOutput <- shinyTraitNames("shinyNames", traitStats,
+                                        shiny::reactive({
+                                          corsOutput()$table
+                                        }), TRUE)
     
     # Shiny UI Server Side
     output$shiny_stats <- shiny::renderUI({
@@ -56,7 +78,9 @@ shinyTraitStats <- function(id, traitSignal, traitStats) {
           shiny::column(6, shinyTraitNamesUI(ns("shinyName")))),
         shiny::fluidRow(
           shiny::column(6, shiny::uiOutput(ns("reldataset"))),
-          shiny::column(6, shinyTraitNamesUI(ns("shinyNames")))))
+          shiny::column(6, shinyTraitNamesUI(ns("shinyNames")))),
+        
+        shinyTraitCorsUI(ns("shinyCors")))
     })
     
     datasets <- shiny::reactive({
@@ -102,34 +126,18 @@ shinyTraitStats <- function(id, traitSignal, traitStats) {
           traitStats(),
           .data$dataset %in% input$keydataset))
     })
-    corobject <- shiny::reactive({
-      shiny::req(key_traitOutput(), traitSignal())
-      # input$corterm = "cellmean" -- see shinyCorrelation.R
-      
-      bestcor(
-        # Filter to Related Datasets or matching `nameOption()`.
-        dplyr::select(
-          dplyr::filter(
-            tidyr::unite(
-              traitSignal(),
-              datatraits,
-              .data$dataset, .data$trait,
-              sep = ": ", remove = FALSE),
-            (.data$datatraits %in% key_traitOutput()) |
-              (.data$dataset %in% input$reldataset)),
-          -.data$datatraits),
-        key_traitOutput(),
-        "cellmean")
-    })
-    
-    # Arrange Trait Stats (order traits for menu and summary table)
+
+    ##########################################################
+    # Return
     shiny::reactive({
       shiny::req(orderstats(), key_traitOutput())
+      
       list(
         key_trait = key_traitOutput(),
         rel_traits = rel_traitsOutput(),
         key_stats = summary_strainstats(orderstats()),
-        rel_cors = summary_bestcor(corobject(), mincor = 0)
+        corstable = summary_bestcor(corsOutput()$table, mincor = 0),
+        corsplot = corsOutput()$plot
       )
     })
   })
