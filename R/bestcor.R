@@ -274,7 +274,9 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     ggplot2::aes(.data$trait, .data$cors, col = .data$key_trait) +
     ggplot2::geom_point(size = 2) + 
     ggplot2::facet_grid(.data$key_dataset + .data$key_trait ~ .) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+    ggplot2::theme(
+      legend.position = "none",
+      axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
   if(!abscor) {
     p <- p + ggplot2::geom_hline(yintercept = 0, color = "darkgray")
   }
@@ -306,10 +308,12 @@ summary_bestcor <- function(object, mincor = 0.5, ...) {
   dplyr::mutate(
     dplyr::select(
       dplyr::filter(
-        object,
+        dplyr::rename(
+          object,
+          correlation = "cors"),
         .data$absmax >= mincor),
       -.data$absmax),
-    cors = signif(.data$cors, 4))
+    correlation = signif(.data$correlation, 4))
 }
 #' @export
 #' @rdname bestcor

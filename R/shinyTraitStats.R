@@ -7,10 +7,25 @@
 #' @importFrom shiny NS uiOutput
 #' @export
 #'
-shinyTraitStatsUI <- function(id) {
+shinyTraitStatsInput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::uiOutput(ns("shiny_stats"))
+}
+
+#' Shiny Module UI for Trait Stats
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTraitStats
+#' @importFrom shiny NS 
+#' @export
+#'
+shinyTraitStatsUI <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shinyTraitOrderUI(ns("shinyOrder"))
 }
 
 #' Shiny Module Output for Trait Stats
@@ -25,7 +40,9 @@ shinyTraitStatsUI <- function(id) {
 shinyTraitStatsOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  shinyTraitCorsOutput(ns("shinyCors"))
+  shiny::tagList(
+    shinyCorPlotOutput(ns("shinyCorPlot")),
+    shinyCorTableOutput(ns("shinyCorTable")))
 }
 
 #' Shiny Module Server for Trait Stats
@@ -37,7 +54,7 @@ shinyTraitStatsOutput <- function(id) {
 #'
 #' @return reactive object for `shinyTraitStatsUI`
 #' @importFrom shiny callModule column fluidRow moduleServer observeEvent
-#'             reactive renderUI req selectInput tagList uiOutput
+#'             reactive renderUI req selectInput sliderInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
@@ -48,9 +65,8 @@ shinyTraitStats <- function(id, module_par, traitSignal, traitStats) {
     
     # INPUTS
     # shinyTraitStats inputs
-    #   input$keydataset
-    #   input$order
     #   input$reldataset
+    #   input$mincor
     #
     # RETURNS
     # list with elements
@@ -61,26 +77,30 @@ shinyTraitStats <- function(id, module_par, traitSignal, traitStats) {
     #   corsplot = plot of Dataset Correlations
     
     # MODULES
-    key_traitOutput <- shinyTraitNames("shinyName", traitStats, orderstats)
-    corsOutput <- shinyTraitCors("shinyCors", input, module_par,
-                                 key_traitOutput, traitSignal)
+    orderOutput <- shinyTraitOrder("shinyOrder", traitStats)
+    key_traitOutput <- shinyTraitNames("shinyName", traitStats, orderOutput)
+    corTableOutput <- shinyCorTable("shinyCorTable", input,
+                                         key_traitOutput, traitSignal)
+    corPlotOutput <- shinyCorPlot("shinyCorPlot", input, module_par,
+                                       corTableOutput)
     rel_traitsOutput <- shinyTraitNames("shinyNames", traitStats,
-                                        shiny::reactive({
-                                          corsOutput()$table
-                                        }), TRUE)
-    
+                                        corTableOutput, TRUE)
+
     # Shiny UI Server Side
     output$shiny_stats <- shiny::renderUI({
       shiny::tagList(
         shiny::fluidRow(
-          shiny::column(3, shiny::uiOutput(ns("keydataset"))),
-          shiny::column(3, shiny::uiOutput(ns("order"))),
+          shiny::column(6, shinyTraitOrderInput(ns("shinyOrder"))),
           shiny::column(6, shinyTraitNamesUI(ns("shinyName")))),
         shiny::fluidRow(
           shiny::column(6, shiny::uiOutput(ns("reldataset"))),
           shiny::column(6, shinyTraitNamesUI(ns("shinyNames")))),
         
-        shinyTraitCorsUI(ns("shinyCors")))
+        shiny::fluidRow(
+          shiny::column(6, shinyCorTableUI(ns("shinyCorTable"))),
+          shiny::column(6, shinyCorPlotUI(ns("shinyCorPlot")))),
+        
+        shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7))
     })
     
     datasets <- shiny::reactive({
@@ -88,11 +108,7 @@ shinyTraitStats <- function(id, module_par, traitSignal, traitStats) {
       unique(traitStats()$dataset)
     })
     
-    # Key and Related Datasets.
-    output$keydataset <- renderUI({
-      shiny::selectInput(ns("keydataset"), "Key Datasets:",
-                         datasets(), datasets()[1], multiple = TRUE)
-    })
+    # Related Datasets.
     output$reldataset <- renderUI({
       shiny::selectInput(ns("reldataset"), "Related Datasets:",
                          datasets(), datasets()[1], multiple = TRUE)
@@ -105,39 +121,21 @@ shinyTraitStats <- function(id, module_par, traitSignal, traitStats) {
         selected <- selected[selected %in% choices]
         if(!length(selected))
           selected <- choices[1]
-        shiny::updateSelectInput(session, "keydataset", choices = choices,
-                                 selected = selected)
         shiny::updateSelectInput(session, "reldataset", choices = choices,
                                  selected = selected)
       })
     
-    # Order Criteria for Trait Names
-    output$order <- shiny::renderUI({
-      p_types <- paste0("p_", unique(traitStats()$term))
-      choices <- c(p_types, "alphabetical", "original")
-      shiny::selectInput(ns("order"), "Order traits by", choices, p_types[1])
-    })
-    
-    orderstats <- shiny::reactive({
-      shiny::req(input$keydataset, input$order, traitStats())
-      orderTraitStats(
-        input$order, 
-        dplyr::filter(
-          traitStats(),
-          .data$dataset %in% input$keydataset))
-    })
-
     ##########################################################
     # Return
     shiny::reactive({
-      shiny::req(orderstats(), key_traitOutput())
+      shiny::req(orderOutput(), key_traitOutput())
       
       list(
         key_trait = key_traitOutput(),
         rel_traits = rel_traitsOutput(),
-        key_stats = summary_strainstats(orderstats()),
-        corstable = summary_bestcor(corsOutput()$table, mincor = 0),
-        corsplot = corsOutput()$plot
+        key_stats = summary_strainstats(orderOutput()),
+        corstable = summary_bestcor(corTableOutput(), mincor = 0),
+        corsplot = corPlotOutput()
       )
     })
   })

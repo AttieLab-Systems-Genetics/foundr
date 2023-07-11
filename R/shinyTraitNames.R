@@ -62,6 +62,7 @@ shinyTraitNames <- function(id, traitStats, traitStatsArranged,
     
     traitNamesArranged <- shiny::reactive({
       shiny::req(traitStatsArranged())
+      
       unite_datatraits(
         dplyr::distinct(
           traitStatsArranged(),
@@ -69,7 +70,14 @@ shinyTraitNames <- function(id, traitStats, traitStatsArranged,
     },
     label = "traitNamesArranged")
     
-    trait_selection <- shiny::reactive(input$trait, label = "trait_selection")
+    trait_selection <- shiny::reactive({
+      if(shiny::isTruthy(input$trait)) {
+        input$trait
+      } else {
+        NULL
+      }
+    },
+    label = "trait_selection")
     
     ###############################################
     # vector returned as reactive

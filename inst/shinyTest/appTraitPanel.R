@@ -6,7 +6,7 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
-title <- "Test Shiny Trait Pairs with Trait Names"
+title <- "Test Shiny Trait Panel"
 
 ui <- function() {
   # INPUTS

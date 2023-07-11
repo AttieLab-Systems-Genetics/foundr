@@ -17,15 +17,14 @@ ui <- function() {
       shiny::sidebarPanel(
         shiny::tagList(
           shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-          foundr::shinyTraitStatsUI("shinyStats"))),
+          foundr::shinyTraitStatsInput("shinyStats"))),
       
       shiny::mainPanel(
         shiny::tagList(
           shiny::textOutput("key_trait"),
-          DT::dataTableOutput("key_stats"),
+          foundr::shinyTraitStatsUI("shinyStats"),
           shiny::textOutput("rel_traits"),
-          foundr::shinyTraitStatsOutput("shinyStats"),
-          DT::dataTableOutput("corstable")))
+          foundr::shinyTraitStatsOutput("shinyStats")))
     ))
 }
 
@@ -55,24 +54,10 @@ server <- function(input, output, session) {
     shiny::req(statsOutput())
     statsOutput()$key_trait
   })
-  output$key_stats <- DT::renderDataTable(
-    {
-      shiny::req(statsOutput())
-      statsOutput()$key_stats
-    },
-    escape = FALSE,
-    options = list(scrollX = TRUE, pageLength = 5))
   output$rel_traits <- renderText({
     shiny::req(statsOutput())
     paste(statsOutput()$rel_traits, collapse = ", ")
   })
-  output$corstable <- DT::renderDataTable(
-    {
-      shiny::req(statsOutput())
-      statsOutput()$corstable
-    },
-    escape = FALSE,
-    options = list(scrollX = TRUE, pageLength = 5))
 }
 
 shiny::shinyApp(ui = ui, server = server)

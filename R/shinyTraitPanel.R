@@ -10,8 +10,8 @@
 shinyTraitPanelUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    shinyTraitStatsUI(ns("shinyStats")),
-    shinyTraitTableUI(ns("shinyObject")),
+    shinyTraitStatsInput(ns("shinyStats")),
+    shinyTraitTableUI(ns("shinyTable")),
     
     shiny::uiOutput(ns("plot_choice"))
   )
@@ -30,8 +30,9 @@ shinyTraitPanelOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
+    shinyTraitStatsUI(ns("shinyStats")),
     shiny::uiOutput(ns("plots")),
-    shinyTraitTableOutput(ns("shinyObject"))
+    shinyTraitTableOutput(ns("shinyTable"))
   )
 }
 
@@ -66,16 +67,13 @@ shinyTraitPanel <- function(id, module_par,
     
     # ** Need to sort out inputs: what is in this module and what is above? **
     # MODULES
-    statsOutput <- foundr::shinyTraitStats("shinyStats",
-                                           module_par, traitSignal, traitStats)
-    tableOutput <- foundr::shinyTraitTable("shinyObject",
-                                           module_par, trait_names,
-                                           traitData, traitSignal)
-    solosOutput <- foundr::shinyTraitSolos("shinySolos",
-                                           module_par, tableOutput)
-    pairsOutput <- foundr::shinyTraitPairs("shinyPairs",
-                                           module_par, trait_names,
-                                           tableOutput)
+    statsOutput <- shinyTraitStats("shinyStats", module_par, traitSignal,
+                                   traitStats)
+    tableOutput <- shinyTraitTable("shinyTable", module_par, trait_names,
+                                   traitData, traitSignal)
+    solosOutput <- shinyTraitSolos("shinySolos", module_par, tableOutput)
+    pairsOutput <- shinyTraitPairs("shinyPairs", module_par, trait_names,
+                                   tableOutput)
     
     # RETURN OBJECTS FROM MODULES
     trait_names <- shiny::reactive({
@@ -87,7 +85,11 @@ shinyTraitPanel <- function(id, module_par,
     
     # Plot
     output$plot_choice <- shiny::renderUI({
-      choices <- c("Solos", "Cors")
+      shiny::req(statsOutput())
+      
+      choices <- "Solos"
+      if(!is.null(statsOutput()$corsplot))
+        choices <- c(choices, "Cors")
       if(length(shiny::req(trait_names())) > 1)
         choices <- c(choices, "Pairs")
       shiny::checkboxGroupInput(ns("plots"), "Plots:",
@@ -99,11 +101,11 @@ shinyTraitPanel <- function(id, module_par,
       
       shiny::tagList(
         if("Solos" %in% input$plots)
-          foundr::shinyTraitSolosUI(ns("shinySolos")),
-        if("Cors" %in% input$plots)
-          foundr::shinyTraitStatsOutput(ns("shinyStats")),
+          shinyTraitSolosUI(ns("shinySolos")),
         if("Pairs" %in% input$plots)
-          foundr::shinyTraitPairsUI(ns("shinyPairs")))
+          shinyTraitPairsUI(ns("shinyPairs")),
+        if("Cors" %in% input$plots)
+          shinyTraitStatsOutput(ns("shinyStats")))
     })
     
 
