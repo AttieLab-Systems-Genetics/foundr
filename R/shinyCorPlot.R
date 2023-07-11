@@ -4,7 +4,7 @@
 #'
 #' @return nothing returned
 #' @rdname shinyCorPlot
-#' @importFrom shiny NS uiOutput
+#' @importFrom shiny NS checkboxInput
 #' @export
 #'
 shinyCorPlotUI <- function(id) {
@@ -36,10 +36,8 @@ shinyCorPlotOutput <- function(id) {
 #' @param stats_par,module_par reactive inputs from calling modules
 #'
 #' @return reactive object
-#' @importFrom shiny callModule column fluidRow moduleServer observeEvent
-#'             reactive renderUI req selectInput tagList uiOutput
-#'             updateSelectInput
-#' @importFrom DT renderDataTable
+#' @importFrom shiny callModule isTruthy moduleServer 
+#'             plotOutput reactive renderUI renderPlot req  
 #' @export
 #'
 shinyCorPlot <- function(id, stats_par, module_par, CorTable) {
@@ -67,10 +65,10 @@ shinyCorPlot <- function(id, stats_par, module_par, CorTable) {
     })
 
     corplot <- shiny::reactive({
-      shiny::req(stats_par$mincor, CorTable())
+      shiny::req(stats_par$mincor)
       
-      if(is.null(CorTable()) || !nrow(CorTable()))
-        return(plot_null("Need to specify at least one trait."))
+      if(!shiny::isTruthy(CorTable()))
+        return(plot_null("Need at least one related dataset."))
       
       ggplot_bestcor(
         mutate_datasets(CorTable(), customSettings$dataset, undo = TRUE), 

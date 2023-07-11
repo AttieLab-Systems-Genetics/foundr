@@ -76,8 +76,11 @@ shinyCorTable <- function(id, stats_par, key_trait, traitSignal) {
       options = list(scrollX = TRUE, pageLength = 5))
     
     corobject <- shiny::reactive({
-      shiny::req(key_trait(), stats_par$reldataset, traitSignal(),
+      shiny::req(key_trait(), traitSignal(),
                  input$corterm, stats_par$mincor)
+      
+      if(!shiny::isTruthy(stats_par$reldataset))
+        return(NULL)
       
       # Filter by mincor
       dplyr::filter(
