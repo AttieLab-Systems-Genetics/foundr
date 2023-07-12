@@ -15,7 +15,9 @@ shinyTraitPanel(id, module_par, traitData, traitSignal, traitStats)
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{traitData, traitSignal, traitStats}{reactive data frames}
+\item{traitData}{static data frame}
+
+\item{traitSignal, traitStats}{reactive data frames}
 
 \item{input, output, session}{standard shiny arguments}
 }

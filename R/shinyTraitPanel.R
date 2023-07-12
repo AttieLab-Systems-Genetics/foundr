@@ -39,7 +39,8 @@ shinyTraitPanelOutput <- function(id) {
 #' Shiny Module Server for Trait Panel
 #'
 #' @param input,output,session standard shiny arguments
-#' @param traitData,traitSignal,traitStats reactive data frames
+#' @param traitData static data frame
+#' @param traitSignal,traitStats reactive data frames
 #'
 #' @return reactive object 
 #' @importFrom shiny callModule column fluidRow observeEvent reactive
@@ -69,8 +70,24 @@ shinyTraitPanel <- function(id, module_par,
     # MODULES
     statsOutput <- shinyTraitStats("shinyStats", module_par, traitSignal,
                                    traitStats)
+    
+    # Filter static traitData based on selected trait_names.
+    traitDataInput <- shiny::reactive({
+      shiny::req(trait_names())
+      
+      dplyr::select(
+        dplyr::filter(
+          tidyr::unite(
+            traitData,
+            datatraits,
+            .data$dataset, .data$trait,
+            sep = ": ", remove = FALSE),
+          .data$datatraits %in% trait_names()),
+        -datatraits)
+    })
+    
     tableOutput <- shinyTraitTable("shinyTable", module_par, statsOutput,
-                                   traitData, traitSignal)
+                                   traitDataInput, traitSignal)
     
     solosOutput <- shinyTraitSolos("shinySolos", module_par, tableOutput)
     pairsOutput <- shinyTraitPairs("shinyPairs", module_par, statsOutput,
@@ -100,12 +117,9 @@ shinyTraitPanel <- function(id, module_par,
       shiny::req(input$plots)
       
       shiny::tagList(
-        if("Solos" %in% input$plots)
-          shinyTraitSolosUI(ns("shinySolos")),
-        if("Pairs" %in% input$plots)
-          shinyTraitPairsUI(ns("shinyPairs")),
-        if("Cors" %in% input$plots)
-          shinyTraitStatsOutput(ns("shinyStats")))
+        if("Solos" %in% input$plots) shinyTraitSolosUI(ns("shinySolos")),
+        if("Pairs" %in% input$plots) shinyTraitPairsUI(ns("shinyPairs")),
+        if("Cors" %in% input$plots)  shinyTraitStatsOutput(ns("shinyStats")))
     })
     
 

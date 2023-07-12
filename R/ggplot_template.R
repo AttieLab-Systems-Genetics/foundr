@@ -318,6 +318,12 @@ strain_lines <- function(
     p <- p + ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
   
   if(line_strain) {
+    # Always include overall regression line.
+    p <- p +
+      ggplot2::geom_smooth(
+        method = "lm", se = FALSE, formula = "y ~ x",
+        linewidth = 2, col = "darkgrey")
+    
     if(parallel_lines) {
       p <- p +
         ggplot2::geom_line(

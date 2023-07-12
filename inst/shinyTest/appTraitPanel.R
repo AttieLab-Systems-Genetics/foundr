@@ -1,14 +1,19 @@
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-traitData <- dplyr::filter(
-  readRDS(file.path(dirpath, "traitData.rds")),
-  dataset %in% c("Physio", "PlaMet0"))
-traitSignal <- dplyr::filter(
-  readRDS(file.path(dirpath, "traitSignal.rds")),
-  dataset %in% c("Physio", "PlaMet0"))
-traitStats <- dplyr::filter(
-  readRDS(file.path(dirpath, "traitStats.rds")),
-  dataset %in% c("Physio", "PlaMet0"))
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+if(FALSE) {
+  traitData <- dplyr::filter(
+    readRDS(file.path(dirpath, "traitData.rds")),
+    dataset %in% c("Physio", "PlaMet0"))
+  traitSignal <- dplyr::filter(
+    readRDS(file.path(dirpath, "traitSignal.rds")),
+    dataset %in% c("Physio", "PlaMet0"))
+  traitStats <- dplyr::filter(
+    readRDS(file.path(dirpath, "traitStats.rds")),
+    dataset %in% c("Physio", "PlaMet0"))
+}
 
 ################################################################
 
@@ -57,7 +62,7 @@ server <- function(input, output, session) {
   
   # CALL MODULES
   panelOutput <- foundr::shinyTraitPanel("shinyPanel", input,
-                                         traitDataInput,
+                                         traitData,
                                          traitSignalInput,
                                          traitStatsInput)
   
@@ -73,9 +78,6 @@ server <- function(input, output, session) {
   })
 
   # DATA OBJECTS
-  traitDataInput <- shiny::reactive({
-    traitData
-  })
   traitSignalInput <- shiny::reactive({
     traitSignal
   })
