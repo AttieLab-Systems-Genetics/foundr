@@ -10,14 +10,14 @@ shinyTraitTableUI(id)
 
 shinyTraitTableOutput(id)
 
-shinyTraitTable(id, main_par, trait_names, traitData, traitSignal)
+shinyTraitTable(id, main_par, statsOutput, traitData, traitSignal)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{reactive arguments from `foundrServer`}
+\item{main_par}{reactive arguments}
 
-\item{trait_names}{reactive with trait names.}
+\item{statsOutput}{reactive with trait names}
 
 \item{traitData, traitSignal}{reactive objects from `foundrServer`}
 

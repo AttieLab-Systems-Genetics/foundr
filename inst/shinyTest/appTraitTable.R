@@ -24,7 +24,8 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
+        shiny::selectInput("trait","Traits:",
+                           c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         
         foundr::shinyTraitTableUI("shinyTest"),
@@ -40,7 +41,15 @@ server <- function(input, output, session) {
   
   # MODULES
   moduleOutput <- foundr::shinyTraitTable("shinyTest", input, trait_names,
-                                           traitDataInput, traitSignalInput)
+                                          traitDataInput, traitSignalInput)
+  # Mockup of trait names
+  trait_names <- shiny::reactive({
+    out <- shiny::req(input$trait)
+    list(
+      key_trait = out[1],
+      rel_traits = NULL)
+    },
+    label = "trait_names")
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -56,9 +65,6 @@ server <- function(input, output, session) {
   })
   traitSignalInput <- shiny::reactive({
     traitSignal
-  })
-  trait_names <- shiny::reactive({
-    shiny::req(input$trait)
   })
   
   # MODULE OUTPUT: DataTable

@@ -1,7 +1,11 @@
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
-traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+traitSignal <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitSignal.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
+traitStats <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitStats.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
 
 ################################################################
 

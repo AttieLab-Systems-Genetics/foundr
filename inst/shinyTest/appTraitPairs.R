@@ -28,6 +28,7 @@ ui <- function() {
       shiny::sidebarPanel(
         shiny::selectInput("trait","Traits:",
                            c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk"),
+                           "Enrich: 15N2-Urea_enrichment_120_18wk",
                            multiple = TRUE),
         foundr::shinyTraitTableUI("shinyObject"),
         
@@ -84,6 +85,9 @@ server <- function(input, output, session) {
   # RETURN OBJECTS FROM MODULES
   trait_names <- shiny::reactive({
     shiny::req(input$trait)
+    
+    list(key_trait = input$trait[1],
+         rel_traits = input$trait[-1])
   })
   datasets <- shiny::reactive({
     shiny::req(tableOutput())

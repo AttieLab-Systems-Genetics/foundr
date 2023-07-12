@@ -69,20 +69,20 @@ shinyTraitPanel <- function(id, module_par,
     # MODULES
     statsOutput <- shinyTraitStats("shinyStats", module_par, traitSignal,
                                    traitStats)
-    tableOutput <- shinyTraitTable("shinyTable", module_par, trait_names,
+    tableOutput <- shinyTraitTable("shinyTable", module_par, statsOutput,
                                    traitData, traitSignal)
+    
     solosOutput <- shinyTraitSolos("shinySolos", module_par, tableOutput)
-    pairsOutput <- shinyTraitPairs("shinyPairs", module_par, trait_names,
+    pairsOutput <- shinyTraitPairs("shinyPairs", module_par, statsOutput,
                                    tableOutput)
     
-    # RETURN OBJECTS FROM MODULES
+    # Trait Names from shinyTraitStats()
     trait_names <- shiny::reactive({
       shiny::req(statsOutput())
-      
       c(statsOutput()$key_trait, statsOutput()$rel_traits)
-      },
-      label = "trait_names")
-    
+    },
+    label = "trait_names")
+
     # Plot
     output$plot_choice <- shiny::renderUI({
       shiny::req(statsOutput())

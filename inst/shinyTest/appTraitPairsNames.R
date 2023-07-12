@@ -1,8 +1,14 @@
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-traitData <- readRDS(file.path(dirpath, "traitData.rds"))
-traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
-traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+traitData <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitData.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
+traitSignal <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitSignal.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
+traitStats <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitStats.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
 
 ################################################################
 
@@ -24,7 +30,7 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyTraitStatsUI("shinyStat"),
+        foundr::shinyTraitStatsInput("shinyStats"),
         foundr::shinyTraitTableUI("shinyObject"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
@@ -53,17 +59,15 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-  # CALL MODULES
-  statsOutput <- shiny::callModule(
-    foundr::shinyTraitStats, "shinyStat",
-    traitSignalInput, traitStatsInput)
-  tableOutput <- shiny::callModule(
-    foundr::shinyTraitTable, "shinyObject",
-    input, trait_names,
-    traitDataInput, traitSignalInput)
-  pairsOutput <- shiny::callModule(
-    foundr::shinyTraitPairs, "shinyPairs",
-    input, trait_names, tableOutput)
+  # MODULES
+  statsOutput <- foundr::shinyTraitStats("shinyStats", input,
+                                         traitSignalInput, traitStatsInput)
+  tableOutput <- foundr::shinyTraitTable("shinyObject", input, statsOutput,
+                                         traitDataInput, traitSignalInput)
+  
+  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
+  pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, statsOutput,
+                                         tableOutput)
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -84,11 +88,6 @@ server <- function(input, output, session) {
   })
   
   # RETURN OBJECTS FROM MODULES
-  trait_names <- shiny::reactive({
-    shiny::req(statsOutput())
-    
-    c(statsOutput()$key_trait, statsOutput()$rel_traits)
-  })
   datasets<-shiny::reactive({
     shiny::req(tableOutput())
     unique(tableOutput()$dataset)

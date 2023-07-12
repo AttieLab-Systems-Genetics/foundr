@@ -1,14 +1,20 @@
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-traitData <- readRDS(file.path(dirpath, "traitData.rds"))
-traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
-traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+traitData <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitData.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
+traitSignal <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitSignal.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
+traitStats <- dplyr::filter(
+  readRDS(file.path(dirpath, "traitStats.rds")),
+  dataset %in% c("Physio", "PlaMet0"))
 
 ################################################################
 
 title <- "Test Shiny Trait Pairs with Trait Names"
 
-shiny::reactlogShow()
+#shiny::reactlogShow()
 
 ui <- function() {
   # INPUTS
@@ -26,7 +32,7 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyTraitStatsUI("shinyStat"),
+        foundr::shinyTraitStatsInput("shinyStats"),
         foundr::shinyTraitTableUI("shinyObject"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
@@ -49,6 +55,7 @@ ui <- function() {
 
       shiny::mainPanel(
         shiny::tagList(
+          foundr::shinyTraitStatsUI("shinyStats"),
           shiny::uiOutput("plots"),
           foundr::shinyTraitTableOutput("shinyObject")
         )
@@ -58,12 +65,13 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # CALL MODULES
-  statsOutput <- foundr::shinyTraitStats("shinyStat",
+  statsOutput <- foundr::shinyTraitStats("shinyStats", input,
                                          traitSignalInput, traitStatsInput)
-  tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
+  tableOutput <- foundr::shinyTraitTable("shinyObject", input, statsOutput,
                                          traitDataInput, traitSignalInput)
+  
   solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
-  pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, trait_names,
+  pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, statsOutput,
                                          tableOutput)
   
   # RETURN OBJECTS FROM MODULES
@@ -89,6 +97,8 @@ server <- function(input, output, session) {
   })
   output$plot_choice <- shiny::renderUI({
     choices <- "Solos"
+    if(!is.null(statsOutput()$corsplot))
+      choices <- c(choices, "Cors")
     if(length(shiny::req(trait_names())) > 1)
       choices <- c(choices, "Pairs")
     shiny::checkboxGroupInput("plots", "Plots:",
@@ -100,7 +110,9 @@ server <- function(input, output, session) {
       if("Solos" %in% input$plots)
         foundr::shinyTraitSolosUI("shinySolos"),
       if("Pairs" %in% input$plots)
-        foundr::shinyTraitPairsUI("shinyPairs"))
+        foundr::shinyTraitPairsUI("shinyPairs"),
+      if("Cors" %in% input$plots)
+        shinyTraitStatsOutput("shinyStats"))
   })
 
   # DATA OBJECTS

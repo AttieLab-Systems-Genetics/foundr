@@ -19,7 +19,7 @@ shinyTraitPairsUI <- function(id) {
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
-#' @param trait_names reactive with trait names
+#' @param statsOutput reactive with trait names
 #' @param traitSolosObject reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyTaitSolosUI`
@@ -29,7 +29,7 @@ shinyTraitPairsUI <- function(id) {
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export
 #'
-shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
+shinyTraitPairs <- function(id, main_par, statsOutput, traitSolosObject) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -46,7 +46,13 @@ shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
     # RETURNS
     # pairsPlot()
     
-    #############################################################
+    # Trait Names from shinyTraitStats()
+    trait_names <- shiny::reactive({
+      shiny::req(statsOutput())
+      c(statsOutput()$key_trait, statsOutput()$rel_traits)
+    },
+    label = "trait_names")
+    
     # Output: Plots or Data
     output$shiny_traitPairs <- shiny::renderUI({
       shiny::req(trait_names(), traitSolosObject())
@@ -56,7 +62,7 @@ shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
     
     # Plot
     pairsPlot <- shiny::reactive({
-      shiny::req(traitSolosObject(), trait_names(), pair())
+      shiny::req(traitSolosObject(), trait_names())
       
       ggplot_traitPairs(
         traitPairs(
