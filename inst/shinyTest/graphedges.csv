@@ -54,7 +54,7 @@ input$facet, shinyTraitStats()
 input$height, shinyTraitStats()
 shinyTraitStats(), input$reldataset
 shinyTraitStats(), input$mincor
-shinyTraitStats(), returnTraitStats()
+shinyTraitStats(), statsOutput()
 
 # modules called from shinyTraitStats
 shinyTraitStats(), shinyTraitOrder()
@@ -64,20 +64,16 @@ shinyTraitStats(), shinyCorPlot()
 shinyTraitStats(), shinyTraitNames(2)
 
 # returns from shinyTraitStats (complicated!)
-returnTraitStats()$key_trait, key_traitOutput()
-returnTraitStats()$rel_trait, rel_traitsOutput()
-returnTraitStats()$key_stats, shinyTraitOrder()
-returnTraitStats()$corstable, shinyCorTable()
-returnTraitStats()$corsplot,  shinyCorPlot()
-
-# trait names provided via statsOutput() from shinyTraitStats()
-key_traitOutput(), trait_names()
-rel_traitsOutput(), trait_names()
+statsOutput()$key_trait, key_traitOutput()
+statsOutput()$rel_trait, rel_traitsOutput()
+statsOutput()$key_stats, shinyTraitOrder()
+statsOutput()$corstable, shinyCorTable()
+statsOutput()$corsplot,  shinyCorPlot()
 
 # TraitTable: table of trait stats
 traitData(), shinyTraitTable()
 traitSignal(), shinyTraitTable()
-trait_names(), shinyTraitTable()
+shinyTraitStats(), shinyTraitTable()
 input$strains, shinyTraitTable()
 shinyTraitTable(), input$butresp
 shinyTraitTable(), tableOutput()
@@ -88,7 +84,7 @@ shinyTraitSolos(), solosOutput()
 
 # TraitPiars: pair of traits plot
 shinyTraitTable(), shinyTraitPairs()
-trait_names(), shinyTraitPairs()
+shinyTraitStats(), shinyTraitPairs()
 shinyTraitPairs(), pairsOutput()
 
 # TraitPanel: Tab panel for shiny app
@@ -110,7 +106,7 @@ returnTraitPanel()$solos,  shinyTraitSolos(),
 returnTraitPanel()$cors,   shinyCorPlot()=statsOutput()$corsplot,
 returnTraitPanel()$pairs,  shinyTraitPairs(),
 returnTraitPanel()$table,  shinyTraitTable(),
-returnTraitPanel()$traits, trait_names()
+returnTraitPanel()$traits, trait_names()=c(statsOutput()$key_trait,statsOutput()$rel_traits)
 
 # AppTraitPanel: Tab panel for shiny app
 appTraitPanel.R, input$facet
