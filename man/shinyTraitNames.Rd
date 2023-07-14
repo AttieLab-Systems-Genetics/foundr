@@ -7,12 +7,12 @@
 \usage{
 shinyTraitNamesUI(id)
 
-shinyTraitNames(id, traitStats, traitStatsArranged, multiples = FALSE)
+shinyTraitNames(id, traitArranged, multiples = FALSE)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{traitStats, traitStatsArranged}{reactive data frames}
+\item{traitArranged}{reactive data frames}
 
 \item{multiples}{fixed logical for multiple trait names}
 
@@ -27,6 +27,5 @@ reactive vector of trait names
 Select trait names in one of two modes, depending on the fixed `multiples`:
 `FALSE` = only one trait name,
 `TRUE` =  multiple names.
-The order of choices depends on `traitStatsArranged()`,
-which is decided in the `shinyTraitStats` module.
+The order of choices depends on `traitArranged()`.
 }

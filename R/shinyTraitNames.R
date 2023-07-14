@@ -17,12 +17,11 @@ shinyTraitNamesUI <- function(id) {
 #' Select trait names in one of two modes, depending on the fixed `multiples`:
 #' `FALSE` = only one trait name,
 #' `TRUE` =  multiple names.
-#' The order of choices depends on `traitStatsArranged()`,
-#' which is decided in the `shinyTraitStats` module.
+#' The order of choices depends on `traitArranged()`.
 #' 
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
-#' @param traitStats,traitStatsArranged reactive data frames
+#' @param traitArranged reactive data frames
 #' @param multiples fixed logical for multiple trait names
 #'
 #' @return reactive vector of trait names
@@ -34,8 +33,7 @@ shinyTraitNamesUI <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyTraitNames <- function(id, traitStats, traitStatsArranged,
-                            multiples = FALSE) {
+shinyTraitNames <- function(id, traitArranged, multiples = FALSE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -61,11 +59,11 @@ shinyTraitNames <- function(id, traitStats, traitStatsArranged,
       label = "update_trait")
     
     traitNamesArranged <- shiny::reactive({
-      shiny::req(traitStatsArranged())
+      shiny::req(traitArranged())
       
       unite_datatraits(
         dplyr::distinct(
-          traitStatsArranged(),
+          traitArranged(),
           .data$dataset, .data$trait))
     },
     label = "traitNamesArranged")

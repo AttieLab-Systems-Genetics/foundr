@@ -38,7 +38,7 @@ shinyTraitTableOutput <- function(id) {
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments
-#' @param statsOutput reactive with trait names
+#' @param trait_names reactive with trait names
 #' @param traitData,traitSignal reactive objects from `foundrServer`
 #'
 #' @return reactive object for `shinyTrait` routines
@@ -48,8 +48,7 @@ shinyTraitTableOutput <- function(id) {
 #' @export
 #'
 
-shinyTraitTable <- function(id, main_par, statsOutput,
-                            traitData, traitSignal) {
+shinyTraitTable <- function(id, main_par, trait_names, traitData, traitSignal) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -59,16 +58,9 @@ shinyTraitTable <- function(id, main_par, statsOutput,
     # traitObject inputs: (see traitObjectUI)
     #   input$butresp
     
-    # RETURNS (see also traitObjectOutput)
+    # RETURNS
     # traitSolosObject()
 
-    # Trait Names from shinyTraitStats()
-    trait_names <- shiny::reactive({
-      shiny::req(statsOutput())
-      c(statsOutput()$key_trait, statsOutput()$rel_traits)
-      },
-      label = "trait_names")
-    
     # traitSolosObject Data Frame
     traitSolosObject <- shiny::reactive({
       traitSolos(shiny::req(traitData()),

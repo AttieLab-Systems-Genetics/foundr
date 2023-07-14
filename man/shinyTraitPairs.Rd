@@ -7,14 +7,14 @@
 \usage{
 shinyTraitPairsUI(id)
 
-shinyTraitPairs(id, main_par, statsOutput, traitSolosObject)
+shinyTraitPairs(id, main_par, trait_names, traitSolosObject)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
 \item{main_par}{reactive arguments from `foundrServer`}
 
-\item{statsOutput}{reactive with trait names}
+\item{trait_names}{reactive with trait names}
 
 \item{traitSolosObject}{reactive objects from `foundrServer`}
 

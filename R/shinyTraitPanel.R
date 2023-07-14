@@ -4,16 +4,35 @@
 #'
 #' @return nothing returned
 #' @rdname shinyTraitPanel
-#' @importFrom shiny NS uiOutput
+#' @importFrom shiny column fluidRow NS uiOutput
 #' @export
 #'
 shinyTraitPanelUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    shinyTraitStatsInput(ns("shinyStats")),
+    # Key Datasets and Trait.
+    shiny::fluidRow(
+      shiny::column(6, shinyTraitOrderInput(ns("shinyOrder"))),
+      shiny::column(6, shinyCorTableInput(ns("shinyCorTable")))),
+    
+    # Related Datasets and Traits.
+    shiny::fluidRow(
+      shiny::column(6, shiny::uiOutput(ns("reldataset"))),
+      shiny::column(6, shinyTraitNamesUI(ns("shinyNames")))),
+    
+    # Correlation Type, Absolute, Minimum Settings.
+    shiny::fluidRow( 
+      shiny::column(6, shinyCorTableUI(ns("shinyCorTable"))),
+      shiny::column(6, shinyCorPlotUI(ns("shinyCorPlot")))),
+    shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7),
+    
+    # Trait Table Response.
     shinyTraitTableUI(ns("shinyTable")),
     
-    shiny::uiOutput(ns("plot_choice"))
+    # Plot and Table Choices
+    shiny::fluidRow(
+      shiny::column(6, shiny::uiOutput(ns("plot_choice"))),
+      shiny::column(6, shiny::uiOutput(ns("table_choice"))))
   )
 }
 
@@ -30,9 +49,8 @@ shinyTraitPanelOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
-    shinyTraitStatsUI(ns("shinyStats")),
     shiny::uiOutput(ns("plots")),
-    shinyTraitTableOutput(ns("shinyTable"))
+    shiny::uiOutput(ns("tables"))
   )
 }
 
@@ -66,62 +84,110 @@ shinyTraitPanel <- function(id, module_par,
     #   output$pairs
     #   output$object
     
-    # ** Need to sort out inputs: what is in this module and what is above? **
     # MODULES
-    statsOutput <- shinyTraitStats("shinyStats", module_par, traitSignal,
-                                   traitStats)
+    # Order Traits by Stats.
+    orderOutput <- shinyTraitOrder("shinyOrder", traitStats)
+    # Key Trait and Correlation Table.
+    corTableOutput <- shinyCorTable("shinyCorTable", input, orderOutput,
+                                    traitSignal)
+    # Related Traits.
+    rel_traitsOutput <- shinyTraitNames("shinyNames", corTableOutput, TRUE)
+    # Correlation Plot
+    corPlotOutput <- shinyCorPlot("shinyCorPlot", input, module_par,
+                                  corTableOutput)
     
     # Filter static traitData based on selected trait_names.
     traitDataInput <- shiny::reactive({
       shiny::req(trait_names())
       
-      dplyr::select(
-        dplyr::filter(
-          tidyr::unite(
-            traitData,
-            datatraits,
-            .data$dataset, .data$trait,
-            sep = ": ", remove = FALSE),
-          .data$datatraits %in% trait_names()),
-        -datatraits)
+      subset_trait_names(traitData, trait_names())
     })
     
-    tableOutput <- shinyTraitTable("shinyTable", module_par, statsOutput,
+    tableOutput <- shinyTraitTable("shinyTable", module_par, trait_names,
                                    traitDataInput, traitSignal)
     
     solosOutput <- shinyTraitSolos("shinySolos", module_par, tableOutput)
-    pairsOutput <- shinyTraitPairs("shinyPairs", module_par, statsOutput,
+    pairsOutput <- shinyTraitPairs("shinyPairs", module_par, trait_names,
                                    tableOutput)
     
-    # Trait Names from shinyTraitStats()
+    # Trait Names.
     trait_names <- shiny::reactive({
-      shiny::req(statsOutput())
-      c(statsOutput()$key_trait, statsOutput()$rel_traits)
-    },
-    label = "trait_names")
-
+      shiny::req(corTableOutput())
+      
+      c(tidyr::unite(
+          dplyr::distinct(
+            corTableOutput(),
+            .data$key_dataset, .data$key_trait),
+          datatraits,
+          .data$key_dataset, .data$key_trait,
+          sep = ": ")$datatraits,
+        rel_traitsOutput())
+      },
+      label = "trait_names")
+    
+    # Related Datasets.
+    datasets <- shiny::reactive({
+      shiny::req(traitStats())
+      unique(traitStats()$dataset)
+    })
+    output$reldataset <- renderUI({
+      shiny::selectInput(ns("reldataset"), "Related Datasets:",
+                         datasets(), datasets()[1], multiple = TRUE)
+    })
+    shiny::observeEvent(
+      datasets(),
+      {
+        selected <- datasets()[1]
+        choices <- datasets()
+        selected <- selected[selected %in% choices]
+        if(!length(selected))
+          selected <- choices[1]
+        shiny::updateSelectInput(session, "reldataset", choices = choices,
+                                 selected = selected)
+      })
+    
+    # Tables
+    output$table_choice <- shiny::renderUI({
+      choices <- c("Means","Stats")
+      if(shiny::isTruthy(corTableOutput()))
+        choices <- c(choices, "Relations")
+      shiny::checkboxGroupInput(ns("tables"), "Tables:",
+                                choices, choices, inline = TRUE)
+    })
+    output$tables <- shiny::renderUI({
+      shiny::req(input$tables)
+      
+      shiny::tagList(
+        if("Means" %in% input$tables)
+          shinyTraitTableOutput(ns("shinyTable")),
+        if("Relations" %in% input$tables)
+          shinyCorTableOutput(ns("shinyCorTable")),
+        if("Stats" %in% input$tables)
+          shinyTraitOrderUI (ns("shinyOrder"))
+      )
+    })
+    
     # Plot
     output$plot_choice <- shiny::renderUI({
-      shiny::req(statsOutput())
-      
-      choices <- "Solos"
-      if(!is.null(statsOutput()$corsplot))
-        choices <- c(choices, "Cors")
+      choices <- "Traits"
       if(length(shiny::req(trait_names())) > 1)
         choices <- c(choices, "Pairs")
+      if(shiny::isTruthy(corTableOutput()))
+        choices <- c(choices, "Relations")
       shiny::checkboxGroupInput(ns("plots"), "Plots:",
                                 choices, choices, inline = TRUE)
     })
-    
     output$plots <- shiny::renderUI({
       shiny::req(input$plots)
       
       shiny::tagList(
-        if("Solos" %in% input$plots) shinyTraitSolosUI(ns("shinySolos")),
-        if("Pairs" %in% input$plots) shinyTraitPairsUI(ns("shinyPairs")),
-        if("Cors" %in% input$plots)  shinyTraitStatsOutput(ns("shinyStats")))
+        if("Traits" %in% input$plots)
+          shinyTraitSolosUI(ns("shinySolos")),
+        if("Pairs" %in% input$plots)
+          shinyTraitPairsUI(ns("shinyPairs")),
+        if("Relations" %in% input$plots)
+          shinyCorPlotOutput(ns("shinyCorPlot")))
     })
-    
 
     ##########################################################
     
@@ -129,7 +195,7 @@ shinyTraitPanel <- function(id, module_par,
       shiny::req(trait_names(), solosOutput(), tableOutput())
       list(
         solos = solosOutput(),
-        cors = statsOutput()$corsplot,
+        cors = corTableOutput(),
         pairs = pairsOutput(),
         table = tableOutput(),
         traits = trait_names()

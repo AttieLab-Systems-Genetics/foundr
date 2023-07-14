@@ -1,3 +1,18 @@
+#' Shiny Module Input for Trait Correlations
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyCorTable
+#' @importFrom shiny NS
+#' @export
+#'
+shinyCorTableInput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shinyTraitNamesUI(ns("shinyName"))
+}
+
 #' Shiny Module UI for Trait Correlations
 #'
 #' @param id identifier for shiny reactive
@@ -33,8 +48,7 @@ shinyCorTableOutput <- function(id) {
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
-#' @param input,output,session standard shiny arguments
-#' @param traitSignal reactive data frames
+#' @param traitArranged,traitSignal reactive data frames
 #' @param stats_par reactive inputs from calling modules
 #'
 #' @return reactive object
@@ -45,9 +59,11 @@ shinyCorTableOutput <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyCorTable <- function(id, stats_par, key_trait, traitSignal) {
+shinyCorTable <- function(id, stats_par, traitArranged, traitSignal) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+    
+    key_traitOutput <- shinyTraitNames("shinyName", traitArranged)
     
     # Temporary kludge
     customSettings <- shiny::reactiveValues(dataset = NULL)
@@ -76,7 +92,7 @@ shinyCorTable <- function(id, stats_par, key_trait, traitSignal) {
       options = list(scrollX = TRUE, pageLength = 5))
     
     corobject <- shiny::reactive({
-      shiny::req(key_trait(), traitSignal(),
+      shiny::req(key_traitOutput(), traitSignal(),
                  input$corterm, stats_par$mincor)
       
       if(!shiny::isTruthy(stats_par$reldataset))
@@ -93,10 +109,10 @@ shinyCorTable <- function(id, stats_par, key_trait, traitSignal) {
                 datatraits,
                 .data$dataset, .data$trait,
                 sep = ": ", remove = FALSE),
-              (.data$datatraits %in% key_trait()) |
+              (.data$datatraits %in% key_traitOutput()) |
                 (.data$dataset %in% stats_par$reldataset)),
             -.data$datatraits),
-          key_trait(),
+          key_traitOutput(),
           input$corterm),
         .data$absmax >= stats_par$mincor)
     })
