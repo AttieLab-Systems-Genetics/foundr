@@ -95,23 +95,18 @@ shinyCorTable <- function(id, stats_par, traitArranged, traitSignal) {
       shiny::req(key_traitOutput(), traitSignal(),
                  input$corterm, stats_par$mincor)
       
+      # Select rows of traitSignal() with Key Traot or Related Datasets.
+      object <- select_data_pairs(traitSignal(), key_traitOutput(),
+                                  stats_par$reldataset)
+      
       if(!shiny::isTruthy(stats_par$reldataset))
-        return(NULL)
+        return(dplyr::distinct(object, dataset, trait))
       
       # Filter by mincor
       dplyr::filter(
         bestcor(
           # Filter to Related Datasets or matching `nameOption()`.
-          dplyr::select(
-            dplyr::filter(
-              tidyr::unite(
-                traitSignal(),
-                datatraits,
-                .data$dataset, .data$trait,
-                sep = ": ", remove = FALSE),
-              (.data$datatraits %in% key_traitOutput()) |
-                (.data$dataset %in% stats_par$reldataset)),
-            -.data$datatraits),
+          object,
           key_traitOutput(),
           input$corterm),
         .data$absmax >= stats_par$mincor)

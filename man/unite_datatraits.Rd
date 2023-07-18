@@ -4,7 +4,14 @@
 \alias{unite_datatraits}
 \title{Unite Dataset and Trait}
 \usage{
-unite_datatraits(object, traitnames, undo = FALSE, sep = ": ", filters = NULL)
+unite_datatraits(
+  object,
+  traitnames,
+  undo = FALSE,
+  sep = ": ",
+  filters = NULL,
+  key = FALSE
+)
 }
 \arguments{
 \item{object}{data frame}
@@ -16,6 +23,8 @@ unite_datatraits(object, traitnames, undo = FALSE, sep = ": ", filters = NULL)
 \item{sep}{separator for `dataset: trait` (default ": ")}
 
 \item{filters}{optional list of columns to filter on (when `undo` = `FALSE`)}
+
+\item{key}{get key traits if `TRUE`}
 }
 \value{
 either a subset `object` based on `traitnames` = `dataset: trait` (if `undo` = `TRUE`)

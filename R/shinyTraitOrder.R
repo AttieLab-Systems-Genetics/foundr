@@ -92,7 +92,9 @@ shinyTraitOrder <- function(id, traitStats) {
       {
         shiny::req(orderstats())
         
-        summary_strainstats(orderstats())
+        # Summary gives nice table; use open thresholds to include all.
+        summary_strainstats(orderstats(),
+                            threshold = c(deviance = 0, p = 1))
       },
       escape = FALSE,
       options = list(scrollX = TRUE, pageLength = 5))

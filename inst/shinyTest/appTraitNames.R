@@ -6,8 +6,6 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 title <- "Test Shiny Trait Names"
 
-shiny::reactlogShow()
-
 ui <- function() {
   # INPUTS
   #   see shinyTraitNames 
@@ -37,8 +35,7 @@ server <- function(input, output, session) {
   #   output$name: Traits
   
   # MODULES
-  moduleOutput <- foundr::shinyTraitNames("shinyTest",
-                                          traitStatsInput, traitStatsInput)
+  moduleOutput <- foundr::shinyTraitNames("shinyTest", traitStatsInput)
   
   datasets <- shiny::reactive({
       unique(traitStats$dataset)

@@ -67,12 +67,9 @@ shinyCorPlot <- function(id, stats_par, module_par, CorTable) {
     corplot <- shiny::reactive({
       shiny::req(stats_par$mincor)
       
-      if(!shiny::isTruthy(CorTable()))
-        return(plot_null("Need at least one related dataset."))
-      
       ggplot_bestcor(
         mutate_datasets(CorTable(), customSettings$dataset, undo = TRUE), 
-        stats_par$mincor, input$abscor)
+        stats_par$mincor, shiny::isTruthy(input$abscor))
     })
     output$corplot <- shiny::renderPlot({
       print(corplot())

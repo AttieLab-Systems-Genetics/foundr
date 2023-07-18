@@ -1,4 +1,4 @@
-#' Shiny Module UI for Trait Panel
+#' Shiny Module Input for Trait Panel
 #'
 #' @param id identifier for shiny reactive
 #'
@@ -7,7 +7,7 @@
 #' @importFrom shiny column fluidRow NS uiOutput
 #' @export
 #'
-shinyTraitPanelUI <- function(id) {
+shinyTraitPanelInput <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
     # Key Datasets and Trait.
@@ -34,6 +34,20 @@ shinyTraitPanelUI <- function(id) {
       shiny::column(6, shiny::uiOutput(ns("plot_choice"))),
       shiny::column(6, shiny::uiOutput(ns("table_choice"))))
   )
+}
+
+#' Shiny Module UI for Trait Panel
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTraitPanel
+#' @importFrom shiny column fluidRow NS uiOutput
+#' @export
+#'
+shinyTraitPanelUI <- function(id) {
+  ns <- shiny::NS(id)
+  
 }
 
 #' Shiny Module Output for Trait Panel
@@ -114,13 +128,7 @@ shinyTraitPanel <- function(id, module_par,
     trait_names <- shiny::reactive({
       shiny::req(corTableOutput())
       
-      c(tidyr::unite(
-          dplyr::distinct(
-            corTableOutput(),
-            .data$key_dataset, .data$key_trait),
-          datatraits,
-          .data$key_dataset, .data$key_trait,
-          sep = ": ")$datatraits,
+      c(unite_datatraits(corTableOutput(), key = TRUE),
         rel_traitsOutput())
       },
       label = "trait_names")
@@ -149,7 +157,7 @@ shinyTraitPanel <- function(id, module_par,
     # Tables
     output$table_choice <- shiny::renderUI({
       choices <- c("Means","Stats")
-      if(shiny::isTruthy(corTableOutput()))
+      if(is_bestcor(corTableOutput()))
         choices <- c(choices, "Relations")
       shiny::checkboxGroupInput(ns("tables"), "Tables:",
                                 choices, choices, inline = TRUE)
@@ -172,7 +180,7 @@ shinyTraitPanel <- function(id, module_par,
       choices <- "Traits"
       if(length(shiny::req(trait_names())) > 1)
         choices <- c(choices, "Pairs")
-      if(shiny::isTruthy(corTableOutput()))
+      if(is_bestcor(corTableOutput()))
         choices <- c(choices, "Relations")
       shiny::checkboxGroupInput(ns("plots"), "Plots:",
                                 choices, choices, inline = TRUE)

@@ -228,6 +228,16 @@ bestcorStats <- function(traitStats, traitnames = NULL,
     .data$term == corterm)
 }
 
+#' Is object a BestCor object?
+#'
+#' @param object object of class `bestcor`
+#'
+#' @return logical
+#' @export
+#' @rdname bestcor
+is_bestcor <- function(object) {
+  !is.null(object) && nrow(object) && ("cors" %in% names(object))
+}
 #' GGplot of bestcor object
 #'
 #' @param object object of class `bestcor`
@@ -247,7 +257,7 @@ bestcorStats <- function(traitStats, traitnames = NULL,
 #' @rdname bestcor
 #'
 ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
-  if(is.null(object) || !nrow(object))
+  if(!is_bestcor(object))
     return(plot_null("No Correlations to Plot."))
 
   if(abscor) {
@@ -302,7 +312,7 @@ autoplot.bestcor <- function(object, ...) {
 #' @importFrom rlang .data
 #'
 summary_bestcor <- function(object, mincor = 0.5, ...) {
-  if(is.null(object))
+  if(is.null(object) || !("cors" %in% names(object)))
     return(NULL)
   
   dplyr::mutate(

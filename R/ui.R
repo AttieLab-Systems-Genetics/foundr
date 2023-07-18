@@ -24,7 +24,7 @@ ui <- function(title) {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shinyTraitPanelUI("tabTrait"),
+        shinyTraitPanelInput("tabTrait"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),

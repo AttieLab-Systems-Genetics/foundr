@@ -2,6 +2,7 @@
 % Please edit documentation in R/bestcor.R
 \name{bestcor}
 \alias{bestcor}
+\alias{is_bestcor}
 \alias{ggplot_bestcor}
 \alias{autoplot.bestcor}
 \alias{summary_bestcor}
@@ -9,6 +10,8 @@
 \title{Traits with Best Correlation}
 \usage{
 bestcor(traitSignal, traitnames = NULL, term = c("cellmean", "signal"))
+
+is_bestcor(object)
 
 ggplot_bestcor(object, mincor = 0.7, abscor = TRUE, ...)
 
@@ -35,6 +38,8 @@ summary_bestcor(object, mincor = 0.5, ...)
 }
 \value{
 sorted vector of absolute correlations with names
+
+logical
 
 ggplot object
 
