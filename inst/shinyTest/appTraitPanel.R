@@ -24,8 +24,6 @@ ui <- function() {
   #   input$facet: Facet by strain?
   #   input$strains: Strains to select
   #   input$height: Plot Height
-  #   input$
-  #
   # OUTPUTS (see shinyTraitPairs)
   #   output$filename: 
   #   output$downloadPlot
@@ -41,16 +39,7 @@ ui <- function() {
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
 
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::uiOutput("filename")), # See MODULE INPUT below
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadPlot", "Plots")),
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadTable", "Data")))
+        foundr::shinyTraitPanelUI("shinyPanel")
       ),
 
       shiny::mainPanel(
@@ -61,14 +50,9 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # CALL MODULES
-  panelOutput <- foundr::shinyTraitPanel("shinyPanel", input,
-                                         traitData,
-                                         traitSignalInput,
-                                         traitStatsInput)
+  foundr::shinyTraitPanel("shinyPanel", input,
+                          traitData, traitSignalInput, traitStatsInput)
   
-  # *** return is corrupted somehow
-  # *** need to arrange NULL pairsplot
-
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
@@ -84,53 +68,6 @@ server <- function(input, output, session) {
   traitStatsInput <- shiny::reactive({
     traitStats
   })
-  
-  # RETURN OBJECTS FROM MODULES
-  trait_names <- shiny::reactive({
-    shiny::req(panelOutput())
-    
-    c(panelOutput()$traits)
-  },
-  label = "trait_names")
-
-  # I/O FROM MODULE
-  
-  # MODULE INPUT: File Prefix
-  output$filename <- renderUI({
-    shiny::req(trait_names())
-    
-    filename <- paste0(
-      "module_",
-      paste(trait_names(), collapse = "."))
-    shiny::textAreaInput("filename", "File Prefix", filename)
-  })
-
-  # MODULE OUTPUT: Plot
-  output$downloadPlot <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".pdf")
-    },
-    content = function(file) {
-      shiny::req(panelOutput())
-      grDevices::pdf(file, width = 9, height = 6)
-      print(panelOutput()$solos)
-      print(panelOutput()$corsplot)
-      if(!is.null(panelOutput()$pairs))
-        print(panelOutput()$pairs)
-      grDevices::dev.off()
-    })
-
-  # MODULE OUTPUT: DataTable
-  output$downloadTable <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".csv")
-    },
-    content = function(file) {
-      shiny::req(panelOutput())
-      utils::write.csv(
-        panelOutput()$object,
-        file, row.names = FALSE)
-    })
 }
 
 shiny::shinyApp(ui = ui, server = server)

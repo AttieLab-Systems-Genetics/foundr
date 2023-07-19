@@ -17,7 +17,7 @@ server <- function(input, output, session,
                    customSettings = NULL) {
   
   # CALL MODULES
-  panelOutput <- shinyTraitPanel("tabTrait", input,
+  panelOutput <- shinyTraitPanel("tabTraits", input,
                                  traitData,
                                  traitSignalInput, traitStatsInput)
   timeOutput <- shinyTimesPanel("tabTimes", input, 
@@ -32,7 +32,21 @@ server <- function(input, output, session,
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
   })
-  
+  output$tabInput <- shiny::renderUI({
+    shiny::req(input$tabpanel)
+    
+    switch(shiny::req(input$tabpanel),
+           Traits = shinyTraitPanelInput("tabTraits"),
+           Times  = shinyTimesPanelInput("tabTimes"))
+  })
+  output$tabUI <- shiny::renderUI({
+    shiny::req(input$tabpanel)
+    
+    switch(shiny::req(input$tabpanel),
+           Traits = shinyTraitPanelUI("tabTraits"),
+           Times  = shinyTimesPanelUI("tabTimes"))
+  })
+
   # DATA OBJECTS
   traitSignalInput <- shiny::reactive({
     traitSignal
@@ -40,51 +54,4 @@ server <- function(input, output, session,
   traitStatsInput <- shiny::reactive({
     traitStats
   })
-  
-  # RETURN OBJECTS FROM MODULES
-  trait_names <- shiny::reactive({
-    shiny::req(panelOutput())
-    
-    c(panelOutput()$traits)
-  },
-  label = "trait_names")
-  
-  # I/O FROM MODULE
-  
-  # MODULE INPUT: File Prefix
-  output$filename <- renderUI({
-    shiny::req(trait_names())
-    
-    filename <- paste0(
-      "module_",
-      paste(trait_names(), collapse = "."))
-    shiny::textAreaInput("filename", "File Prefix", filename)
-  })
-  
-  # MODULE OUTPUT: Plot
-  output$downloadPlot <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".pdf")
-    },
-    content = function(file) {
-      shiny::req(panelOutput())
-      grDevices::pdf(file, width = 9, height = 6)
-      print(panelOutput()$solos)
-      print(panelOutput()$corsplot)
-      if(!is.null(panelOutput()$pairs))
-        print(panelOutput()$pairs)
-      grDevices::dev.off()
-    })
-  
-  # MODULE OUTPUT: DataTable
-  output$downloadTable <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".csv")
-    },
-    content = function(file) {
-      shiny::req(panelOutput())
-      utils::write.csv(
-        panelOutput()$object,
-        file, row.names = FALSE)
-    })
 }

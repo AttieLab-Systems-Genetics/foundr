@@ -6,7 +6,12 @@ devtools::install_cran("ggdendro") #  not yet on UW dataviz
 
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+
 traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+#db <- RSQLite::dbConnect(RSQLite::SQLite(), "traitData.sqlite")
+#traitData <- dplyr::tbl(db, "traitData")
+#on.exit(RSQLite::dbConnect(db))
+
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 

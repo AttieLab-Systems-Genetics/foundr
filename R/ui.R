@@ -24,29 +24,20 @@ ui <- function(title) {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shinyTraitPanelInput("tabTrait"),
+        shiny::uiOutput("tabInput"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
         
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::uiOutput("filename")), # See MODULE INPUT below
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadPlot", "Plots")),
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadTable", "Data")))
+        shiny::uiOutput("tabUI"),
       ),
       
       shiny::mainPanel(
         shiny::tabsetPanel(
           type = "tabs", header = "", id = "tabpanel",
-          shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTrait")),
-          shiny::tabPanel("Times",  shinyTimesPanelUI("tabTimes")),
+          shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
+          shiny::tabPanel("Times",  shinyTimesPanelOutput("tabTimes")),
           shiny::tabPanel("About",  shiny::uiOutput("intro"))
       ))))
 }

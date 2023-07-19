@@ -18,6 +18,13 @@ subset_trait_names <- function(object, traitnames = NULL,
                                remove_columns = FALSE,
                                drop_united = TRUE,
                                sep = ": ") {
+  
+  # If `object` is a function, it is assumed to be subsetting from a database
+  # using `subset_trait_names.sql()`.
+  if(inherits(object, "tbl_SQLiteConnection")) {
+    return(subset_trait_names.sql(object, traitnames))
+  }
+  
   object <- tidyr::unite(object,
     datatraits,
     .data$dataset, .data$trait,
@@ -33,4 +40,27 @@ subset_trait_names <- function(object, traitnames = NULL,
   }
   
   object
+}
+subset_trait_names.sql <- function(object, traitnames = NULL) {
+  if(is.null(traitnames))
+    return(NULL)
+  
+#  datasets <- stringr::str_remove(traitnames, ": .*$")
+#  traits <- stringr::str_remove(traitnames, "^.*: ")
+
+  # First select all instances with datasets and traits  
+#  out <- dplyr::collect(
+#      dplyr::filter(
+#        dplyr::tbl(db, table_name),
+#        dataset %in% datasets,
+#        trait %in% traits))
+
+  # Then select only those that match both
+  dplyr::select(
+    dplyr::filter(
+      dplyr::mutate(
+        object,
+        datatraits = paste(.data$dataset, .data$trait, sep = ": ")),
+      .data$datatraits %in% traitnames),
+    -datatraits)
 }

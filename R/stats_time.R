@@ -116,16 +116,25 @@ stats_time_table <- function(object) {
             dplyr::rename(
               object[[i]], 
               p.value = i),
-            p.value = signif(10 ^ -p.value, 4)),
+            p.value = signif(p.value, 4)),
           -strain),
         datatraits,
         delim = ": ",
         names = c("dataset", "trait")))
   }
+  
+  object <- dplyr::as_tibble(
+    dplyr::bind_rows(
+      object))
+  
+  timecol <- ifelse("week" %in% names(object), "week", "minute")
+  
   dplyr::arrange(
-    dplyr::as_tibble(
-      dplyr::bind_rows(
-        object)),
-    .data$p.value)
+    tidyr::pivot_wider(
+      dplyr::mutate(
+        object,
+        term = factor(.data$term, unique(.data$term))),
+      names_from = "term", values_from = p.value),
+    .data$dataset, .data$trait, .data[[timecol]])
 }
 

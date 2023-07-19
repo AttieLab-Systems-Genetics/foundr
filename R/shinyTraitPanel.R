@@ -42,12 +42,16 @@ shinyTraitPanelInput <- function(id) {
 #'
 #' @return nothing returned
 #' @rdname shinyTraitPanel
-#' @importFrom shiny column fluidRow NS uiOutput
+#' @importFrom shiny column downloadButton fluidRow NS uiOutput
 #' @export
 #'
 shinyTraitPanelUI <- function(id) {
   ns <- shiny::NS(id)
   
+  shiny::fluidRow(
+    shiny::column(6, shiny::uiOutput(ns("filename"))),
+    shiny::column(3, shiny::downloadButton(ns("downloadPlot"), "Plots")),
+    shiny::column(3, shiny::downloadButton(ns("downloadTable"), "Data")))
 }
 
 #' Shiny Module Output for Trait Panel
@@ -75,8 +79,8 @@ shinyTraitPanelOutput <- function(id) {
 #' @param traitSignal,traitStats reactive data frames
 #'
 #' @return reactive object 
-#' @importFrom shiny callModule column fluidRow observeEvent reactive
-#'             reactiveVal renderUI req selectInput tagList uiOutput
+#' @importFrom shiny column downloadHandler moduleServer observeEvent
+#'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
@@ -196,18 +200,47 @@ shinyTraitPanel <- function(id, module_par,
         if("Relations" %in% input$plots)
           shinyCorPlotOutput(ns("shinyCorPlot")))
     })
-
-    ##########################################################
     
-    shiny::reactive({
-      shiny::req(trait_names(), solosOutput(), tableOutput())
-      list(
-        solos = solosOutput(),
-        cors = corTableOutput(),
-        pairs = pairsOutput(),
-        table = tableOutput(),
-        traits = trait_names()
-      )
+    # DOWNLOADS
+    # Download File Prefix
+    output$filename <- renderUI({
+      shiny::req(trait_names())
+      
+      filename <- paste0(
+        "Traits_", trait_names()[1])
+      shiny::textAreaInput(ns("filename"), "File Prefix", filename)
     })
+    
+    # Download Plot
+    output$downloadPlot <- shiny::downloadHandler(
+      filename = function() {
+        paste0(shiny::req(input$filename), ".pdf")
+      },
+      content = function(file) {
+        shiny::req(solosOutput())
+        grDevices::pdf(file, width = 9, height = 6)
+        print(solosOutput())
+        if(length(shiny::req(trait_names())) > 1)
+          print(pairsOutput())
+        if(is_bestcor(corTableOutput()) & shiny::isTruthy(corPlotOutput()))
+          print(corPlotOutput())
+        invisible()
+        grDevices::dev.off()
+      })
+    
+    # Download DataTable
+    output$downloadTable <- shiny::downloadHandler(
+      filename = function() {
+        paste0(shiny::req(input$filename), ".csv")
+      },
+      content = function(file) {
+        shiny::req(tableOutput())
+        utils::write.csv(
+          summary(tableOutput()),
+          file, row.names = FALSE)
+      })
+    
+    ###############################################################
+    trait_names
   })
 }

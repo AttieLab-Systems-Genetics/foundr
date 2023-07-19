@@ -1,18 +1,49 @@
+#' Shiny Module Input for Times Plot
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTimesPanel
+#' @export
+#' @importFrom shiny NS uiOutput
+#'
+shinyTimesPanelInput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::uiOutput(ns("shinyInput"))
+}
+
 #' Shiny Module UI for Times Plot
 #'
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyTimes
+#' @rdname shinyTimesPanel
+#' @importFrom shiny column downloadButton fluidRow NS uiOutput
 #' @export
-#' @importFrom shiny NS uiOutput
 #'
 shinyTimesPanelUI <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tagList(
-    shiny::uiOutput(ns("shiny_times"))
-  )
+  shiny::fluidRow(
+    shiny::column(6, shiny::uiOutput(ns("filename"))),
+    shiny::column(3, shiny::downloadButton(ns("downloadPlot"), "Plots")),
+    shiny::column(3, shiny::downloadButton(ns("downloadTable"), "Data")))
+}
+
+#' Shiny Module Output for Times Plot
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTimesPanel
+#' @export
+#' @importFrom shiny NS uiOutput
+#'
+shinyTimesPanelOutput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::uiOutput(ns("timeplots"))
 }
 
 #' Shiny Module Server for Times Plots
@@ -21,7 +52,7 @@ shinyTimesPanelUI <- function(id) {
 #' @param traitData static objects
 #' @param traitSignalInput,traitStatsInput reactive objects
 #'
-#' @return reactive object for `shinyTimesUI`
+#' @return nothing returned
 #' @importFrom shiny column fluidRow observeEvent plotOutput reactive
 #'             reactiveVal renderPlot renderUI req selectInput selectizeInput
 #'             tagList uiOutput updateSelectizeInput
@@ -52,24 +83,18 @@ shinyTimesPanel <- function(id, main_par,
     #   timeplots() (see timeplots() below)
     #   statstable() (see statstable() below)
     
-    # Not used for now. Refer to shinyapp.R
-    output$shiny_times <- shiny::renderUI({
+    output$shinyInput <- shiny::renderUI({
       shiny::tagList(
         shiny::fluidRow(
-          shiny::column(
-            4,
-            shiny::selectInput(ns("time"), "Time Unit:",
-                               c("week", "minute","week_summary","minute_summary"))),
-          shiny::column(
-            4,
-            shiny::selectizeInput(ns("time_trait"), "Traits:",
-                                  NULL, multiple = TRUE)),
-          shiny::column(
-            4,
-            shiny::selectInput(ns("time_response"), "Response:",
-                               c("value", "cellmean", "signal")))),
+          shiny::column(6, shiny::selectInput(
+            ns("time"), "Time Unit:",
+            c("week", "minute","week_summary","minute_summary"))),
+          shiny::column(6, shiny::selectInput(
+            ns("time_response"), "Response:",
+            c("value", "cellmean", "signal")))),
         
-        shiny::uiOutput(ns("timeplots"))
+        shiny::selectizeInput(ns("time_trait"), "Traits:",
+                              NULL, multiple = TRUE),
       )
     })
     
@@ -115,7 +140,7 @@ shinyTimesPanel <- function(id, main_par,
         choices <- trait_names()
         selected <- selected[selected %in% choices]
         if(!length(selected))
-          selected <- NULL
+          selected <- choices[1]
         shiny::updateSelectizeInput(session, "time_trait", choices = choices,
                                     server = TRUE, selected = selected)
       })
@@ -145,14 +170,41 @@ shinyTimesPanel <- function(id, main_par,
         timetrait_selection(), "p.value", input$time, "terms")
     })
     
-    # List returned
-    shiny::reactive({
-      shiny::req(timetrait_selection(), timeplots(), statstable())
-      list(
-        plot = timeplots(),
-        table = statstable(),
-        traits = timetrait_selection())
+    
+    # DOWNLOADS
+    # Download File Prefix
+    output$filename <- renderUI({
+      shiny::req(timetrait_selection())
+      
+      filename <- paste0(
+        "Traits_", timetrait_selection()[1])
+      shiny::textAreaInput(ns("filename"), "File Prefix", filename)
     })
+    
+    # Download Plot
+    output$downloadPlot <- shiny::downloadHandler(
+      filename = function() {
+        paste0(shiny::req(input$filename), ".pdf")
+      },
+      content = function(file) {
+        shiny::req(timeplots())
+        grDevices::pdf(file, width = 9, height = 6)
+        print(timeplots())
+        invisible()
+        grDevices::dev.off()
+      })
+    
+    # Download DataTable
+    output$downloadTable <- shiny::downloadHandler(
+      filename = function() {
+        paste0(shiny::req(input$filename), ".csv")
+      },
+      content = function(file) {
+        shiny::req(statstable())
+        utils::write.csv(
+          statstable(),
+          file, row.names = FALSE)
+      })
   })
 }
       
