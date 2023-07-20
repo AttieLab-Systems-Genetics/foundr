@@ -13,7 +13,6 @@ ui <- function(title) {
   #   input$facet: Facet by strain?
   #   input$strains: Strains to select
   #   input$height: Plot Height
-  #   input$
   #
   # OUTPUTS (see shinyTraitPairs)
   #   output$filename: 

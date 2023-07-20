@@ -48,9 +48,9 @@ shinyTimesPanelOutput <- function(id) {
 
 #' Shiny Module Server for Times Plots
 #'
-#' @param main_par reactive arguments 
+#' @param module_par reactive arguments 
 #' @param traitData static objects
-#' @param traitSignalInput,traitStatsInput reactive objects
+#' @param traitSignal,traitStats reactive objects
 #'
 #' @return nothing returned
 #' @importFrom shiny column fluidRow observeEvent plotOutput reactive
@@ -59,16 +59,16 @@ shinyTimesPanelOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTimesPanel <- function(id, main_par,
-                            traitData, traitSignalInput, traitStatsInput) {
+shinyTimesPanel <- function(id, module_par,
+                            traitData, traitSignal, traitStats) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # passed inputs:
-    #   main_par$height
-    #   main_par$facet
-    #.  main_par$strains
+    #   module_par$height
+    #   module_par$facet
+    #.  module_par$strains
     # local inputs:
     #   time
     #   time_trait
@@ -78,24 +78,39 @@ shinyTimesPanel <- function(id, main_par,
     # output$tab_time is returned via shinyTimesUI
     # output$timeplots is displayed in parent output$tab_time
     
-    # RETURNS
-    # list with
-    #   timeplots() (see timeplots() below)
-    #   statstable() (see statstable() below)
+    # MODULES
+    tableOutput <- shinyTraitTable("shinyTable", module_par,
+                                   timetrait_names,
+                                   traitDataInput, traitSignal)
     
     output$shinyInput <- shiny::renderUI({
+      shiny::req(timeunits())
       shiny::tagList(
         shiny::fluidRow(
           shiny::column(6, shiny::selectInput(
             ns("time"), "Time Unit:",
-            c("week", "minute","week_summary","minute_summary"))),
+            timeunits())),
           shiny::column(6, shiny::selectInput(
             ns("time_response"), "Response:",
             c("value", "cellmean", "signal")))),
         
         shiny::selectizeInput(ns("time_trait"), "Traits:",
                               NULL, multiple = TRUE),
+        
+        # Trait Table Response.
+        shinyTraitTableUI(ns("shinyTable"))
+        
       )
+    })
+    timeunits <- shiny::reactive({
+      options <- NULL
+      if(shiny::isTruthy(traits_week())) {
+        options <- c("week","week_summary")
+      }
+      if(shiny::isTruthy(traits_minute())) {
+        options <- c(options, "minute","minute_summary")
+      }
+      options
     })
     
     # Filter static traitData based on selected trait_names.
@@ -107,10 +122,13 @@ shinyTimesPanel <- function(id, main_par,
     
     # Main return
     output$timeplots <- shiny::renderUI({
-      shiny::req(main_par$height)
+      shiny::req(module_par$height, tableOutput(), statstable())
+      
       shiny::tagList(
-        shiny::plotOutput(ns("timeplot"), height = paste0(main_par$height, "in")),
+        shiny::plotOutput(ns("timeplot"), height = paste0(module_par$height, "in")),
         
+        shinyTraitTableOutput(ns("shinyTable")),
+
         DT::renderDataTable(
           statstable(),
           escape = FALSE,
@@ -118,15 +136,17 @@ shinyTimesPanel <- function(id, main_par,
     })
     
     statstable <- shiny::reactive({
+      shiny::req(traitTimeSum())
+      
       stats_time_table(traitTimeSum())
     })
     timeplots <- shiny::reactive({
-      shiny::req(traitTime(), traitTimeSum(), main_par$strains)
+      shiny::req(traitTime(), traitTimeSum(), module_par$strains)
       
       ggplot_traitTimes(
         traitTime(),
         traitTimeSum(),
-        facet_strain = main_par$facet)
+        facet_strain = module_par$facet)
     })
     output$timeplot <- shiny::renderPlot({
       print(timeplots())
@@ -149,27 +169,39 @@ shinyTimesPanel <- function(id, main_par,
       timetrait_selection(input$time_trait)
     })
     
-    trait_names <- shiny::reactive({
-      shiny::req(input$time)
-      
-      timetraits(traitSignalInput(), input$time)
+    # Trait Names
+    timetrait_names <- shiny::reactive({
+      timetraits_filter(shiny::req(traitSignal()), shiny::req(input$time),
+                        shiny::req(timetrait_selection()))
     })
+    traits_week <- shiny::reactive({
+      timetraits(traitSignal(), "week")
+    })
+    traits_minute <- shiny::reactive({
+      timetraits(traitSignal(), "minute")
+    })
+    trait_names <- shiny::reactive({
+      switch(shiny::req(input$time),
+             week = traits_week(),
+             minute = traits_minute())
+    })
+    
+    # Times Data Object
     traitTime <- shiny::reactive({
       shiny::req(timetrait_selection(), input$time_response, input$time)
       
       traitTimes(
-        traitDataInput(), traitSignalInput(),
+        traitDataInput(), traitSignal(),
         timetrait_selection(), input$time_response, input$time,
-        strains = main_par$strains)
+        strains = module_par$strains)
     })
     traitTimeSum <- shiny::reactive({
       shiny::req(timetrait_selection(), input$time)
       
       traitTimes(
-        traitStatsInput(),
+        traitStats(),
         timetrait_selection(), "p.value", input$time, "terms")
     })
-    
     
     # DOWNLOADS
     # Download File Prefix
@@ -200,12 +232,11 @@ shinyTimesPanel <- function(id, main_par,
         paste0(shiny::req(input$filename), ".csv")
       },
       content = function(file) {
-        shiny::req(statstable())
+        shiny::req(tableOutput())
         utils::write.csv(
-          statstable(),
+          summary(tableOutput()),
+#          statstable(),
           file, row.names = FALSE)
       })
   })
 }
-      
-  

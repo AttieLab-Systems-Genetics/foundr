@@ -16,9 +16,7 @@ traitStats$dataset <- "Enrich"
 
 ################################################################
 
-title <- "Test Shiny Module"
-testApp <- foundr::shinyTimes
-testUI <- foundr::shinyTimesUI
+title <- "Test ShinyTimes Module"
 
 ui <- function() {
   # INPUTS
@@ -34,23 +32,17 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
+        foundr::shinyTimesPanelInput("shinyTest"),
+        
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::uiOutput("filename")), # See MODULE INPUT below
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadPlot", "Plots")),
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadTable", "Data")))
+        
+        foundr::shinyTimesPanelUI("shinyTest")
         ),
       
       shiny::mainPanel(
-        testUI("shinyTest")
+        foundr::shinyTimesPanelOutput("shinyTest")
         )))
 }
 
@@ -64,9 +56,6 @@ server <- function(input, output, session) {
   })
   
   # DATA OBJECTS 
-  traitDataInput <- shiny::reactive({
-    traitData
-  })
   traitSignalInput <- shiny::reactive({
     traitSignal
   })
@@ -74,42 +63,8 @@ server <- function(input, output, session) {
     traitStats
   })
 
-  moduleOutput <- shiny::callModule(
-    testApp, "shinyTest", 
-    input, 
-    traitDataInput, traitSignalInput, traitStatsInput)
-  
-  # I/O FROM MODULE
-  # MODULE INPUT: File Prefix
-  output$filename <- renderUI({
-    shiny::req(moduleOutput())
-    filename <- paste0(
-      "module_",
-      paste(moduleOutput()$traits, collapse = "."))
-    shiny::textAreaInput("filename", "File Prefix", filename)
-  })
-
-  # MODULE OUTPUT: Plot
-  output$downloadPlot <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".pdf")
-    },
-    content = function(file) {
-      grDevices::pdf(file, width = 9, height = 6)
-      print(moduleOutput()$plot)
-      grDevices::dev.off()
-    })
-  
-  # MODULE OUTPUT: DataTable
-  output$downloadTable <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".csv")
-    },
-    content = function(file) {
-      utils::write.csv(
-        moduleOutput()$table,
-        file, row.names = FALSE)
-    })
+  moduleOutput <- foundr::shinyTimesPanel("shinyTest", input, 
+                  traitData, traitSignalInput, traitStatsInput)
 }
 
 shiny::shinyApp(ui = ui, server = server)

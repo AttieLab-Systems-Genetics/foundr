@@ -32,19 +32,34 @@ server <- function(input, output, session,
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
   })
+  
+  # Hide Time tab unless we have time entries.
+  shiny::observeEvent(
+    input$height,
+    {
+      if(length(timetraitsall())) {
+        shiny::showTab(inputId = "tabpanel", target = "Times")
+      } else {
+        shiny::hideTab(inputId = "tabpanel", target = "Times")
+      }
+    })
+  timetraitsall <- shiny::reactive({
+    foundr::timetraitsall(traitSignalInput())
+  })
+  
   output$tabInput <- shiny::renderUI({
     shiny::req(input$tabpanel)
     
     switch(shiny::req(input$tabpanel),
            Traits = shinyTraitPanelInput("tabTraits"),
-           Times  = shinyTimesPanelInput("tabTimes"))
+           Times  = if(length(timetraitsall())) shinyTimesPanelInput("tabTimes"))
   })
   output$tabUI <- shiny::renderUI({
     shiny::req(input$tabpanel)
     
     switch(shiny::req(input$tabpanel),
            Traits = shinyTraitPanelUI("tabTraits"),
-           Times  = shinyTimesPanelUI("tabTimes"))
+           Times  = if(length(timetraitsall())) shinyTimesPanelUI("tabTimes"))
   })
 
   # DATA OBJECTS

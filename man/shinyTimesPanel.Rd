@@ -13,16 +13,16 @@ shinyTimesPanelUI(id)
 
 shinyTimesPanelOutput(id)
 
-shinyTimesPanel(id, main_par, traitData, traitSignalInput, traitStatsInput)
+shinyTimesPanel(id, module_par, traitData, traitSignal, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{reactive arguments}
+\item{module_par}{reactive arguments}
 
 \item{traitData}{static objects}
 
-\item{traitSignalInput, traitStatsInput}{reactive objects}
+\item{traitSignal, traitStats}{reactive objects}
 }
 \value{
 nothing returned

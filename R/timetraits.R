@@ -83,3 +83,35 @@ timetraits <- function(traitSignal, timecol = c("week","minute","week_summary","
         n > 1),
       dplyr::desc(.data$n)))
 }
+timetraits_filter <- function(object, timeunit = c("week", "minute"),
+                              traitnames) {
+  
+  if(is.null(object) || is.null(traitnames) || !length(traitnames))
+    return(NULL)
+  
+  timeunit <- match.arg(timeunit)
+
+  object <- dplyr::filter(
+    timetraitsall(object),
+    .data$timetrait == timeunit)
+  
+  # Remove segment of trait name corresponding to time unit.
+  switch(
+    timeunit,
+    minute = {
+      object <- dplyr::mutate(object,
+        traitroot = stringr::str_replace(.data$trait, "_[0-9]*_", "_"))
+    },
+    week   = {
+      object <- dplyr::mutate(object,
+        traitroot = stringr::str_remove(.data$trait, "_[0-9]*wk$"))
+    })
+  
+  object <- dplyr::filter(
+    dplyr::mutate(
+      object,
+      traitroot = paste(dataset, traitroot, sep = ": ")),
+    .data$traitroot %in% traitnames)
+  
+  paste(object$dataset, object$trait, sep = ": ")
+}
