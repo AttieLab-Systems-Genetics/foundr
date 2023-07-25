@@ -90,9 +90,15 @@ timetraits_filter <- function(object, timeunit = c("week", "minute"),
     return(NULL)
   
   timeunit <- match.arg(timeunit)
+  
+  # If `object` not run through timetraitsall to find distinct timetraits, do now.
+  if(!("timetrait" %in% names(object))) {
+    object <- timetraitsall(object)
+  }
 
+  # Filter to time unit.
   object <- dplyr::filter(
-    timetraitsall(object),
+    object,
     .data$timetrait == timeunit)
   
   # Remove segment of trait name corresponding to time unit.

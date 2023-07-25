@@ -45,22 +45,13 @@ subset_trait_names.sql <- function(object, traitnames = NULL) {
   if(is.null(traitnames))
     return(NULL)
   
-#  datasets <- stringr::str_remove(traitnames, ": .*$")
-#  traits <- stringr::str_remove(traitnames, "^.*: ")
-
-  # First select all instances with datasets and traits  
-#  out <- dplyr::collect(
-#      dplyr::filter(
-#        dplyr::tbl(db, table_name),
-#        dataset %in% datasets,
-#        trait %in% traits))
-
-  # Then select only those that match both
-  dplyr::select(
-    dplyr::filter(
-      dplyr::mutate(
-        object,
-        datatraits = paste(.data$dataset, .data$trait, sep = ": ")),
-      .data$datatraits %in% traitnames),
-    -datatraits)
+  # Select only those that match both
+  dplyr::collect(
+    dplyr::select(
+      dplyr::filter(
+        dplyr::mutate(
+          object,
+          datatraits = paste(.data$dataset, .data$trait, sep = ": ")),
+        .data$datatraits %in% traitnames),
+      -datatraits))
 }

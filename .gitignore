@@ -40,3 +40,6 @@ vignettes/*.pdf
 .Renviron
 rsconnect/
 .Rproj.user
+
+# SQLite objects
+*.sqlite

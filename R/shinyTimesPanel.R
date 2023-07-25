@@ -115,9 +115,9 @@ shinyTimesPanel <- function(id, module_par,
     
     # Filter static traitData based on selected trait_names.
     traitDataInput <- shiny::reactive({
-      shiny::req(trait_names())
-      
-      subset_trait_names(traitData, trait_names())
+      shiny::req(timetrait_names())
+
+      subset_trait_names(traitData, timetrait_names())
     })
     
     # Main return
@@ -170,8 +170,11 @@ shinyTimesPanel <- function(id, module_par,
     })
     
     # Trait Names
+    timetrait_all <- shiny::reactive({
+      timetraitsall(shiny::req(traitSignal()))
+    })
     timetrait_names <- shiny::reactive({
-      timetraits_filter(shiny::req(traitSignal()), shiny::req(input$time),
+      timetraits_filter(timetrait_all(), shiny::req(input$time),
                         shiny::req(timetrait_selection()))
     })
     traits_week <- shiny::reactive({
