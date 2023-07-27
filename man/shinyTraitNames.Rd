@@ -7,16 +7,16 @@
 \usage{
 shinyTraitNamesUI(id)
 
-shinyTraitNames(id, traitArranged, multiples = FALSE)
+shinyTraitNames(id, main_par, traitArranged, multiples = FALSE)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
+\item{main_par}{reactive arguments}
+
 \item{traitArranged}{reactive data frames}
 
 \item{multiples}{fixed logical for multiple trait names}
-
-\item{input, output, session}{standard shiny arguments}
 }
 \value{
 nothing returned

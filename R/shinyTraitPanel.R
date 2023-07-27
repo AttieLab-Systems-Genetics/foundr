@@ -106,10 +106,11 @@ shinyTraitPanel <- function(id, main_par,
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", traitStats)
     # Key Trait and Correlation Table.
-    corTableOutput <- shinyCorTable("shinyCorTable", input, orderOutput,
-                                    traitSignal)
+    corTableOutput <- shinyCorTable("shinyCorTable", main_par, input,
+                                    orderOutput, traitSignal)
     # Related Traits.
-    rel_traitsOutput <- shinyTraitNames("shinyNames", corTableOutput, TRUE)
+    rel_traitsOutput <- shinyTraitNames("shinyNames", main_par,
+                                        corTableOutput, TRUE)
     # Correlation Plot
     corPlotOutput <- shinyCorPlot("shinyCorPlot", input, main_par,
                                   corTableOutput)

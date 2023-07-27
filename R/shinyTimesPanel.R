@@ -48,6 +48,7 @@ shinyTimesPanelOutput <- function(id) {
 
 #' Shiny Module Server for Times Plots
 #'
+#' @param id identifier for shiny reactive
 #' @param main_par reactive arguments 
 #' @param traitData static objects
 #' @param traitSignal,traitStats reactive objects
@@ -110,11 +111,11 @@ shinyTimesPanel <- function(id, main_par,
       }
       options
     })
-    time_selection <- shiny::reactiveVal(NULL)
+    time_selection <- shiny::reactiveVal(NULL, label = "time_selection")
     shiny::observeEvent(input$time, {
       time_selection(input$time)
     })
-    response_selection <- shiny::reactiveVal(NULL)
+    response_selection <- shiny::reactiveVal(NULL, label = "response_selection")
     shiny::observeEvent(input$time_response, {
       response_selection(input$time_response)
     })
@@ -171,7 +172,7 @@ shinyTimesPanel <- function(id, main_par,
         shiny::updateSelectizeInput(session, "time_trait", choices = choices,
                                     server = TRUE, selected = selected)
       })
-    timetrait_selection <- shiny::reactiveVal(NULL)
+    timetrait_selection <- shiny::reactiveVal(NULL, label = "timetrait_selection")
     shiny::observeEvent(input$time_trait, {
       timetrait_selection(input$time_trait)
     })

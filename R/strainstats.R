@@ -49,6 +49,7 @@ strainstats <- function(object,
     is_condition <- !all(is.na(object[[condition_name]]))
   }
   
+  # Construct `datatraits` from `dataset` and `trait`
   if(!("dataset" %in% names(object)))
     object$dataset <- "unknown"
   if(!("datatraits" %in% names(object)))
@@ -58,6 +59,7 @@ strainstats <- function(object,
       .data$dataset, .data$trait,
       sep = ": ")
   
+  # Construct fits of each `datatraits` using `fitsplit()`.
   out <- dplyr::bind_rows(
     purrr::map(
       split(object, object$datatraits),
@@ -201,6 +203,7 @@ summary_strainstats <- function(object,
   if(is.null(object))
     return(NULL)
   
+  # Set thresholds.
   if(!is.null(threshold) && length(threshold)) {
     if(!("log10.p" %in% names(threshold))) {
       if("p" %in% names(threshold))
@@ -218,6 +221,7 @@ summary_strainstats <- function(object,
     threshold <- c(deviance = 0, log10.p = -Inf)
   }
   
+  # Rename deviance = "SD" and log10.p = -log10("p.value").
   object <-
     dplyr::mutate(
       dplyr::filter(

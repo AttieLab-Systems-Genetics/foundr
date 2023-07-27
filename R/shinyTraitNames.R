@@ -20,7 +20,7 @@ shinyTraitNamesUI <- function(id) {
 #' The order of choices depends on `traitArranged()`.
 #' 
 #' @param id identifier for shiny reactive
-#' @param input,output,session standard shiny arguments
+#' @param main_par reactive arguments 
 #' @param traitArranged reactive data frames
 #' @param multiples fixed logical for multiple trait names
 #'
@@ -33,7 +33,7 @@ shinyTraitNamesUI <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyTraitNames <- function(id, traitArranged, multiples = FALSE) {
+shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -49,7 +49,9 @@ shinyTraitNames <- function(id, traitArranged, multiples = FALSE) {
                             multiple = multiples)
     })
     shiny::observeEvent(
-      shiny::req(traitNamesArranged()),
+      shiny::tagList(
+        shiny::req(traitNamesArranged()),
+        main_par$tabpanel),
       {
         choices <- traitNamesArranged()
         selected <- NULL
@@ -57,6 +59,11 @@ shinyTraitNames <- function(id, traitArranged, multiples = FALSE) {
                                     server = TRUE, selected = selected)
       },
       label = "update_trait")
+    trait_selection <- shiny::reactiveVal(NULL, label = "trait_selection")
+    shiny::observeEvent(input$trait, {
+      trait_selection(input$trait)
+    })
+    
     
     traitNamesArranged <- shiny::reactive({
       shiny::req(traitArranged())
@@ -67,15 +74,6 @@ shinyTraitNames <- function(id, traitArranged, multiples = FALSE) {
           .data$dataset, .data$trait))
     },
     label = "traitNamesArranged")
-    
-    trait_selection <- shiny::reactive({
-      if(shiny::isTruthy(input$trait)) {
-        input$trait
-      } else {
-        NULL
-      }
-    },
-    label = "trait_selection")
     
     ###############################################
     # vector returned as reactive

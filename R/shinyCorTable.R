@@ -49,7 +49,7 @@ shinyCorTableOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param traitArranged,traitSignal reactive data frames
-#' @param traits_par reactive inputs from calling modules
+#' @param main_par,traits_par reactive inputs from calling modules
 #'
 #' @return reactive object
 #' @importFrom dplyr filter select
@@ -59,11 +59,12 @@ shinyCorTableOutput <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyCorTable <- function(id, traits_par, traitArranged, traitSignal) {
+shinyCorTable <- function(id, main_par, traits_par,
+                          traitArranged, traitSignal) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    key_traitOutput <- shinyTraitNames("shinyName", traitArranged)
+    key_traitOutput <- shinyTraitNames("shinyName", main_par, traitArranged)
     
     # Temporary kludge
     customSettings <- shiny::reactiveValues(dataset = NULL)
