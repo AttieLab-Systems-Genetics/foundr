@@ -58,6 +58,8 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
+  shiny::onStop(function() {RSQLite::dbDisconnect(db)})
+  
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
@@ -73,7 +75,7 @@ server <- function(input, output, session) {
     traitStats
   })
 
-  moduleOutput <- foundr::shinyTimesPanel("shinyTest", input, 
+  timesOutput <- foundr::shinyTimesPanel("shinyTest", input, 
                   traitData, traitSignalInput, traitStatsInput)
 }
 

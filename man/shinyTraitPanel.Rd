@@ -13,7 +13,7 @@ shinyTraitPanelUI(id)
 
 shinyTraitPanelOutput(id)
 
-shinyTraitPanel(id, module_par, traitData, traitSignal, traitStats)
+shinyTraitPanel(id, main_par, traitData, traitSignal, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}

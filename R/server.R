@@ -17,7 +17,7 @@ server <- function(input, output, session,
                    customSettings = NULL) {
   
   # CALL MODULES
-  panelOutput <- shinyTraitPanel("tabTraits", input,
+  traitOutput <- shinyTraitPanel("tabTraits", input,
                                  traitData,
                                  traitSignalInput, traitStatsInput)
   timeOutput <- shinyTimesPanel("tabTimes", input, 

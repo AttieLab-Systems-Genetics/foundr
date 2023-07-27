@@ -48,7 +48,7 @@ shinyTimesPanelOutput <- function(id) {
 
 #' Shiny Module Server for Times Plots
 #'
-#' @param module_par reactive arguments 
+#' @param main_par reactive arguments 
 #' @param traitData static objects
 #' @param traitSignal,traitStats reactive objects
 #'
@@ -59,16 +59,16 @@ shinyTimesPanelOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTimesPanel <- function(id, module_par,
+shinyTimesPanel <- function(id, main_par,
                             traitData, traitSignal, traitStats) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # passed inputs:
-    #   module_par$height
-    #   module_par$facet
-    #.  module_par$strains
+    #   main_par$height
+    #   main_par$facet
+    #.  main_par$strains
     # local inputs:
     #   time
     #   time_trait
@@ -79,7 +79,7 @@ shinyTimesPanel <- function(id, module_par,
     # output$timeplots is displayed in parent output$tab_time
     
     # MODULES
-    tableOutput <- shinyTraitTable("shinyTable", module_par,
+    tableOutput <- shinyTraitTable("shinyTable", main_par,
                                    timetrait_names,
                                    traitDataInput, traitSignal)
     
@@ -112,6 +112,10 @@ shinyTimesPanel <- function(id, module_par,
       }
       options
     })
+    time_selection <- shiny::reactiveVal(NULL)
+    shiny::observeEvent(input$time, {
+      time_selection(input$time)
+    })
     
     # Filter static traitData based on selected trait_names.
     traitDataInput <- shiny::reactive({
@@ -122,10 +126,10 @@ shinyTimesPanel <- function(id, module_par,
     
     # Main return
     output$timeplots <- shiny::renderUI({
-      shiny::req(module_par$height, tableOutput(), statstable())
+      shiny::req(main_par$height, tableOutput(), statstable())
       
       shiny::tagList(
-        shiny::plotOutput(ns("timeplot"), height = paste0(module_par$height, "in")),
+        shiny::plotOutput(ns("timeplot"), height = paste0(main_par$height, "in")),
         
         shinyTraitTableOutput(ns("shinyTable")),
 
@@ -141,12 +145,12 @@ shinyTimesPanel <- function(id, module_par,
       stats_time_table(traitTimeSum())
     })
     timeplots <- shiny::reactive({
-      shiny::req(traitTime(), traitTimeSum(), module_par$strains)
+      shiny::req(traitTime(), traitTimeSum(), main_par$strains)
       
       ggplot_traitTimes(
         traitTime(),
         traitTimeSum(),
-        facet_strain = module_par$facet)
+        facet_strain = main_par$facet)
     })
     output$timeplot <- shiny::renderPlot({
       print(timeplots())
@@ -169,41 +173,43 @@ shinyTimesPanel <- function(id, module_par,
       timetrait_selection(input$time_trait)
     })
     
-    # Trait Names
+    # Trait Names: timetrait_names() include time info; trait_names() do not.
     timetrait_all <- shiny::reactive({
       timetraitsall(shiny::req(traitSignal()))
     })
     timetrait_names <- shiny::reactive({
-      timetraits_filter(timetrait_all(), shiny::req(input$time),
+      timetraits_filter(timetrait_all(), shiny::req(time_selection()),
                         shiny::req(timetrait_selection()))
     })
     traits_week <- shiny::reactive({
-      timetraits(traitSignal(), "week")
+      timetraits(timetrait_all(), "week")
     })
     traits_minute <- shiny::reactive({
-      timetraits(traitSignal(), "minute")
+      timetraits(timetrait_all(), "minute")
     })
     trait_names <- shiny::reactive({
-      switch(shiny::req(input$time),
+      shiny::req(main_par$tabpanel)
+      
+      switch(shiny::req(time_selection()),
              week = traits_week(),
              minute = traits_minute())
     })
     
     # Times Data Object
     traitTime <- shiny::reactive({
-      shiny::req(timetrait_selection(), input$time_response, input$time)
+      shiny::req(timetrait_selection(), input$time_response, time_selection())
       
       traitTimes(
         traitDataInput(), traitSignal(),
-        timetrait_selection(), input$time_response, input$time,
-        strains = module_par$strains)
+        timetrait_selection(), input$time_response, time_selection(),
+        strains = main_par$strains)
     })
     traitTimeSum <- shiny::reactive({
-      shiny::req(timetrait_selection(), input$time)
+      shiny::req(timetrait_selection(), time_selection())
       
       traitTimes(
         traitStats(),
-        timetrait_selection(), "p.value", input$time, "terms")
+        timetrait_selection(), "p.value", time_selection(), "terms")
     })
     
     # DOWNLOADS

@@ -1,3 +1,18 @@
+#' Shiny Module Input for Volcano Plot
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyVolcano
+#' @export
+#' @importFrom shiny NS uiOutput
+#'
+shinyVolcanoInput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::uiOutput(ns("shiny_input"))
+}
+
 #' Shiny Module UI for Volcano Plot
 #'
 #' @param id identifier for shiny reactive
@@ -5,13 +20,30 @@
 #' @return nothing returned
 #' @rdname shinyVolcano
 #' @export
+#' @importFrom shiny column downloadButton fluidRow NS uiOutput
 #'
-
 shinyVolcanoUI <- function(id) {
-  ns <- NS(id)
-  shiny::tagList(
-    shiny::uiOutput(ns("shiny_volcano"))
-  )
+  ns <- shiny::NS(id)
+  
+  shiny::fluidRow(
+    shiny::column(6, shiny::uiOutput(ns("filename"))),
+    shiny::column(3, shiny::downloadButton(ns("downloadPlot"), "Plots")),
+    shiny::column(3, shiny::downloadButton(ns("downloadTable"), "Data")))
+}
+
+#' Shiny Module Output for Volcano Plot
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyVolcano
+#' @export
+#' @importFrom shiny NS uiOutput
+#'
+shinyVolcanoOutput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::uiOutput(ns("shiny_output"))
 }
 
 #' Shiny Module Server for Volcano Plots
@@ -19,125 +51,143 @@ shinyVolcanoUI <- function(id) {
 #' @param input,output,session standard shiny arguments
 #' @param main_par reactive arguments from `foundrServer`
 #' @param traitStats reactive objects from `foundrServer`
+#' @param customSettings list of custom settings
 #'
 #' @return reactive object for `shinyVolcanoUI`
-#' @importFrom shiny column fluidRow observeEvent plotOutput reactive
-#'             reactiveVal renderPlot renderUI req selectInput selectizeInput
+#' @importFrom shiny column fluidRow moduleServer observeEvent plotOutput
+#'             reactive renderPlot renderUI req selectInput selectizeInput
 #'             tagList uiOutput updateSelectizeInput sliderInput renderUI
 #' @importFrom DT renderDataTable dataTableOutput
 #' @importFrom plotly plotlyOutput ggplotly renderPlotly
 #' @importFrom ggplot2 ylim
 #' @export
 #'
-shinyVolcano <- function(input, output, session,
-                       main_par,
-                       traitStats) {
-  ns <- session$ns
-
-  # INPUTS
-  # Main inputs: (see shinyapp.R)
-  #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
-  # Volcano inputs: (see output$tab_volcano below)
-  #   input$term
-  #   input$traitnames
-  #   input$interact
-  #   input$volsd
-  #   input$volpval
-
-  output$shiny_volcano <- shiny::renderUI({
-    trstats <- shiny::req(traitStats())
-    shiny::tagList(
-      # Get new input parameters for Volcano.
-      shiny::fluidRow(
-        shiny::column(
-          4,
-          shiny::selectInput(ns("term"), "Volcano term:", termstats())),
-        shiny::column(
-          4,
-          shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
-        shiny::column(
-          4,
-          shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
-
-      # Condition for plot based on `interact` parameter.
-      shiny::uiOutput(ns("condinteract")),
-
-      # Sliders from Volcano plot display.
-      shiny::fluidRow(
-        shiny::column(
-          6,
-          shiny::sliderInput(
-            ns("volsd"), "SD line:",
-            0, signif(max(trstats$SD, na.rm = TRUE), 2),
-            1, step = 0.1)),
-        shiny::column(
-          6,
-          shiny::sliderInput(
-            ns("volpval"), "-log10(p.value) line:",
-            0, min(10,
-                   round(-log10(min(trstats$p.value, na.rm = TRUE)), 1)),
-            2, step = 0.5))),
-
-      # Data table.
-      DT::dataTableOutput(ns("tablesum")))
-  })
+shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    # INPUTS
+    # Main inputs: (see shinyapp.R)
+    #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
+    # Volcano inputs: (see output$tab_volcano below)
+    #   input$term
+    #   input$traitnames
+    #   input$interact
+    #   input$volsd
+    #   input$volpval
+    
+    # Server-side UIs
+    output$shiny_input <- shiny::renderUI({
+      trstats <- shiny::req(traitStats())
+      
+      shiny::tagList(
+        # Get new input parameters for Volcano.
+        shiny::fluidRow(
+          shiny::column(
+            4,
+            shiny::selectInput(ns("term"), "Volcano term:", term_stats())),
+          shiny::column(
+            4,
+            shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
+          shiny::column(
+            4,
+            shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
+        
+        # Sliders from Volcano plot display.
+        shiny::sliderInput(ns("volsd"), "SD line:",
+              0, signif(max(trstats$SD, na.rm = TRUE), 2),
+              1, step = 0.1),
+        shiny::sliderInput(ns("volpval"), "-log10(p.value) line:",
+              0, min(10, round(-log10(min(trstats$p.value, na.rm = TRUE)), 1)),
+              2, step = 0.5))
+    })
+      
+    output$shiny_output <- shiny::reactive({
+      shiny::tagList(
+        # Condition for plot based on `interact` parameter.
+        if(input$interact) {
+          plotly::plotlyOutput(ns("volcanoly"))
+        } else {
+          shiny::plotOutput(ns("volcanopr"),
+                            height = paste0(main_par$height, "in"))
+        },
+        
+        # Data table.
+        DT::dataTableOutput(ns("tablesum")))
+    })
+    
+    term_stats <- shiny::reactive({
+      shiny::req(traitStats())
+      termStats(traitStats(), FALSE)
+    })
+    
+    volcano_plot <- shiny::reactive({
+      shiny::req(traitStats(), input$term, input$volsd, input$volpval)
+      volcano(traitStats(), input$term,
+              threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
+              interact = (input$interact),
+              traitnames = (input$traitnames))
+    })
+    output$volcanoly <- plotly::renderPlotly({
+      plotly::ggplotly(
+        volcano_plot() +
+          #        ggplot2::xlim(shiny::req(input$volsd), NA) +
+          ggplot2::ylim(shiny::req(input$volpval), NA))
+    })
+    output$volcanopr <- shiny::renderPlot({
+      print(volcano_plot())
+    })
+    
+    volcano_table <- shiny::reactive({
+      shiny::req(traitStats(), input$volsd, input$volpval, input$term)
+      summary_strainstats(
+        mutate_datasets(traitStats(), customSettings$dataset),
+        terms = input$term,
+        threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
+    })
+    output$tablesum <- DT::renderDataTable(
+      volcano_table(),
+      escape = FALSE,
+      options = list(scrollX = TRUE, pageLength = 10))
+    
+    # DOWNLOADS
+    # Download File Prefix
+    output$filename <- renderUI({
+      shiny::req(input$term, volcano_plot(), volcano_table())
+      
+      filename <- paste0(
+        "Volcano_", input$term,
+        paste(unique(traitStats()$dataset), collapse = "."))
+      shiny::textAreaInput(ns("filename"), "File Prefix", filename)
+    })
+    
+    # Download Plot
+    output$downloadPlot <- shiny::downloadHandler(
+      filename = function() {
+        paste0(shiny::req(input$filename), ".pdf")
+      },
+      content = function(file) {
+        shiny::req(volcano_plot())
+        grDevices::pdf(file, width = 9, height = 6)
+        print(volcano_plot())
+        grDevices::dev.off()
+      })
+    
+    # Download DataTable
+    output$downloadTable <- shiny::downloadHandler(
+      filename = function() {
+        paste0(shiny::req(input$filename), ".csv")
+      },
+      content = function(file) {
+        shiny::req(volcano_table())
+        utils::write.csv(
+          volcano_table(),
+          file, row.names = FALSE)
+      })
   
-  customSettings <- shiny::reactiveValues(dataset = NULL)
-
-  output$condinteract <- shiny::renderUI({
-    if(input$interact) {
-      plotly::plotlyOutput(ns("volcanoly"))
-    } else {
-      shiny::plotOutput(ns("volcanopr"),
-                        height = paste0(main_par$height, "in"))
-    }
-  })
-
-  termstats <- shiny::reactive({
-    shiny::req(traitStats())
-    termStats(traitStats(), FALSE)
-  })
-
-  volcanoplot <- shiny::reactive({
-    shiny::req(traitStats(), input$term, input$volsd, input$volpval)
-    volcano(traitStats(), input$term,
-            threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
-            interact = (input$interact),
-            traitnames = (input$traitnames))
-  })
-  output$volcanoly <- plotly::renderPlotly({
-    plotly::ggplotly(
-      volcanoplot() +
-        #        ggplot2::xlim(shiny::req(input$volsd), NA) +
-        ggplot2::ylim(shiny::req(input$volpval), NA))
-  })
-  output$volcanopr <- shiny::renderPlot({
-    print(volcanoplot())
-  })
-
-  volcano_table <- shiny::reactive({
-    shiny::req(traitStats(), input$volsd, input$volpval, input$term)
-    summary_strainstats(
-      mutate_datasets(traitStats(), customSettings$dataset),
-      terms = input$term,
-      threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
-  })
-  output$tablesum <- DT::renderDataTable(
-    volcano_table(),
-    escape = FALSE,
-    options = list(scrollX = TRUE, pageLength = 10))
-
-  datasets <- shiny::reactive({
-    unique(traitStats()$dataset)
-  })
-
-  # List returned
-  reactive({
-    shiny::req(volcanoplot(), datasets())
-    list(
-      plot = print(volcanoplot()),
-      table = volcano_table(),
-      traits = datasets())
+    #################################################
+    
+    input
   })
 }
 

@@ -85,17 +85,17 @@ shinyTraitPanelOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTraitPanel <- function(id, module_par,
+shinyTraitPanel <- function(id, main_par,
                             traitData, traitSignal, traitStats) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # shinyTraitPanel inputs
-    #   module_par$facet: Facet by strain?
-    #   module_par$strains: Strains to select
-    #   module_par$height: Plot Height
-    #   module_par$plot_choice: plot choice
+    #   main_par$facet: Facet by strain?
+    #   main_par$strains: Strains to select
+    #   main_par$height: Plot Height
+    #   main_par$plot_choice: plot choice
     #
     # RETURNS
     #   output$solos 
@@ -111,7 +111,7 @@ shinyTraitPanel <- function(id, module_par,
     # Related Traits.
     rel_traitsOutput <- shinyTraitNames("shinyNames", corTableOutput, TRUE)
     # Correlation Plot
-    corPlotOutput <- shinyCorPlot("shinyCorPlot", input, module_par,
+    corPlotOutput <- shinyCorPlot("shinyCorPlot", input, main_par,
                                   corTableOutput)
     
     # Filter static traitData based on selected trait_names.
@@ -121,11 +121,11 @@ shinyTraitPanel <- function(id, module_par,
       subset_trait_names(traitData, trait_names())
     })
     
-    tableOutput <- shinyTraitTable("shinyTable", module_par, trait_names,
+    tableOutput <- shinyTraitTable("shinyTable", main_par, trait_names,
                                    traitDataInput, traitSignal)
     
-    solosOutput <- shinyTraitSolos("shinySolos", module_par, tableOutput)
-    pairsOutput <- shinyTraitPairs("shinyPairs", module_par, trait_names,
+    solosOutput <- shinyTraitSolos("shinySolos", main_par, tableOutput)
+    pairsOutput <- shinyTraitPairs("shinyPairs", main_par, trait_names,
                                    tableOutput)
     
     # Trait Names.

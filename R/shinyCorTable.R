@@ -49,7 +49,7 @@ shinyCorTableOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param traitArranged,traitSignal reactive data frames
-#' @param stats_par reactive inputs from calling modules
+#' @param traits_par reactive inputs from calling modules
 #'
 #' @return reactive object
 #' @importFrom dplyr filter select
@@ -59,7 +59,7 @@ shinyCorTableOutput <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyCorTable <- function(id, stats_par, traitArranged, traitSignal) {
+shinyCorTable <- function(id, traits_par, traitArranged, traitSignal) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -70,8 +70,8 @@ shinyCorTable <- function(id, stats_par, traitArranged, traitSignal) {
     
     # INPUTS
     # calling module inputs
-    #   stats_par$mincor:     Minimum Correlation
-    #   stats_par$reldataset: Related Datasets
+    #   traits_par$mincor:     Minimum Correlation
+    #   traits_par$reldataset: Related Datasets
     # shinyCorTable inputs
     #   input$corterm:        Correlation Term
     #
@@ -80,26 +80,26 @@ shinyCorTable <- function(id, stats_par, traitArranged, traitSignal) {
     
     output$cortable <- DT::renderDataTable(
       {
-        shiny::req(corobject(), stats_par$mincor, input$corterm)
+        shiny::req(corobject(), traits_par$mincor, input$corterm)
         
         summary_bestcor(
           mutate_datasets(
             corobject(),
             customSettings$dataset),
-          stats_par$mincor)
+          traits_par$mincor)
       },
       escape = FALSE,
       options = list(scrollX = TRUE, pageLength = 5))
     
     corobject <- shiny::reactive({
       shiny::req(key_traitOutput(), traitSignal(),
-                 input$corterm, stats_par$mincor)
+                 input$corterm, traits_par$mincor)
       
       # Select rows of traitSignal() with Key Traot or Related Datasets.
       object <- select_data_pairs(traitSignal(), key_traitOutput(),
-                                  stats_par$reldataset)
+                                  traits_par$reldataset)
       
-      if(!shiny::isTruthy(stats_par$reldataset))
+      if(!shiny::isTruthy(traits_par$reldataset))
         return(dplyr::distinct(object, dataset, trait))
       
       # Filter by mincor
@@ -109,7 +109,7 @@ shinyCorTable <- function(id, stats_par, traitArranged, traitSignal) {
           object,
           key_traitOutput(),
           input$corterm),
-        .data$absmax >= stats_par$mincor)
+        .data$absmax >= traits_par$mincor)
     })
     
     ##############################################################

@@ -13,12 +13,12 @@ shinyCorTableUI(id)
 
 shinyCorTableOutput(id)
 
-shinyCorTable(id, stats_par, traitArranged, traitSignal)
+shinyCorTable(id, traits_par, traitArranged, traitSignal)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{stats_par}{reactive inputs from calling modules}
+\item{traits_par}{reactive inputs from calling modules}
 
 \item{traitArranged, traitSignal}{reactive data frames}
 }
