@@ -28,7 +28,9 @@ timetraitsall <- function(traitSignal) {
 #' @importFrom dplyr arrange count desc distinct filter mutate select
 #' @importFrom rlang .data
 #' @export
-timetraits <- function(object, timecol = c("week","minute","week_summary","minute_summary")) {
+timetraits <- function(object,
+                       timecol = c("week", "minute",
+                                   "week_summary", "minute_summary")) {
   
   # If `object` not run through timetraitsall to find distinct timetraits, do now.
   if(!("timetrait" %in% names(object))) {
@@ -87,7 +89,9 @@ timetraits <- function(object, timecol = c("week","minute","week_summary","minut
         n > 1),
       dplyr::desc(.data$n)))
 }
-timetraits_filter <- function(object, timeunit = c("week", "minute"),
+timetraits_filter <- function(object,
+                              timeunit = c("week", "minute",
+                                           "week_summary", "minute_summary"),
                               traitnames) {
   
   if(is.null(object) || is.null(traitnames) || !length(traitnames))
