@@ -54,7 +54,7 @@ shinyTraitSolos <- function(id, main_par, traitSolosObject) {
     # Plot
     solosPlot <- shiny::reactive({
       shiny::req(traitSolosObject())
-      
+
       ggplot_traitSolos(
         traitSolosObject(),
         facet_strain = main_par$facet,

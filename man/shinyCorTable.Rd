@@ -13,7 +13,14 @@ shinyCorTableUI(id)
 
 shinyCorTableOutput(id)
 
-shinyCorTable(id, main_par, traits_par, traitArranged, traitSignal)
+shinyCorTable(
+  id,
+  main_par,
+  traits_par,
+  traitArranged,
+  traitSignal,
+  customSettings
+)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -21,6 +28,8 @@ shinyCorTable(id, main_par, traits_par, traitArranged, traitSignal)
 \item{main_par, traits_par}{reactive inputs from calling modules}
 
 \item{traitArranged, traitSignal}{reactive data frames}
+
+\item{customSettings}{list of custom settings}
 }
 \value{
 nothing returned

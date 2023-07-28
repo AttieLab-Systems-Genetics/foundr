@@ -67,7 +67,8 @@ server <- function(input, output, session) {
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, orderOutput,
                                   traitSignalInput)
   # Related Traits.
-  rel_traitsOutput <- foundr::shinyTraitNames("shinyNames", corTableOutput, TRUE)
+  rel_traitsOutput <- foundr::shinyTraitNames("shinyNames", input,
+                                              corTableOutput, TRUE)
   # Correlation Plot
   corPlotOutput <- foundr::shinyCorPlot("shinyCorPlot", input, input,
                                         corTableOutput)

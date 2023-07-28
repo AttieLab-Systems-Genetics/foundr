@@ -18,9 +18,9 @@ shinyVolcano(id, main_par, traitStats, customSettings = NULL)
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{reactive arguments from `foundrServer`}
+\item{main_par}{reactive arguments from `server()`}
 
-\item{traitStats}{reactive objects from `foundrServer`}
+\item{traitStats}{static data frame}
 
 \item{customSettings}{list of custom settings}
 

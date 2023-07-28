@@ -13,7 +13,14 @@ shinyTraitPanelUI(id)
 
 shinyTraitPanelOutput(id)
 
-shinyTraitPanel(id, main_par, traitData, traitSignal, traitStats)
+shinyTraitPanel(
+  id,
+  main_par,
+  traitData,
+  traitSignal,
+  traitStats,
+  customSettings
+)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -21,6 +28,8 @@ shinyTraitPanel(id, main_par, traitData, traitSignal, traitStats)
 \item{traitData}{static data frame}
 
 \item{traitSignal, traitStats}{reactive data frames}
+
+\item{customSettings}{list of custom settings}
 
 \item{input, output, session}{standard shiny arguments}
 }

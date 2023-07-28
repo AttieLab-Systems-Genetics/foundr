@@ -48,26 +48,24 @@ shinyCorTableOutput <- function(id) {
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
-#' @param traitArranged,traitSignal reactive data frames
 #' @param main_par,traits_par reactive inputs from calling modules
+#' @param traitArranged,traitSignal reactive data frames
+#' @param customSettings list of custom settings
 #'
 #' @return reactive object
-#' @importFrom dplyr filter select
+#' @importFrom dplyr distinct filter select
 #' @importFrom tidyr unite
-#' @importFrom shiny moduleServer reactive req
+#' @importFrom shiny isTruthy moduleServer observeEvent reactive reactiveVal req
 #' @importFrom DT renderDataTable
 #' @importFrom rlang .data
 #' @export
 #'
 shinyCorTable <- function(id, main_par, traits_par,
-                          traitArranged, traitSignal) {
+                          traitArranged, traitSignal, customSettings) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     key_traitOutput <- shinyTraitNames("shinyName", main_par, traitArranged)
-    
-    # Temporary kludge
-    customSettings <- shiny::reactiveValues(dataset = NULL)
     
     # INPUTS
     # calling module inputs
@@ -92,9 +90,14 @@ shinyCorTable <- function(id, main_par, traits_par,
       escape = FALSE,
       options = list(scrollX = TRUE, pageLength = 5))
     
+    # Wrap input$corterm
+    term_selection <- shiny::reactiveVal(NULL, label = "term_selection")
+    shiny::observeEvent(input$corterm,
+                        term_selection(input$corterm))
+    
     corobject <- shiny::reactive({
       shiny::req(key_traitOutput(), traitSignal(),
-                 input$corterm, traits_par$mincor)
+                 term_selection(), traits_par$mincor)
       
       # Select rows of traitSignal() with Key Traot or Related Datasets.
       object <- select_data_pairs(traitSignal(), key_traitOutput(),
@@ -109,7 +112,7 @@ shinyCorTable <- function(id, main_par, traits_par,
           # Filter to Related Datasets or matching `nameOption()`.
           object,
           key_traitOutput(),
-          input$corterm),
+          term_selection()),
         .data$absmax >= traits_par$mincor)
     })
     

@@ -36,6 +36,7 @@ ui <- function(title) {
         shiny::tabsetPanel(
           type = "tabs", header = "", id = "tabpanel",
           shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
+          shiny::tabPanel("Volcano",  shinyVolcanoOutput("tabVolcano")),
           shiny::tabPanel("Times",  shinyTimesPanelOutput("tabTimes")),
           shiny::tabPanel("About",  shiny::uiOutput("intro"))
       ))))

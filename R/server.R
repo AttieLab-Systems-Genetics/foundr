@@ -8,7 +8,8 @@
 #' 
 #' @export
 #' 
-#' @importFrom shiny downloadHandler reactive reactiveValues renderUI req textAreaInput
+#' @importFrom shiny checkboxGroupInput hideTab observeEvent reactive renderUI
+#'             req showTab
 #' @importFrom grDevices dev.off pdf
 #' @importFrom utils write.csv
 #'
@@ -19,9 +20,13 @@ server <- function(input, output, session,
   # CALL MODULES
   traitOutput <- shinyTraitPanel("tabTraits", input,
                                  traitData,
-                                 traitSignalInput, traitStatsInput)
+                                 traitSignalInput, traitStatsInput,
+                                 customSettings)
   timeOutput <- shinyTimesPanel("tabTimes", input, 
                                 traitData, traitSignalInput, traitStatsInput)
+  volcanoOutput <- shinyVolcano("tabVolcano", input, traitStats,
+                                customSettings)
+  
   
   output$intro <- foundrIntro(customSettings$help)
   
@@ -37,13 +42,13 @@ server <- function(input, output, session,
   shiny::observeEvent(
     input$height,
     {
-      if(length(timetraitsall())) {
+      if(length(timetraits_all())) {
         shiny::showTab(inputId = "tabpanel", target = "Times")
       } else {
         shiny::hideTab(inputId = "tabpanel", target = "Times")
       }
     })
-  timetraitsall <- shiny::reactive({
+  timetraits_all <- shiny::reactive({
     foundr::timetraitsall(traitSignalInput())
   })
   
@@ -52,14 +57,16 @@ server <- function(input, output, session,
     
     switch(shiny::req(input$tabpanel),
            Traits = shinyTraitPanelInput("tabTraits"),
-           Times  = if(length(timetraitsall())) shinyTimesPanelInput("tabTimes"))
+           Volcano = shinyVolcanoInput("tabVolcano"),
+           Times  = if(length(timetraits_all())) shinyTimesPanelInput("tabTimes"))
   })
   output$tabUI <- shiny::renderUI({
     shiny::req(input$tabpanel)
     
     switch(shiny::req(input$tabpanel),
            Traits = shinyTraitPanelUI("tabTraits"),
-           Times  = if(length(timetraitsall())) shinyTimesPanelUI("tabTimes"))
+           Volcano = shinyVolcanoUI("tabVolcano"),
+           Times  = if(length(timetraits_all())) shinyTimesPanelUI("tabTimes"))
   })
 
   # DATA OBJECTS

@@ -35,7 +35,7 @@ server <- function(input, output, session) {
   #   output$name: Traits
   
   # MODULES
-  moduleOutput <- foundr::shinyTraitNames("shinyTest", traitStatsInput)
+  moduleOutput <- foundr::shinyTraitNames("shinyTest", input, traitStatsInput)
   
   datasets <- shiny::reactive({
       unique(traitStats$dataset)

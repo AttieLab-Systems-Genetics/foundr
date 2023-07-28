@@ -10,7 +10,14 @@ shinyTraitTableUI(id)
 
 shinyTraitTableOutput(id)
 
-shinyTraitTable(id, main_par, trait_names, traitData, traitSignal)
+shinyTraitTable(
+  id,
+  main_par,
+  trait_names,
+  traitData,
+  traitSignal,
+  customSettings
+)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}

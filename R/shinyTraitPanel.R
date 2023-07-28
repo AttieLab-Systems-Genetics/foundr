@@ -77,6 +77,7 @@ shinyTraitPanelOutput <- function(id) {
 #' @param input,output,session standard shiny arguments
 #' @param traitData static data frame
 #' @param traitSignal,traitStats reactive data frames
+#' @param customSettings list of custom settings
 #'
 #' @return reactive object 
 #' @importFrom shiny column downloadHandler moduleServer observeEvent
@@ -86,7 +87,8 @@ shinyTraitPanelOutput <- function(id) {
 #' @export
 #'
 shinyTraitPanel <- function(id, main_par,
-                            traitData, traitSignal, traitStats) {
+                            traitData, traitSignal, traitStats,
+                            customSettings) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -107,7 +109,8 @@ shinyTraitPanel <- function(id, main_par,
     orderOutput <- shinyTraitOrder("shinyOrder", traitStats)
     # Key Trait and Correlation Table.
     corTableOutput <- shinyCorTable("shinyCorTable", main_par, input,
-                                    orderOutput, traitSignal)
+                                    orderOutput, traitSignal,
+                                    customSettings)
     # Related Traits.
     rel_traitsOutput <- shinyTraitNames("shinyNames", main_par,
                                         corTableOutput, TRUE)
@@ -132,7 +135,7 @@ shinyTraitPanel <- function(id, main_par,
     # Trait Names.
     trait_names <- shiny::reactive({
       shiny::req(corTableOutput())
-      
+
       c(unite_datatraits(corTableOutput(), key = TRUE),
         rel_traitsOutput())
       },
@@ -181,12 +184,16 @@ shinyTraitPanel <- function(id, main_par,
     })
     
     # Plot
-    output$plot_choice <- shiny::renderUI({
+    plot_choices <- shiny::reactive({
       choices <- "Traits"
       if(length(shiny::req(trait_names())) > 1)
         choices <- c(choices, "Pairs")
       if(is_bestcor(corTableOutput()))
         choices <- c(choices, "Relations")
+    })
+    output$plot_choice <- shiny::renderUI({
+      choices <- shiny::req(plot_choices())
+
       shiny::checkboxGroupInput(ns("plots"), "Plots:",
                                 choices, choices, inline = TRUE)
     })

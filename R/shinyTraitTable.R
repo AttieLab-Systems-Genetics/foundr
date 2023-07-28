@@ -43,12 +43,13 @@ shinyTraitTableOutput <- function(id) {
 #'
 #' @return reactive object for `shinyTrait` routines
 #' 
-#' @importFrom shiny moduleServer radioButtons reactive renderUI req
+#' @importFrom shiny moduleServer radioButtons reactive reactiveVal renderUI req
 #' @importFrom DT renderDataTable
 #' @export
 #'
 
-shinyTraitTable <- function(id, main_par, trait_names, traitData, traitSignal) {
+shinyTraitTable <- function(id, main_par, trait_names, traitData, traitSignal,
+                            customSettings) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -60,13 +61,18 @@ shinyTraitTable <- function(id, main_par, trait_names, traitData, traitSignal) {
     
     # RETURNS
     # traitSolosObject()
+    
+    # Wrap input$butresp
+    resp_selection <- shiny::reactiveVal(NULL, label = "resp_selection")
+    shiny::observeEvent(input$butresp,
+                        resp_selection(input$butresp))
 
     # traitSolosObject Data Frame
     traitSolosObject <- shiny::reactive({
       traitSolos(shiny::req(traitData()),
                  shiny::req(traitSignal()),
                  shiny::req(trait_names()),
-                 shiny::req(input$butresp),
+                 shiny::req(resp_selection()),
                  shiny::req(main_par$strains))
     })
     

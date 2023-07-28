@@ -112,13 +112,11 @@ shinyTimesPanel <- function(id, main_par,
       options
     })
     time_selection <- shiny::reactiveVal(NULL, label = "time_selection")
-    shiny::observeEvent(input$time, {
-      time_selection(input$time)
-    })
+    shiny::observeEvent(input$time,
+                        time_selection(input$time))
     response_selection <- shiny::reactiveVal(NULL, label = "response_selection")
-    shiny::observeEvent(input$time_response, {
-      response_selection(input$time_response)
-    })
+    shiny::observeEvent(input$time_response,
+                        response_selection(input$time_response))
     
     # Filter static traitData based on selected trait_names.
     traitDataInput <- shiny::reactive({
@@ -173,9 +171,7 @@ shinyTimesPanel <- function(id, main_par,
                                     server = TRUE, selected = selected)
       })
     timetrait_selection <- shiny::reactiveVal(NULL, label = "timetrait_selection")
-    shiny::observeEvent(input$time_trait, {
-      timetrait_selection(input$time_trait)
-    })
+    shiny::observeEvent(input$time_trait, timetrait_selection(input$time_trait))
     
     # Trait Names: timetrait_names() include time info; trait_names() do not.
     timetrait_all <- shiny::reactive({

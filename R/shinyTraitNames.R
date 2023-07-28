@@ -54,15 +54,13 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
         main_par$tabpanel),
       {
         choices <- traitNamesArranged()
-        selected <- NULL
+        selected <- trait_selection()
         shiny::updateSelectizeInput(session, "trait", choices = choices,
                                     server = TRUE, selected = selected)
       },
       label = "update_trait")
     trait_selection <- shiny::reactiveVal(NULL, label = "trait_selection")
-    shiny::observeEvent(input$trait, {
-      trait_selection(input$trait)
-    })
+    shiny::observeEvent(input$trait, trait_selection(input$trait))
     
     
     traitNamesArranged <- shiny::reactive({
