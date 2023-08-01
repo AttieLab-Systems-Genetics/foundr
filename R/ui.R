@@ -24,7 +24,7 @@ ui <- function(title) {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("sideInput"),
-        shiny::textInput("appEntry", "Entry Key:")
+        shiny::uiOutput("entrykey")
       ),
       
       shiny::mainPanel(

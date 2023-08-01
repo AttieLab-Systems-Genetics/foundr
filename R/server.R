@@ -41,7 +41,7 @@ server <- function(input, output, session,
   # Entry key
   entrykey <- shiny::reactive({
     out <- !shiny::isTruthy(customSettings$entrykey)
-    if(!out) {
+    if(!out & shiny::isTruthy(input$appEntry)) {
       out <- (input$appEntry == customSettings$entrykey)
     }
     out
@@ -90,21 +90,26 @@ server <- function(input, output, session,
                Times  = if(length(timetraits_all())) {
                  shinyTimesPanelInput("tabTimes") 
                }),
-
+        
         shiny::tagList(
           shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
           shiny::checkboxInput("facet", "Facet by strain?", FALSE),
           shiny::sliderInput("height", "Plot height (in):", 3, 10, 6,
                              step = 1)),
-      
+        
         switch(shiny::req(input$tabpanel),
                Traits = shinyTraitPanelUI("tabTraits"),
                Volcano = shinyVolcanoUI("tabVolcano"),
                Times  = if(length(timetraits_all())) {
                  shinyTimesPanelUI("tabTimes")}
-               )
         )
+      )
     }
+  })
+  # Don't show Entry Key if there is no need.
+  output$entrykey <- shiny::renderUI({
+    if(shiny::isTruthy(customSettings$entrykey))
+      shiny::textInput("appEntry", "Entry Key:")
   })
 
   # DATA OBJECTS
