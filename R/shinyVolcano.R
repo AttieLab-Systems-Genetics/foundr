@@ -135,7 +135,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
           plotly::plotlyOutput(ns("volcanoly"))
         } else {
           shiny::plotOutput(ns("volcanopr"),
-                            height = paste0(main_par$height, "in"))
+                            height = paste0(shiny::req(main_par$height), "in"))
         },
         
         # Data table.

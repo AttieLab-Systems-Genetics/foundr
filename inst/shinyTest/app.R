@@ -18,6 +18,7 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 customSettings <- list(
   help = "~/FounderDietStudy/help.md",
   condition = "diet",
+  entrykey = "Founder",
   dataset = c(
     PlaMet0 = "Plasma metabolites 0min",
     PlaMet120 = "Plasma metabolites 120min",

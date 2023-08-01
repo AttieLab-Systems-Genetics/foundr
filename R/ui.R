@@ -23,13 +23,8 @@ ui <- function(title) {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::uiOutput("tabInput"),
-        
-        shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-        shiny::checkboxInput("facet", "Facet by strain?", FALSE),
-        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-        
-        shiny::uiOutput("tabUI"),
+        shiny::uiOutput("sideInput"),
+        shiny::textInput("appEntry", "Entry Key:")
       ),
       
       shiny::mainPanel(
