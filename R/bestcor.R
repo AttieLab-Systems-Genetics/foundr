@@ -110,43 +110,22 @@ bestcor <- function(traitSignal,
   
   traitSignal <- traitSignal[ofactors,]
   
-  # Pivot wider to put each trait in its own column
-  myfun <- function(traitSignal, term, groupsex) {
-    if(term == "signal")
-      traitSignal$cellmean <- NULL
-    else
-      traitSignal$signal <- NULL
-    
-    if(!("dataset" %in% names(traitSignal)))
-      traitSignal$dataset <- "unknown"
-    
-    if(groupsex == "sex")
-      conds <- c("strain", "sex")
-    else
-      conds <- c("strain", "sex", "condition")
-    
-    # Remake datatraits as trait may have changed.
-    
-    dplyr::select(
-      tidyr::pivot_wider(
-        dplyr::arrange(
-          tidyr::unite(
-            traitSignal,
-            datatraits,
-            .data$dataset, .data$trait,
-            sep = ": "),
-          .data$datatraits, dplyr::across(conds)),
-        names_from = "datatraits", values_from = term),
-      -tidyr::matches(conds))
-  }
-
-  key_trait <- myfun(key_trait, term, groupsex)
-  traitSignal <- myfun(
+  key_trait <- trait_pivot(key_trait, term, groupsex)
+  traitSignal <- trait_pivot(
     dplyr::filter(
       traitSignal,
       !(.data$datatraits %in% traitnames)),
     term, groupsex)
   
+  # Match up two tables if needed by first doing `inner_join` based on
+  # conditions and then reassigning.
+  out <- dplyr::inner_join(
+    key_trait,
+    traitSignal,
+    by = "cond")
+  key_trait <- out[names(key_trait)[-1]]
+  traitSignal <- out[names(traitSignal)[-1]]
+
   # Create data frame with absmax and columns of correlations.
   out <- as.data.frame(stats::cor(traitSignal, key_trait, use = "pair",
                                   method = "spearman"))
@@ -178,6 +157,38 @@ bestcor <- function(traitSignal,
   class(out) <- c("bestcor", class(out))
   out
 }
+# Pivot wider to put each trait in its own column
+trait_pivot <- function(traitSignal, term, groupsex) {
+  if(term == "signal")
+    traitSignal$cellmean <- NULL
+  else
+    traitSignal$signal <- NULL
+  
+  if(!("dataset" %in% names(traitSignal)))
+    traitSignal$dataset <- "unknown"
+  
+  if(groupsex == "sex")
+    conds <- c("strain", "sex")
+  else
+    conds <- c("strain", "sex", "condition")
+  
+  # Pivot datatraits wider for correlations later.
+  tidyr::pivot_wider(
+    # Arrange by datatraits and conditions.
+    dplyr::arrange(
+      # Combine conditions and put as first column.
+      tidyr::unite(
+        # Remake datatraits as trait may have changed.
+        tidyr::unite(
+          traitSignal,
+          datatraits,
+          .data$dataset, .data$trait,
+          sep = ": "),
+        cond, tidyr::matches(conds)),
+      .data$datatraits, .data$cond),
+    names_from = "datatraits", values_from = term)
+}
+
 
 bestcorStats <- function(traitStats, traitnames = NULL,
                          bestcorObject,
