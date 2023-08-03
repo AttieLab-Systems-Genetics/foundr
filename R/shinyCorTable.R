@@ -61,7 +61,8 @@ shinyCorTableOutput <- function(id) {
 #' @export
 #'
 shinyCorTable <- function(id, main_par, traits_par,
-                          traitArranged, traitSignal, customSettings = NULL) {
+                          traitArranged, traitSignal,
+                          customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -79,7 +80,8 @@ shinyCorTable <- function(id, main_par, traits_par,
     
     output$cortable <- DT::renderDataTable(
       {
-        shiny::req(corobject(), traits_par$mincor, input$corterm)
+        shiny::req(key_traitOutput(), corobject(), traits_par$mincor,
+                   input$corterm, traitArranged())
         
         summary_bestcor(
           mutate_datasets(
@@ -96,8 +98,10 @@ shinyCorTable <- function(id, main_par, traits_par,
                         term_selection(input$corterm))
     
     corobject <- shiny::reactive({
-      shiny::req(key_traitOutput(), traitSignal(),
-                 term_selection())
+      shiny::req(traitArranged(), traitSignal(), term_selection())
+      
+      if(!shiny::isTruthy(key_traitOutput()))
+        return(NULL)
       
       corTable(key_traitOutput(), traitSignal(),
                term_selection(), 0.0,

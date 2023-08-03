@@ -60,7 +60,7 @@ server <- function(input, output, session) {
 
   # I/O FROM MODULE
   output$key_trait <- renderText({
-    shiny::req(corTableOutput())
+    shiny::req(orderOutput(), corTableOutput())
     
     foundr::unite_datatraits(corTableOutput(), key = TRUE)[1]
   })

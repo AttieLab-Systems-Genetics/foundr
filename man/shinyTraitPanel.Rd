@@ -19,7 +19,7 @@ shinyTraitPanel(
   traitData,
   traitSignal,
   traitStats,
-  customSettings
+  customSettings = NULL
 )
 }
 \arguments{

@@ -5,7 +5,7 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
-title <- "Test Shiny Trait Correlation Table"
+title <- "Test Shiny Trait Correlation Plot"
 
 ui <- function() {
 
@@ -21,7 +21,7 @@ ui <- function() {
         # Related Datasets and Traits.
         shiny::fluidRow(
           shiny::column(6, shiny::uiOutput("reldataset")),
-          shiny::column(6, shinyTraitNamesUI("shinyNames"))),
+          shiny::column(6, foundr::shinyTraitNamesUI("shinyNames"))),
         
         shiny::fluidRow( 
           shiny::column(6, foundr::shinyCorTableUI("shinyCorTable")),
@@ -34,15 +34,15 @@ ui <- function() {
           shiny::textOutput("key_trait"),
           foundr::shinyCorTableOutput("shinyCorTable"),
           shiny::textOutput("rel_traits"),
-          shinyCorPlotOutput("shinyCorPlot")
+          foundr::shinyCorPlotOutput("shinyCorPlot")
           ))
     ))
 }
 
 server <- function(input, output, session) {
   
-  # INPUTS (see shinyTraitStats)
-  # OUTPUTS (see shinyTraitStats)
+  # INPUTS
+  # OUTPUTS
   #   output$key_trait: Key Trait
   #   output$key_stats: Key Dataset Stats
   #   output$rel_traits: Related Traits
@@ -64,8 +64,8 @@ server <- function(input, output, session) {
   # Order Traits by Stats.
   orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
   # Key Trait and Correlation Table.
-  corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, orderOutput,
-                                  traitSignalInput)
+  corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
+                                          orderOutput, traitSignalInput)
   # Related Traits.
   rel_traitsOutput <- foundr::shinyTraitNames("shinyNames", input,
                                               corTableOutput, TRUE)
@@ -75,9 +75,9 @@ server <- function(input, output, session) {
   
   # I/O FROM MODULE
   output$key_trait <- renderText({
-    shiny::req(corTableOutput())
+    shiny::req(orderOutput(), corTableOutput())
     
-    unite_datatraits(corTableOutput(), key = TRUE)[1]
+    foundr::unite_datatraits(corTableOutput(), key = TRUE)[1]
   })
   output$rel_traits <- renderText({
     shiny::req(rel_traitsOutput())

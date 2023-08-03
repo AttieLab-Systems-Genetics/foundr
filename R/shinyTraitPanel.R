@@ -88,7 +88,7 @@ shinyTraitPanelOutput <- function(id) {
 #'
 shinyTraitPanel <- function(id, main_par,
                             traitData, traitSignal, traitStats,
-                            customSettings) {
+                            customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     

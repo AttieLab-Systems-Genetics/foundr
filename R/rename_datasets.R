@@ -2,7 +2,7 @@
 #' @importFrom tidyr separate_wider_delim unite
 #' @importFrom rlang .data
 #' 
-mutate_datasets <- function(object, datasets, undo = FALSE) {
+mutate_datasets <- function(object, datasets = NULL, undo = FALSE) {
   if(is.null(object))
     return(NULL)
 
@@ -15,6 +15,9 @@ mutate_datasets <- function(object, datasets, undo = FALSE) {
           names(datasets)[i], .data$dataset))
     }
   } else {
+    if(is.null(datasets))
+      return(object)
+    
     object$dataset <- as.character(object$dataset)
     m <- match(object$dataset, names(datasets), nomatch = 0)
     object$dataset[m>0] <- datasets[m]

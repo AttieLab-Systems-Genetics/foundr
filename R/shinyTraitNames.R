@@ -55,6 +55,8 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
       {
         choices <- traitNamesArranged()
         selected <- trait_selection()
+        if(!(all(selected) %in% choices))
+          selected <- NULL
         shiny::updateSelectizeInput(session, "trait", choices = choices,
                                     server = TRUE, selected = selected)
       },

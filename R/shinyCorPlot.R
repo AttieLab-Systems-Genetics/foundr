@@ -58,20 +58,22 @@ shinyCorPlot <- function(id, stats_par, module_par, CorTable) {
     # corplot()
     
     output$shiny_output <- shiny::renderUI({
-      shiny::req(module_par$height)
+      shiny::req(module_par$height, corplot())
       
       shiny::plotOutput(ns("corplot"),
                         height = paste0(module_par$height, "in"))
     })
 
     corplot <- shiny::reactive({
-      shiny::req(stats_par$mincor)
+      shiny::req(stats_par$mincor, CorTable())
       
       ggplot_bestcor(
         mutate_datasets(CorTable(), customSettings$dataset, undo = TRUE), 
         stats_par$mincor, shiny::isTruthy(input$abscor))
     })
     output$corplot <- shiny::renderPlot({
+      shiny::req(corplot())
+      
       print(corplot())
     })
 
