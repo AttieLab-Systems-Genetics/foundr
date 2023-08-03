@@ -97,10 +97,10 @@ shinyCorTable <- function(id, main_par, traits_par,
     
     corobject <- shiny::reactive({
       shiny::req(key_traitOutput(), traitSignal(),
-                 term_selection(), traits_par$mincor)
+                 term_selection())
       
       corTable(key_traitOutput(), traitSignal(),
-               term_selection(), traits_par$mincor,
+               term_selection(), 0.0,
                traits_par$reldataset)
     })
     
