@@ -51,7 +51,7 @@ server <- function(input, output, session,
   shiny::observeEvent(
     shiny::tagList(input$height, entrykey()),
     {
-      if(entrykey()) {
+      if(shiny::isTruthy(entrykey())) {
         shiny::showTab(inputId = "tabpanel", target = "Traits")
         if(length(timetraits_all()))
           shiny::showTab(inputId = "tabpanel", target = "Times")
@@ -68,7 +68,7 @@ server <- function(input, output, session,
   shiny::observeEvent(
     input$height,
     {
-      if(entrykey()) {
+      if(shiny::isTruthy(entrykey())) {
         if(length(timetraits_all())) {
           shiny::showTab(inputId = "tabpanel", target = "Times")
         } else {
@@ -82,7 +82,7 @@ server <- function(input, output, session,
   output$sideInput <- shiny::renderUI({
     shiny::req(input$tabpanel)
 
-    if(entrykey()) {
+    if(shiny::isTruthy(entrykey())) {
       shiny::tagList(
         switch(shiny::req(input$tabpanel),
                Traits = shinyTraitPanelInput("tabTraits"),
@@ -111,6 +111,19 @@ server <- function(input, output, session,
     if(shiny::isTruthy(customSettings$entrykey))
       shiny::textInput("appEntry", "Entry Key:")
   })
+  
+  # Main Output
+  output$mainOutput <- shiny::renderUI({
+    if(shiny::isTruthy(entrykey())) {
+      shiny::tabsetPanel(
+        type = "tabs", header = "", id = "tabpanel",
+        shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
+        shiny::tabPanel("Volcano",  shinyVolcanoOutput("tabVolcano")),
+        shiny::tabPanel("Times",  shinyTimesPanelOutput("tabTimes")),
+        shiny::tabPanel("About",  shiny::uiOutput("intro"))
+      )
+    }
+    })
 
   # DATA OBJECTS
   traitSignalInput <- shiny::reactive({

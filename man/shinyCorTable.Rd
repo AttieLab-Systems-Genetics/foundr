@@ -19,7 +19,7 @@ shinyCorTable(
   traits_par,
   traitArranged,
   traitSignal,
-  customSettings
+  customSettings = NULL
 )
 }
 \arguments{

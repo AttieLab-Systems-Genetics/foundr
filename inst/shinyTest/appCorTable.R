@@ -55,14 +55,14 @@ server <- function(input, output, session) {
   # Order Traits by Stats.
   orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
   # Key Trait and Correlation Table.
-  corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, orderOutput,
-                                  traitSignalInput)
+  corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
+                                          orderOutput, traitSignalInput)
 
   # I/O FROM MODULE
   output$key_trait <- renderText({
     shiny::req(corTableOutput())
     
-    unite_datatraits(corTableOutput(), key = TRUE)[1]
+    foundr::unite_datatraits(corTableOutput(), key = TRUE)[1]
   })
   
   # Related Datasets.

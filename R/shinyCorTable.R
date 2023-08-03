@@ -61,7 +61,7 @@ shinyCorTableOutput <- function(id) {
 #' @export
 #'
 shinyCorTable <- function(id, main_par, traits_par,
-                          traitArranged, traitSignal, customSettings) {
+                          traitArranged, traitSignal, customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
