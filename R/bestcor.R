@@ -173,8 +173,20 @@ bestcor <- function(traitSignal,
       key_trait = factor(.data$key_trait, unique(ukey_trait$trait)),
       key_dataset = factor(.data$key_dataset, unique(ukey_trait$dataset)))
   
-  # If condition and trait combined for key_trait, separate now.
+  # If condition and trait may be combined; separate now.
   if(cond_trait) {
+    # Expand out trait if needed.
+    out <- 
+      dplyr::select(
+        dplyr::left_join(
+          dplyr::rename(out, condtrait = "trait"),
+          dplyr::rename(newcol,
+                        condition = "key_condition",
+                        trait = "key_trait"),
+          by = "condtrait"),
+        -condtrait)
+    
+    # Expand out key_trait if needed.
     out <- 
       dplyr::select(
         dplyr::select(
@@ -183,8 +195,11 @@ bestcor <- function(traitSignal,
             newcol,
             by = "condtrait"),
           -condtrait),
-        dataset, trait, key_dataset, key_trait, key_condition,
+        dataset, trait, condition, key_dataset, key_trait, key_condition,
         dplyr::everything())
+    
+    if(all(is.na(out$condition))) out$condition <- NULL
+    if(all(is.na(out$key_condition))) out$key_condition <- NULL
   }
   
   class(out) <- c("bestcor", class(out))
