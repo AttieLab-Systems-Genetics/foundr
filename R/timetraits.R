@@ -15,9 +15,12 @@ timetraitsall <- function(traitSignal) {
         dplyr::distinct(
           traitSignal,
           .data$dataset, .data$trait),
-        timetrait = c("no", "week", "minute")[
-          1 + grepl("_[0-9]+_[0-9]+wk$", .data$trait) +
-            grepl("_[0-9]+wk$", .data$trait)]),
+        timetrait = c("no", "week", "minute",
+                      "week_summary", "minute_summary")[
+          1 + grepl(time_codes("minute"), .data$trait) +
+            grepl(time_codes("week"), .data$trait) +
+            3 * grepl(time_codes("week_summary"), .data$trait) +
+            3 * grepl(time_codes("minute_summary"), .data$trait)]),
       .data$timetrait != "no")
   
   if(!nrow(datatraits))
@@ -110,22 +113,24 @@ timetraits_filter <- function(object,
     .data$timetrait == timeunit)
   
   # Remove segment of trait name corresponding to time unit.
-  switch(
-    timeunit,
-    minute = {
-      object <- dplyr::mutate(object,
-        traitroot = stringr::str_replace(.data$trait, "_[0-9]*_", "_"))
-    },
-    week   = {
-      object <- dplyr::mutate(object,
-        traitroot = stringr::str_remove(.data$trait, "_[0-9]*wk$"))
-    })
-  
-  object <- dplyr::filter(
-    dplyr::mutate(
-      object,
-      traitroot = paste(dataset, traitroot, sep = ": ")),
-    .data$traitroot %in% traitnames)
+  if(timeunit %in% c("minute", "week")) {
+    switch(
+      timeunit,
+      minute = {
+        object <- dplyr::mutate(object,
+                                traitroot = stringr::str_replace(.data$trait, "_[0-9]*_", "_"))
+      },
+      week   = {
+        object <- dplyr::mutate(object,
+                                traitroot = stringr::str_remove(.data$trait, "_[0-9]*wk$"))
+      })
+    
+    object <- dplyr::filter(
+      dplyr::mutate(
+        object,
+        traitroot = paste(dataset, traitroot, sep = ": ")),
+      .data$traitroot %in% traitnames)
+  }
   
   paste(object$dataset, object$trait, sep = ": ")
 }

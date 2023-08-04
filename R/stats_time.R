@@ -127,8 +127,11 @@ stats_time_table <- function(object) {
     dplyr::bind_rows(
       object))
   
-  timecol <- ifelse("week" %in% names(object), "week", "minute")
-  
+  # Find out time column.
+  timecols <- c("week", "minute", "week_summary", "minute_summary")
+  timecol <- match(timecols, names(object), nomatch = 0)
+  timecol <- timecols[timecol > 0]
+
   dplyr::arrange(
     tidyr::pivot_wider(
       dplyr::mutate(

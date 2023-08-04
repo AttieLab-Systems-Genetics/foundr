@@ -103,10 +103,11 @@ shinyTimesPanel <- function(id, main_par,
     })
     timeunits <- shiny::reactive({
       options <- NULL
-      if(shiny::isTruthy(traits_week())) {
+      shiny::req(timetrait_all())
+      if("week" %in% timetrait_all()$timetrait) {
         options <- c("week","week_summary")
       }
-      if(shiny::isTruthy(traits_minute())) {
+      if("minute" %in% timetrait_all()$timetrait) {
         options <- c(options, "minute","minute_summary")
       }
       options
@@ -181,20 +182,13 @@ shinyTimesPanel <- function(id, main_par,
       timetraits_filter(timetrait_all(), shiny::req(time_selection()),
                         shiny::req(timetrait_selection()))
     })
-    traits_week <- shiny::reactive({
-      timetraits(timetrait_all(), "week")
-    })
-    traits_minute <- shiny::reactive({
-      timetraits(timetrait_all(), "minute")
-    })
     trait_names <- shiny::reactive({
+      shiny::req(time_selection())
       if(shiny::isTruthy(main_par$tabpanel)) {
         shiny::req(main_par$tabpanel)
       }
       
-      switch(shiny::req(time_selection()),
-             week = traits_week(),
-             minute = traits_minute())
+      timetraits(timetrait_all(), time_selection())
     })
     
     # Times Data Object

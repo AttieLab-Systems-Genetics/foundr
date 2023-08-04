@@ -307,7 +307,8 @@ strain_lines <- function(
   
   if(is.null(smooth_method))
     smooth_method <- "lm"
-  if(length(unique(object[[pair[1]]])) < 4 & smooth_method == "loess")
+#  if(length(unique(object[[pair[1]]])) < 4 &
+  if(smooth_method == "loess")
     smooth_method <- "line"
   
   # Set x and y to the pair of traits.
