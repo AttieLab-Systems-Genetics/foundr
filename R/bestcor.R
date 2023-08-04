@@ -48,6 +48,7 @@ bestcor <- function(traitSignal,
   # If condition is present, is it the same for all traits?
   # If not, then need to combine condition and trait throughout
   groupsex <- "sex"
+  cond_trait <- FALSE
   if("condition" %in% names(traitSignal)) {
     if(all(is_condition <- is.na(traitSignal$condition))) {
       # traitSignal does not use condition, so drop condition column
@@ -60,13 +61,18 @@ bestcor <- function(traitSignal,
         groupsex <- "sex_condition"
       } else {
         # Unite trait and condition for those with condition.
-        tmp1 <- tidyr::unite(
-          dplyr::filter(
-            traitSignal,
-            is_condition),
-          trait,
-          .data$condition, .data$trait,
-          sep = ":")
+        cond_trait <- TRUE
+        tmp1 <- 
+          dplyr::rename(
+            tidyr::unite(
+              dplyr::filter(
+                traitSignal,
+                is_condition),
+              condtraits,
+              .data$condition, .data$trait,
+              sep = ":", remove = FALSE),
+            key_trait = "trait",
+            trait = "condtraits")
         # Keep trait as is for those without condtion
         tmp2 <- dplyr::select(
           dplyr::filter(
@@ -95,7 +101,7 @@ bestcor <- function(traitSignal,
     .data$datatraits)
   
   # Identify subset of strain, sex, condition included.
-  conds <- condset(key_trait)
+  conds <- condset(traitSignal)
   factors <- unique(
     tidyr::unite(
       dplyr::distinct(
@@ -109,6 +115,19 @@ bestcor <- function(traitSignal,
     tidyr::matches(conds))$levels %in% factors
   
   traitSignal <- traitSignal[ofactors,]
+  
+  # Careful handling if condtion and trait combined.
+  # also handled in `trait_pivot()` by checking for `key_trait` column.
+  if(cond_trait) {
+    newcol <- 
+      dplyr::mutate(
+        dplyr::rename(
+          dplyr::distinct(traitSignal, trait, condition, key_trait),
+          key_condition = "condition",
+          condtrait = "trait"),
+        key_trait = ifelse(is.na(key_trait),
+                           condtrait, as.character(key_trait)))
+  }
   
   key_trait <- trait_pivot(key_trait, term, groupsex)
   traitSignal <- trait_pivot(
@@ -154,6 +173,20 @@ bestcor <- function(traitSignal,
       key_trait = factor(.data$key_trait, unique(ukey_trait$trait)),
       key_dataset = factor(.data$key_dataset, unique(ukey_trait$dataset)))
   
+  # If condition and trait combined for key_trait, separate now.
+  if(cond_trait) {
+    out <- 
+      dplyr::select(
+        dplyr::select(
+          dplyr::left_join(
+            dplyr::rename(out, condtrait = "key_trait"),
+            newcol,
+            by = "condtrait"),
+          -condtrait),
+        dataset, trait, key_dataset, key_trait, key_condition,
+        dplyr::everything())
+  }
+  
   class(out) <- c("bestcor", class(out))
   out
 }
@@ -167,10 +200,16 @@ trait_pivot <- function(traitSignal, term, groupsex) {
   if(!("dataset" %in% names(traitSignal)))
     traitSignal$dataset <- "unknown"
   
+  # Handling `condition`.
   if(groupsex == "sex")
     conds <- c("strain", "sex")
   else
     conds <- c("strain", "sex", "condition")
+  
+  # Handling `key_trait`
+  if("key_trait" %in% names(traitSignal)) {
+    traitSignal <- dplyr::select(traitSignal, -condition, -key_trait)
+  }
   
   # Pivot datatraits wider for correlations later.
   tidyr::pivot_wider(

@@ -24,8 +24,7 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        shiny::selectInput("trait","Traits:",
-                           c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
+        shiny::uiOutput("traits"),
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         
         foundr::shinyTraitTableUI("shinyTest"),
@@ -44,10 +43,7 @@ server <- function(input, output, session) {
                                           traitDataInput, traitSignalInput)
   # Mockup of trait names
   trait_names <- shiny::reactive({
-    out <- shiny::req(input$trait)
-    list(
-      key_trait = out[1],
-      rel_traits = NULL)
+    shiny::req(input$trait)
     },
     label = "trait_names")
   
@@ -57,6 +53,11 @@ server <- function(input, output, session) {
     shiny::checkboxGroupInput("strains", "Strains",
                               choices = choices, selected = choices,
                               inline = TRUE)
+  })
+  output$traits <- shiny::renderUI({
+    traits <- unique(foundr::unite_datatraits(traitSignalInput()))[1:5]
+
+    shiny::selectInput("trait","Traits:", traits)
   })
 
   # DATA OBJECTS

@@ -16,7 +16,7 @@ shinyTraitTable(
   trait_names,
   traitData,
   traitSignal,
-  customSettings
+  customSettings = NULL
 )
 }
 \arguments{

@@ -49,7 +49,7 @@ shinyTraitTableOutput <- function(id) {
 #'
 
 shinyTraitTable <- function(id, main_par, trait_names, traitData, traitSignal,
-                            customSettings) {
+                            customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     

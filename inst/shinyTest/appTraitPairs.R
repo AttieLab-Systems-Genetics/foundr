@@ -85,9 +85,6 @@ server <- function(input, output, session) {
   # RETURN OBJECTS FROM MODULES
   trait_names <- shiny::reactive({
     shiny::req(input$trait)
-    
-    list(key_trait = input$trait[1],
-         rel_traits = input$trait[-1])
   })
   datasets <- shiny::reactive({
     shiny::req(tableOutput())
