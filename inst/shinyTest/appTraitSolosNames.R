@@ -9,6 +9,7 @@ traitSignal <- dplyr::filter(
 traitStats <- dplyr::filter(
   readRDS(file.path(dirpath, "traitStats.rds")),
   dataset %in% c("Physio", "PlaMet0"))
+customSettings <- NULL
 
 ################################################################
 
@@ -30,55 +31,33 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyTraitStatsInput("shinyStats"),
-        foundr::shinyTraitTableUI("shinyObject"),
+        # Key Datasets and Trait.
+        shiny::fluidRow(
+          shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
+          shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
+        
+        foundr::shinyCorTableUI("shinyCorTable"),
+        
+        foundr::shinyTraitTableUI("shinyTable"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
         
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::uiOutput("filename")), # See MODULE INPUT below
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadPlot", "Plots")),
-          shiny::column(
-            3,
-            shiny::downloadButton("downloadTable", "Data")))
       ),
 
       shiny::mainPanel(
         shiny::tagList(
-          foundr::shinyTraitStatsUI("shinyStats"),
           foundr::shinyTraitSolosUI("shinySolos"),
-          foundr::shinyTraitTableOutput("shinyObject")
+          foundr::shinyTraitTableOutput("shinyTable"),
+          foundr::shinyCorTableOutput("shinyCorTable")
         )
       )))
 }
 
 server <- function(input, output, session) {
   
-  # MODULES
-  statsOutput <- foundr::shinyTraitStats("shinyStats", input,
-                                         traitSignalInput, traitStatsInput)
-  tableOutput <- foundr::shinyTraitTable("shinyObject", input, statsOutput,
-                                         traitDataInput, traitSignalInput)
-  
-  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
-  
-  # SERVER-SIDE INPUTS
-  output$strains <- shiny::renderUI({
-    choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput("strains", "Strains",
-                              choices = choices, selected = choices, inline = TRUE)
-  })
-
   # DATA OBJECTS
-  traitDataInput <- shiny::reactive({
-    traitData
-  })
   traitSignalInput <- shiny::reactive({
     traitSignal
   })
@@ -86,44 +65,41 @@ server <- function(input, output, session) {
     traitStats
   })
   
-  # RETURN OBJECTS FROM MODULES
-  datasets<-shiny::reactive({
-    shiny::req(tableOutput())
-    unique(tableOutput()$dataset)
+  # MODULES
+  # Order Traits by Stats.
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
+
+  # Key Trait.
+  keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
+  
+  # Correlation Table.
+  corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
+                                  keyTraitOutput, traitSignalInput,
+                                  customSettings)
+  
+  # Filter static traitData based on selected trait_names.
+  traitDataInput <- shiny::reactive({
+    shiny::req(trait_names())
+    
+    foundr::subset_trait_names(traitData, trait_names())
   })
   
-  # I/O FROM MODULE
+  tableOutput <- foundr::shinyTraitTable("shinyTable", input, trait_names,
+                                 traitDataInput, traitSignalInput)
+  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
   
-  # MODULE INPUT: File Prefix
-  output$filename <- renderUI({
-    shiny::req(datasets())
-    filename <- paste0(
-      "module_",
-      paste(datasets(), collapse = "."))
-    shiny::textAreaInput("filename", "File Prefix", filename)
+  # Trait Names.
+  trait_names <- shiny::reactive({
+    shiny::req(keyTraitOutput())
+  },
+  label = "trait_names")
+  
+  # SERVER-SIDE INPUTS
+  output$strains <- shiny::renderUI({
+    choices <- names(foundr::CCcolors)
+    shiny::checkboxGroupInput("strains", "Strains",
+                              choices = choices, selected = choices, inline = TRUE)
   })
-
-  # MODULE OUTPUT: Plot
-  output$downloadPlot <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".pdf")
-    },
-    content = function(file) {
-      grDevices::pdf(file, width = 9, height = 6)
-      print(solosOutput())
-      grDevices::dev.off()
-    })
-
-  # MODULE OUTPUT: DataTable
-  output$downloadTable <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".csv")
-    },
-    content = function(file) {
-      utils::write.csv(
-        tableOutput(),
-        file, row.names = FALSE)
-    })
 }
 
 shiny::shinyApp(ui = ui, server = server)

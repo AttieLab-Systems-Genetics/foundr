@@ -16,7 +16,7 @@ ui <- function() {
         # Key Datasets and Trait.
         shiny::fluidRow(
           shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
-          shiny::column(6, foundr::shinyCorTableInput("shinyCorTable"))),
+          shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
         # Related Datasets and Traits.
         shiny::fluidRow(
@@ -63,9 +63,13 @@ server <- function(input, output, session) {
   # MODULES
   # Order Traits by Stats.
   orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
-  # Key Trait and Correlation Table.
+  
+  # Key Trait.
+  keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
+  
+  # Correlation Table.
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
-                                          orderOutput, traitSignalInput)
+                                          keyTraitOutput, traitSignalInput)
   # Related Traits.
   rel_traitsOutput <- foundr::shinyTraitNames("shinyNames", input,
                                               corTableOutput, TRUE)

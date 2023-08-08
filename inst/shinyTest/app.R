@@ -15,18 +15,22 @@ traitData <- dplyr::tbl(db, "traitData")
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
+# Pull dataset names from `source.csv`
+dataset <- read.csv(file.path(dirpath, "../../RawData", "source.csv"))
+dataset <- dataset[dataset$longname != "", c(1,3)]
+rownames(dataset) <- NULL
+datasets <- dataset$longname
+names(datasets) <- dataset$shortname
+
+rmarkdown::render("~/FounderDietStudy/help.Rmd",
+                  rmarkdown::md_document(),
+                  output_file = "~/FounderDietStudy/help.md")
+
 customSettings <- list(
   help = "~/FounderDietStudy/help.md",
   condition = "diet",
   entrykey = "Founder",
-  dataset = c(
-    PlaMet0 = "Plasma metabolites 0min",
-    PlaMet120 = "Plasma metabolites 120min",
-    LivMet = "Liver metabolites",
-    LivRna = "Liver gene expression",
-    Physio = "Physiological traits",
-    Enrich = "Plasma enrichment",
-    Module = "WGCNA Module eigentraits"))
+  dataset = datasets)
 
 
 ################################################################

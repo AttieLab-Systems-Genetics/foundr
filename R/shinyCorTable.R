@@ -1,18 +1,3 @@
-#' Shiny Module Input for Trait Correlations
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyCorTable
-#' @importFrom shiny NS
-#' @export
-#'
-shinyCorTableInput <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shinyTraitNamesUI(ns("shinyName"))
-}
-
 #' Shiny Module UI for Trait Correlations
 #'
 #' @param id identifier for shiny reactive
@@ -49,7 +34,7 @@ shinyCorTableOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param main_par,traits_par reactive inputs from calling modules
-#' @param traitArranged,traitSignal reactive data frames
+#' @param keyTrait,traitSignal reactive data frames
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object
@@ -61,12 +46,10 @@ shinyCorTableOutput <- function(id) {
 #' @export
 #'
 shinyCorTable <- function(id, main_par, traits_par,
-                          traitArranged, traitSignal,
+                          keyTrait, traitSignal,
                           customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    key_traitOutput <- shinyTraitNames("shinyName", main_par, traitArranged)
     
     # INPUTS
     # calling module inputs
@@ -80,8 +63,8 @@ shinyCorTable <- function(id, main_par, traits_par,
     
     output$cortable <- DT::renderDataTable(
       {
-        shiny::req(key_traitOutput(), corobject(), traits_par$mincor,
-                   input$corterm, traitArranged())
+        shiny::req(keyTrait(), corobject(), traits_par$mincor,
+                   input$corterm)
         
         summary_bestcor(
           mutate_datasets(
@@ -98,12 +81,12 @@ shinyCorTable <- function(id, main_par, traits_par,
                         term_selection(input$corterm))
     
     corobject <- shiny::reactive({
-      shiny::req(traitArranged(), traitSignal(), term_selection())
+      shiny::req(traitSignal(), term_selection())
       
-      if(!shiny::isTruthy(key_traitOutput()))
+      if(!shiny::isTruthy(keyTrait()))
         return(NULL)
       
-      corTable(key_traitOutput(), traitSignal(),
+      corTable(keyTrait(), traitSignal(),
                term_selection(), 0.0,
                traits_par$reldataset)
     })

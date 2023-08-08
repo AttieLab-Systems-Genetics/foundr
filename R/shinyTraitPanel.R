@@ -13,12 +13,12 @@ shinyTraitPanelInput <- function(id) {
     # Key Datasets and Trait.
     shiny::fluidRow(
       shiny::column(6, shinyTraitOrderInput(ns("shinyOrder"))),
-      shiny::column(6, shinyCorTableInput(ns("shinyCorTable")))),
+      shiny::column(6, shinyTraitNamesUI(ns("shinyKeyTrait")))),
     
     # Related Datasets and Traits.
     shiny::fluidRow(
       shiny::column(6, shiny::uiOutput(ns("reldataset"))),
-      shiny::column(6, shinyTraitNamesUI(ns("shinyNames")))),
+      shiny::column(6, shinyTraitNamesUI(ns("shinyRelTraits")))),
     
     # Correlation Type, Absolute, Minimum Settings.
     shiny::fluidRow( 
@@ -107,12 +107,16 @@ shinyTraitPanel <- function(id, main_par,
     # MODULES
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", traitStats)
+    
+    # Key Trait.
+    keyTraitOutput <- shinyTraitNames("shinyKeyTrait", main_par, orderOutput)
+    
     # Key Trait and Correlation Table.
     corTableOutput <- shinyCorTable("shinyCorTable", main_par, input,
-                                    orderOutput, traitSignal,
+                                    keyTraitOutput, traitSignal,
                                     customSettings)
     # Related Traits.
-    rel_traitsOutput <- shinyTraitNames("shinyNames", main_par,
+    relTraitsOutput <- shinyTraitNames("shinyRelTraits", main_par,
                                         corTableOutput, TRUE)
     # Correlation Plot
     corPlotOutput <- shinyCorPlot("shinyCorPlot", input, main_par,
@@ -134,10 +138,7 @@ shinyTraitPanel <- function(id, main_par,
     
     # Trait Names.
     trait_names <- shiny::reactive({
-      shiny::req(corTableOutput())
-
-      c(unite_datatraits(corTableOutput(), key = TRUE),
-        rel_traitsOutput())
+      c(shiny::req(keyTraitOutput()), relTraitsOutput())
       },
       label = "trait_names")
     

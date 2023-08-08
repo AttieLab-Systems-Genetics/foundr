@@ -33,12 +33,12 @@ ui <- function() {
         # Key Datasets and Trait.
         shiny::fluidRow(
           shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
-          shiny::column(6, foundr::shinyCorTableInput("shinyCorTable"))),
+          shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
         # Related Datasets and Traits.
         shiny::fluidRow(
           shiny::column(6, shiny::uiOutput("reldataset")),
-          shiny::column(6, foundr::shinyTraitNamesUI("shinyNames"))),
+          shiny::column(6, foundr::shinyTraitNamesUI("shinyRelTraits"))),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
@@ -64,12 +64,16 @@ server <- function(input, output, session) {
   # MODULES
   # Order Traits by Stats.
   orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
-  # Key Trait and Correlation Table.
+  
+  # Key Trait.
+  keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
+  
+  # Correlation Table.
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
-                                  orderOutput, traitSignalInput,
+                                  keyTraitOutput, traitSignalInput,
                                   customSettings)
   # Related Traits.
-  rel_traitsOutput <- foundr::shinyTraitNames("shinyNames", input,
+  relTraitsOutput <- foundr::shinyTraitNames("shinyRelTraits", input,
                                       corTableOutput, TRUE)
 
   # Filter static traitData based on selected trait_names.
@@ -87,10 +91,8 @@ server <- function(input, output, session) {
   
   # Trait Names.
   trait_names <- shiny::reactive({
-    shiny::req(corTableOutput())
-    
-    c(foundr::unite_datatraits(corTableOutput(), key = TRUE),
-      rel_traitsOutput())
+    c(shiny::req(keyTraitOutput()),
+      relTraitsOutput())
   },
   label = "trait_names")
   
