@@ -28,11 +28,6 @@ shinyTraitPanelInput <- function(id) {
     
     # Trait Table Response.
     shinyTraitTableUI(ns("shinyTable")),
-    
-    # Plot and Table Choices
-    shiny::fluidRow(
-      shiny::column(6, shiny::uiOutput(ns("plot_choice"))),
-      shiny::column(6, shiny::uiOutput(ns("table_choice"))))
   )
 }
 
@@ -67,8 +62,9 @@ shinyTraitPanelOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
-    shiny::uiOutput(ns("plots")),
-    shiny::uiOutput(ns("tables"))
+    shiny::radioButtons(ns("buttrait"), "", c("Plots","Tables"), "Plots",
+                        inline = TRUE),
+    shiny::uiOutput(ns("traitOutput"))
   )
 }
 
@@ -163,50 +159,29 @@ shinyTraitPanel <- function(id, main_par,
                                  selected = selected)
       })
     
-    # Tables
-    output$table_choice <- shiny::renderUI({
-      choices <- c("Means","Stats")
-      if(is_bestcor(corTableOutput()))
-        choices <- c(choices, "Relations")
-      shiny::checkboxGroupInput(ns("tables"), "Tables:",
-                                choices, choices, inline = TRUE)
+    # Output
+    output$traitOutput <- shiny::renderUI({
+      switch(shiny::req(input$buttrait),
+             Plots = shiny::uiOutput(ns("plots")),
+             Tables = shiny::uiOutput(ns("tables")))
     })
+    # Tables
     output$tables <- shiny::renderUI({
-      shiny::req(input$tables)
-      
       shiny::tagList(
-        if("Means" %in% input$tables)
-          shinyTraitTableOutput(ns("shinyTable")),
-        if("Relations" %in% input$tables)
-          shinyCorTableOutput(ns("shinyCorTable")),
-        if("Stats" %in% input$tables)
-          shinyTraitOrderUI (ns("shinyOrder"))
+        shiny::radioButtons(ns("buttable"), "", c("Traits","Correlations","Stats"), "Traits",
+                            inline = TRUE),
+        shinyTraitTableOutput(ns("shinyTable")),
+        shinyCorTableOutput(ns("shinyCorTable")),
+        shinyTraitOrderUI (ns("shinyOrder"))
       )
     })
-    
-    # Plot
-    plot_choices <- shiny::reactive({
-      choices <- "Traits"
-      if(length(shiny::req(trait_names())) > 1)
-        choices <- c(choices, "Pairs")
-      if(is_bestcor(corTableOutput()))
-        choices <- c(choices, "Relations")
-    })
-    output$plot_choice <- shiny::renderUI({
-      choices <- shiny::req(plot_choices())
-
-      shiny::checkboxGroupInput(ns("plots"), "Plots:",
-                                choices, choices, inline = TRUE)
-    })
+    # Plots
     output$plots <- shiny::renderUI({
-      shiny::req(input$plots)
-      
       shiny::tagList(
-        if("Traits" %in% input$plots)
-          shinyTraitSolosUI(ns("shinySolos")),
-        if("Pairs" %in% input$plots)
+        shinyTraitSolosUI(ns("shinySolos")),
+        if(length(shiny::req(trait_names())) > 1)
           shinyTraitPairsUI(ns("shinyPairs")),
-        if("Relations" %in% input$plots)
+        if(is_bestcor(corTableOutput()))
           shinyCorPlotOutput(ns("shinyCorPlot")))
     })
     
@@ -215,8 +190,11 @@ shinyTraitPanel <- function(id, main_par,
     output$filename <- renderUI({
       shiny::req(trait_names())
       
-      filename <- paste0(
-        "Traits_", trait_names()[1])
+      filename <- "Traits_"
+      if(shiny::req(input$buttrait) == "Tables")
+        filename <- paste0(input$buttable, "_")
+      filename <- paste0(filename, trait_names()[1])
+      
       shiny::textAreaInput(ns("filename"), "File Prefix", filename)
     })
     
@@ -245,7 +223,17 @@ shinyTraitPanel <- function(id, main_par,
       content = function(file) {
         shiny::req(tableOutput())
         utils::write.csv(
-          summary(tableOutput()),
+          switch(shiny::req(input$buttable),
+                 Traits = summary(tableOutput()),
+                 Correlations = summary_bestcor(
+                   mutate_datasets(
+                     corTableOutput(),
+                     customSettings$dataset),
+                   0.0),
+                 Stats = summary_strainstats(
+                   orderOutput(),
+                   threshold = c(deviance = 0, p = 1)))
+          ,
           file, row.names = FALSE)
       })
     
