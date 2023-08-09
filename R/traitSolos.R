@@ -127,6 +127,7 @@ summary_traitSolos <- function(object,
   strains <- attr(object, "strains")
   response <- attr(object, "response")
   
+  # Get distinct dataset and trait names.
   uobject <- dplyr::arrange(
     dplyr::mutate(
       dplyr::distinct(
@@ -139,7 +140,7 @@ summary_traitSolos <- function(object,
       datatraits = factor(.data$datatraits, traitnames)),
     .data$datatraits)
   
-  
+  # Get cell means by strain, sex, condition (unless using `signal`).
   if(response == "value") {
     response <- "cellmean"
     object <- dplyr::select(object, -value)
@@ -150,6 +151,7 @@ summary_traitSolos <- function(object,
                            strains)
   }
 
+  # Pivot wider to put strains in columns, keeping sex and condition.
   nobject <- c(names(object), levels(object$strain))
   nobject <- nobject[!(nobject %in% c("strain", "value"))]
   object <- dplyr::arrange(

@@ -22,7 +22,7 @@ shinyTraitOrderInput <- function(id) {
 #'
 #' @return nothing returned
 #' @rdname shinyTraitOrder
-#' @importFrom shiny NS column fluidRow uiOutput
+#' @importFrom shiny NS
 #' @importFrom DT dataTableOutput
 #' @export
 #'
@@ -30,6 +30,28 @@ shinyTraitOrderUI <- function(id) {
   ns <- shiny::NS(id)
   
   DT::dataTableOutput(ns("key_stats"))
+}
+
+#' Shiny Module Output for Trait Stats
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTraitOrder
+#' @importFrom shiny checkboxInput column fluidRow NS numericInput
+#'             plotOutput tagList
+#' @export
+#'
+shinyTraitOrderOutput <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::tagList(
+    shiny::fluidRow(
+      shiny::column(6,
+                    shiny::checkboxInput(ns("sex"), "By Sex?", FALSE)),
+      shiny::column(6,
+                    shiny::numericInput(ns("ntrait"), "Rows:", 20, 5, 100, 5))),
+    shiny::plotOutput(ns("plot")))
 }
 
 #' Shiny Module Server for Trait Stats
@@ -43,7 +65,7 @@ shinyTraitOrderUI <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTraitOrder <- function(id, traitStats) {
+shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -106,6 +128,19 @@ shinyTraitOrder <- function(id, traitStats) {
         dplyr::filter(
           traitStats(),
           .data$dataset %in% input$keydataset))
+    })
+    
+    # Plot
+    strainplot <- shiny::reactive({
+      shiny::req(orderstats(), traitSignal(), input$ntrait)
+      
+      object <- strain_diff(traitSignal(), orderstats())
+      ggplot_strain_diff(object, bysex = input$sex, ntrait = input$ntrait)
+    })
+    output$plot <- shiny::renderPlot({
+      shiny::req(strainplot())
+      
+      print(strainplot())
     })
     
     ##########################################################

@@ -3,6 +3,7 @@
 \name{shinyTraitOrderInput}
 \alias{shinyTraitOrderInput}
 \alias{shinyTraitOrderUI}
+\alias{shinyTraitOrderOutput}
 \alias{shinyTraitOrder}
 \title{Shiny Module Input for Trait Stats}
 \usage{
@@ -10,7 +11,9 @@ shinyTraitOrderInput(id)
 
 shinyTraitOrderUI(id)
 
-shinyTraitOrder(id, traitStats)
+shinyTraitOrderOutput(id)
+
+shinyTraitOrder(id, traitStats, traitSignal = NULL)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -22,12 +25,16 @@ nothing returned
 
 nothing returned
 
+nothing returned
+
 reactive object
 }
 \description{
 Shiny Module Input for Trait Stats
 
 Shiny Module UI for Trait Stats
+
+Shiny Module Output for Trait Stats
 
 Shiny Module Server for Trait Stats
 }

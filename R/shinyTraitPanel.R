@@ -102,7 +102,7 @@ shinyTraitPanel <- function(id, main_par,
     
     # MODULES
     # Order Traits by Stats.
-    orderOutput <- shinyTraitOrder("shinyOrder", traitStats)
+    orderOutput <- shinyTraitOrder("shinyOrder", traitStats, traitSignal)
     
     # Key Trait.
     keyTraitOutput <- shinyTraitNames("shinyKeyTrait", main_par, orderOutput)
@@ -172,7 +172,7 @@ shinyTraitPanel <- function(id, main_par,
                             inline = TRUE),
         shinyTraitTableOutput(ns("shinyTable")),
         shinyCorTableOutput(ns("shinyCorTable")),
-        shinyTraitOrderUI (ns("shinyOrder"))
+        shinyTraitOrderUI(ns("shinyOrder"))
       )
     })
     # Plots
@@ -182,7 +182,8 @@ shinyTraitPanel <- function(id, main_par,
         if(length(shiny::req(trait_names())) > 1)
           shinyTraitPairsUI(ns("shinyPairs")),
         if(is_bestcor(corTableOutput()))
-          shinyCorPlotOutput(ns("shinyCorPlot")))
+          shinyCorPlotOutput(ns("shinyCorPlot")),
+        shinyTraitOrderOutput(ns("shinyOrder")))
     })
     
     # DOWNLOADS

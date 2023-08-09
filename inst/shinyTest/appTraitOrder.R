@@ -21,7 +21,8 @@ ui <- function() {
       shiny::mainPanel(
         shiny::tagList(
           shiny::textOutput("key_trait"),
-          foundr::shinyTraitOrderUI ("shinyOrder")))
+          foundr::shinyTraitOrderUI("shinyOrder"),
+          foundr::shinyTraitOrderOutput("shinyOrder")))
     ))
 }
 
@@ -43,7 +44,8 @@ server <- function(input, output, session) {
   
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder",
+                                         traitStatsInput, traitSignalInput)
 
   # I/O FROM MODULE
   output$key_trait <- renderText({
