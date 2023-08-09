@@ -241,7 +241,9 @@ ggplot_onerow <- function(object,
     ggplot2::theme(
       legend.position = legend_position,
       legend.key.width = grid::unit(1, "strwidth","abcdefgh"),
-      axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
+      axis.text.y = ggplot2::element_text(size = 12),
+      axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1,
+                                          size = 12))
   if(legend_position == "bottom")
     p <- p + ggplot2::guides(
       color = ggplot2::guide_legend(

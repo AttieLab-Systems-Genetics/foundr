@@ -68,7 +68,8 @@ ggplot_strain_diff <- function(object, bysex = TRUE, ntrait = 20) {
     ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
                          size = 3, shape = 21, alpha = 0.65) +
     ggplot2::scale_fill_manual(values = foundr::CCcolors) +
-    ggplot2::theme(legend.position = "right")
+    ggplot2::theme(legend.position = "right",
+                   axis.text = ggplot2::element_text(size = 12))
   if(bysex) {
     p <- p + ggplot2::facet_wrap(~ .data$sex)
   }

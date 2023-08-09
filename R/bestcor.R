@@ -314,7 +314,7 @@ is_bestcor <- function(object) {
 #' @export
 #' @importFrom tidyr pivot_longer unite
 #' @importFrom dplyr mutate select
-#' @importFrom ggplot2 aes autoplot facet_grid
+#' @importFrom ggplot2 aes autoplot element_text facet_grid
 #'             geom_vline geom_point ggplot scale_y_discrete theme
 #' @importFrom stats reorder
 #' @importFrom rlang .data
@@ -350,7 +350,8 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     ggplot2::geom_point(size = 2) + 
     ggplot2::facet_grid(.data$key_dataset + .data$key_trait ~ .) +
     ggplot2::theme(
-      legend.position = "none") +
+      legend.position = "none",
+      axis.text = ggplot2::element_text(size = 12)) +
     ggplot2::scale_y_discrete(limits = rev)
   if(!abscor) {
     p <- p + ggplot2::geom_vline(xintercept = 0, color = "darkgray")
