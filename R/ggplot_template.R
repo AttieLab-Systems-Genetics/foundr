@@ -240,6 +240,7 @@ ggplot_onerow <- function(object,
   p <- p +
     ggplot2::theme(
       legend.position = legend_position,
+      legend.text = ggplot2::element_text(size = 12),
       legend.key.width = grid::unit(1, "strwidth","abcdefgh"),
       axis.text.y = ggplot2::element_text(size = 12),
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1,
