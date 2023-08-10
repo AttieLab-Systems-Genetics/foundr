@@ -163,7 +163,7 @@ ggplot_onerow <- function(object,
   }
   
   # Plot colors.
-  ncond <- unique(object[[condition]])
+  ncond <- sort(unique(object[[condition]]))
   if(facet_strain & !gpname) {
     fillname <- condition
     plotcolors <- RColorBrewer::brewer.pal(
@@ -322,11 +322,13 @@ strain_lines <- function(
     p <- p + ggplot2::aes(.data[[pair[1]]], .data[[pair[2]]])
   
   if(line_strain) {
-    # Always include overall regression line.
-    p <- p +
-      ggplot2::geom_smooth(
-        method = "lm", se = FALSE, formula = "y ~ x",
-        linewidth = 2, col = "darkgrey")
+    # Always include overall regression line unless time plot.
+    if(is.null(pair) || pair[1] != "time") {
+      p <- p +
+        ggplot2::geom_smooth(
+          method = "lm", se = FALSE, formula = "y ~ x",
+          linewidth = 2, col = "darkgrey")
+    }
     
     if(parallel_lines) {
       p <- p +

@@ -152,7 +152,7 @@ summary_traitSolos <- function(object,
   }
 
   # Pivot wider to put strains in columns, keeping sex and condition.
-  nobject <- c(names(object), levels(object$strain))
+  nobject <- c(names(object), strains)
   nobject <- nobject[!(nobject %in% c("strain", "value"))]
   object <- dplyr::arrange(
     dplyr::select(
