@@ -19,11 +19,10 @@ server <- function(input, output, session,
   
   # CALL MODULES
   traitOutput <- shinyTraitPanel("tabTraits", input,
-                                 traitData,
-                                 traitSignalInput, traitStatsInput,
+                                 traitData, traitSignal, traitStats,
                                  customSettings)
   timeOutput <- shinyTimesPanel("tabTimes", input, 
-                                traitData, traitSignalInput, traitStatsInput)
+                                traitData, traitSignal, traitStats)
   volcanoOutput <- shinyVolcano("tabVolcano", input, traitStats,
                                 customSettings)
   
@@ -76,7 +75,7 @@ server <- function(input, output, session,
         }}
     })
   timetraits_all <- shiny::reactive({
-    foundr::timetraitsall(traitSignalInput())
+    foundr::timetraitsall(traitSignal)
   })
   
   output$sideInput <- shiny::renderUI({
@@ -127,13 +126,5 @@ server <- function(input, output, session,
         shiny::tabPanel("About",  shiny::uiOutput("intro"))
       )
     }
-    })
-
-  # DATA OBJECTS
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
   })
 }

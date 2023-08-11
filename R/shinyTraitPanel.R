@@ -71,8 +71,7 @@ shinyTraitPanelOutput <- function(id) {
 #' Shiny Module Server for Trait Panel
 #'
 #' @param input,output,session standard shiny arguments
-#' @param traitData static data frame
-#' @param traitSignal,traitStats reactive data frames
+#' @param traitData,traitSignal,traitStats static data frames
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
@@ -117,17 +116,11 @@ shinyTraitPanel <- function(id, main_par,
     # Correlation Plot
     corPlotOutput <- shinyCorPlot("shinyCorPlot", input, main_par,
                                   corTableOutput)
-    
-    # Filter static traitData based on selected trait_names.
-    traitDataInput <- shiny::reactive({
-      shiny::req(trait_names())
-      
-      subset_trait_names(traitData, trait_names())
-    })
-    
-    tableOutput <- shinyTraitTable("shinyTable", main_par, trait_names,
-                                   traitDataInput, traitSignal)
-    
+    # Trait Table.
+    tableOutput <- shinyTraitTable("shinyTable", main_par,
+                                   keyTraitOutput, relTraitsOutput,
+                                   traitData, traitSignal)
+    # Solo and Pairs Plots.
     solosOutput <- shinyTraitSolos("shinySolos", main_par, tableOutput)
     pairsOutput <- shinyTraitPairs("shinyPairs", main_par, trait_names,
                                    tableOutput)
@@ -140,25 +133,13 @@ shinyTraitPanel <- function(id, main_par,
     
     # Related Datasets.
     datasets <- shiny::reactive({
-      shiny::req(traitStats())
-      unique(traitStats()$dataset)
+      unique(traitStats$dataset)
     })
     output$reldataset <- renderUI({
       shiny::selectInput(ns("reldataset"), "Related Datasets:",
                          datasets(), datasets()[1], multiple = TRUE)
     })
-    shiny::observeEvent(
-      datasets(),
-      {
-        selected <- datasets()[1]
-        choices <- datasets()
-        selected <- selected[selected %in% choices]
-        if(!length(selected))
-          selected <- choices[1]
-        shiny::updateSelectInput(session, "reldataset", choices = choices,
-                                 selected = selected)
-      })
-    
+
     # Output
     output$traitOutput <- shiny::renderUI({
       switch(shiny::req(input$buttrait),

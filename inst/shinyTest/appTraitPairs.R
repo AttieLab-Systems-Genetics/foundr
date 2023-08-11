@@ -60,7 +60,7 @@ server <- function(input, output, session) {
   
   # SHINY MODULES
   tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
-                                           traitDataInput, traitSignalInput)
+                                           traitDataInput, traitSignal)
   pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, trait_names,
                                          tableOutput)
   
@@ -75,13 +75,7 @@ server <- function(input, output, session) {
   traitDataInput <- shiny::reactive({
     traitData
   })
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
-  })
-  
+
   # RETURN OBJECTS FROM MODULES
   trait_names <- shiny::reactive({
     shiny::req(input$trait)

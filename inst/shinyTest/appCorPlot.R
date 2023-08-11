@@ -51,25 +51,16 @@ server <- function(input, output, session) {
   # OUTPUTS (see shinyTraitStats)
   #   corobject()
   
-  
-  # DATA OBJECTS 
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
-  })
-  
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStats, traitSignal)
   
   # Key Trait.
   keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
   
   # Correlation Table.
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
-                                          keyTraitOutput, traitSignalInput)
+                                          keyTraitOutput, traitSignal)
   # Related Traits.
   rel_traitsOutput <- foundr::shinyTraitNames("shinyNames", input,
                                               corTableOutput, TRUE)
@@ -89,8 +80,7 @@ server <- function(input, output, session) {
   
   # Related Datasets.
   datasets <- shiny::reactive({
-    shiny::req(traitStatsInput())
-    unique(traitStatsInput()$dataset)
+    unique(traitStats$dataset)
   })
   output$reldataset <- renderUI({
     shiny::req(datasets())

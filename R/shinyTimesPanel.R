@@ -50,8 +50,7 @@ shinyTimesPanelOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param main_par reactive arguments 
-#' @param traitData static objects
-#' @param traitSignal,traitStats reactive objects
+#' @param traitData,traitSignal,traitStats static objects
 #'
 #' @return nothing returned
 #' @importFrom shiny column fluidRow observeEvent plotOutput reactive
@@ -81,8 +80,8 @@ shinyTimesPanel <- function(id, main_par,
     
     # MODULES
     tableOutput <- shinyTraitTable("shinyTable", main_par,
-                                   timetrait_names,
-                                   traitDataInput, traitSignal)
+                                   keyTrait, relTraits,
+                                   traitDataInput(), traitSignal)
     
     output$shinyInput <- shiny::renderUI({
       shiny::tagList(
@@ -121,9 +120,9 @@ shinyTimesPanel <- function(id, main_par,
     
     # Filter static traitData based on selected trait_names.
     traitDataInput <- shiny::reactive({
-      shiny::req(timetrait_names())
+      shiny::req(keyTrait())
 
-      subset_trait_names(traitData, timetrait_names())
+      subset_trait_names(traitData, keyTrait())
     })
     
     # Main return
@@ -174,14 +173,16 @@ shinyTimesPanel <- function(id, main_par,
     timetrait_selection <- shiny::reactiveVal(NULL, label = "timetrait_selection")
     shiny::observeEvent(input$time_trait, timetrait_selection(input$time_trait))
     
-    # Trait Names: timetrait_names() include time info; trait_names() do not.
+    # Trait Names: keyTrait() include time info; trait_names() do not.
     timetrait_all <- shiny::reactive({
-      timetraitsall(shiny::req(traitSignal()))
+      timetraitsall(traitSignal)
     })
-    timetrait_names <- shiny::reactive({
+    keyTrait <- shiny::reactive({
       timetraits_filter(timetrait_all(), shiny::req(time_selection()),
                         shiny::req(timetrait_selection()))
     })
+    relTraits <- shiny::reactive(NULL)
+    
     trait_names <- shiny::reactive({
       shiny::req(time_selection())
       if(shiny::isTruthy(main_par$tabpanel)) {
@@ -196,7 +197,7 @@ shinyTimesPanel <- function(id, main_par,
       shiny::req(timetrait_selection(), response_selection(), time_selection())
       
       traitTimes(
-        traitDataInput(), traitSignal(),
+        traitDataInput(), traitSignal,
         timetrait_selection(), response_selection(), time_selection(),
         strains = main_par$strains)
     })
@@ -204,7 +205,7 @@ shinyTimesPanel <- function(id, main_par,
       shiny::req(timetrait_selection(), time_selection())
       
       traitTimes(
-        traitStats(),
+        traitStats,
         timetrait_selection(), "p.value", time_selection(), "terms")
     })
     

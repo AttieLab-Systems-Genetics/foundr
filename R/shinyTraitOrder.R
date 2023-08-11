@@ -57,7 +57,7 @@ shinyTraitOrderOutput <- function(id) {
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
-#' @param traitStats reactive data frames
+#' @param traitStats,traitSignal static data frame
 #'
 #' @return reactive object
 #' @importFrom shiny moduleServer observeEvent reactive renderUI req 
@@ -78,9 +78,7 @@ shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
     # orderstats()
     
     datasets <- shiny::reactive({
-      shiny::req(traitStats())
-      
-      unique(traitStats()$dataset)
+      unique(traitStats$dataset)
     })
     
     # Key Datasets.
@@ -102,9 +100,7 @@ shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
     
     # Order Criteria for Trait Names
     output$order <- shiny::renderUI({
-      shiny::req(traitStats())
-      
-      p_types <- paste0("p_", unique(traitStats()$term))
+      p_types <- paste0("p_", unique(traitStats$term))
       choices <- c(p_types, "alphabetical", "original")
       shiny::selectInput(ns("order"), "Order traits by", choices, p_types[1])
     })
@@ -122,19 +118,24 @@ shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
       options = list(scrollX = TRUE, pageLength = 5))
 
     orderstats <- shiny::reactive({
-      shiny::req(input$keydataset, input$order, traitStats())
-      orderTraitStats(
-        input$order, 
-        dplyr::filter(
-          traitStats(),
-          .data$dataset %in% input$keydataset))
+      shiny::req(input$order)
+      
+      if(shiny::isTruthy(input$keydataset)) {
+        orderTraitStats(
+          input$order, 
+          dplyr::filter(
+            traitStats,
+            .data$dataset %in% input$keydataset))
+      } else {
+        NULL
+      }
     })
     
     # Plot
     strainplot <- shiny::reactive({
-      shiny::req(orderstats(), traitSignal(), input$ntrait)
+      shiny::req(orderstats(), input$ntrait)
       
-      object <- strain_diff(traitSignal(), orderstats())
+      object <- strain_diff(traitSignal, orderstats())
       ggplot_strain_diff(object, bysex = input$sex, ntrait = input$ntrait)
     })
     output$plot <- shiny::renderPlot({

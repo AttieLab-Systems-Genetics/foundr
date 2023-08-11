@@ -1,24 +1,12 @@
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-#traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
-db <- RSQLite::dbConnect(RSQLite::SQLite(),
-                         file.path(dirpath, "traitData.sqlite"))
-traitData <- dplyr::tbl(db, "traitData")
-
-if(FALSE) {
-  traitData <- dplyr::filter(
-    readRDS(file.path(dirpath, "traitData.rds")),
-    dataset %in% c("Physio", "PlaMet0"))
-  traitSignal <- dplyr::filter(
-    readRDS(file.path(dirpath, "traitSignal.rds")),
-    dataset %in% c("Physio", "PlaMet0"))
-  traitStats <- dplyr::filter(
-    readRDS(file.path(dirpath, "traitStats.rds")),
-    dataset %in% c("Physio", "PlaMet0"))
-}
+#db <- RSQLite::dbConnect(RSQLite::SQLite(),
+#                         file.path(dirpath, "traitData.sqlite"))
+#traitData <- dplyr::tbl(db, "traitData")
 
 ################################################################
 
@@ -58,9 +46,11 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
+#  shiny::onStop(function() {RSQLite::dbDisconnect(db)})
+  
   # CALL MODULES
   foundr::shinyTraitPanel("shinyPanel", input,
-                          traitData, traitSignalInput, traitStatsInput)
+                          traitData, traitSignal, traitStats)
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -68,14 +58,6 @@ server <- function(input, output, session) {
     shiny::checkboxGroupInput(
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
-  })
-
-  # DATA OBJECTS
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
   })
 }
 

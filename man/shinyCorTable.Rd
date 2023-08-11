@@ -24,7 +24,9 @@ shinyCorTable(
 
 \item{main_par, traits_par}{reactive inputs from calling modules}
 
-\item{keyTrait, traitSignal}{reactive data frames}
+\item{keyTrait}{reactive character string}
+
+\item{traitSignal}{static data frame}
 
 \item{customSettings}{list of custom settings}
 }

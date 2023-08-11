@@ -36,7 +36,13 @@ ui <- function() {
           shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
+        # Related Datasets and Traits.
+        shiny::fluidRow(
+          shiny::column(6, shiny::uiOutput("reldataset")),
+          shiny::column(6, shinyTraitNamesUI("shinyRelTraits"))),
+        
         foundr::shinyCorTableUI("shinyCorTable"),
+        shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7),
         
         foundr::shinyTraitTableUI("shinyTable"),
         
@@ -57,48 +63,41 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-  # DATA OBJECTS
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
-  })
-  
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStats, traitSignal)
 
   # Key Trait.
   keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
   
   # Correlation Table.
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
-                                  keyTraitOutput, traitSignalInput,
+                                  keyTraitOutput, traitSignal,
                                   customSettings)
-  
-  # Filter static traitData based on selected trait_names.
-  traitDataInput <- shiny::reactive({
-    shiny::req(trait_names())
-    
-    foundr::subset_trait_names(traitData, trait_names())
-  })
-  
-  tableOutput <- foundr::shinyTraitTable("shinyTable", input, trait_names,
-                                 traitDataInput, traitSignalInput)
+  # Related Traits.
+  relTraitsOutput <- shinyTraitNames("shinyRelTraits", input,
+                                     corTableOutput, TRUE)
+  # Trait Table.
+  tableOutput <- foundr::shinyTraitTable("shinyTable", input,
+                                         keyTraitOutput, relTraitsOutput,
+                                         traitData, traitSignal)
+  # Solo plot.
   solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
-  
-  # Trait Names.
-  trait_names <- shiny::reactive({
-    shiny::req(keyTraitOutput())
-  },
-  label = "trait_names")
-  
+
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
                               choices = choices, selected = choices, inline = TRUE)
+  })
+  
+  # Related Datasets.
+  datasets <- shiny::reactive({
+    unique(traitStats$dataset)
+  })
+  output$reldataset <- renderUI({
+    shiny::selectInput("reldataset", "Related Datasets:",
+                       datasets(), datasets()[1], multiple = TRUE)
   })
 }
 

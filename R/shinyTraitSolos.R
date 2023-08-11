@@ -62,6 +62,8 @@ shinyTraitSolos <- function(id, main_par, traitSolosObject) {
       },
       label = "solosPlot")
     output$solosPlot <- shiny::renderPlot({
+      shiny::req(solosPlot())
+      
       print(solosPlot())
     })
     

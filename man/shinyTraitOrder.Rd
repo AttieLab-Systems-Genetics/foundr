@@ -18,7 +18,7 @@ shinyTraitOrder(id, traitStats, traitSignal = NULL)
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{traitStats}{reactive data frames}
+\item{traitStats, traitSignal}{static data frame}
 }
 \value{
 nothing returned

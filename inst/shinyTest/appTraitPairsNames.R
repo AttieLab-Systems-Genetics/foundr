@@ -63,14 +63,14 @@ server <- function(input, output, session) {
   customSettings <- NULL
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStats, traitSignal)
   
   # Key Trait.
   keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
   
   # Correlation Table.
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
-                                  keyTraitOutput, traitSignalInput,
+                                  keyTraitOutput, traitSignal,
                                   customSettings)
   # Related Traits.
   relTraitsOutput <- foundr::shinyTraitNames("shinyRelTraits", input,
@@ -84,7 +84,7 @@ server <- function(input, output, session) {
   })
   
   tableOutput <- foundr::shinyTraitTable("shinyTable", input, trait_names,
-                                 traitDataInput, traitSignalInput)
+                                 traitDataInput, traitSignal)
   
   pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, trait_names,
                                  tableOutput)
@@ -110,14 +110,6 @@ server <- function(input, output, session) {
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
                               choices = choices, selected = choices, inline = TRUE)
-  })
-
-  # DATA OBJECTS
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
   })
 }
 

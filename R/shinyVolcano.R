@@ -82,7 +82,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
       # Get new input parameters for Volcano.
       shiny::tagList(
         shiny::selectInput(ns("dataset"), "Datasets:",
-                           datasets(), multiple = TRUE),
+                           datasets(), datasets()[1], multiple = TRUE),
         
         shiny::fluidRow(
           shiny::column(

@@ -3,13 +3,14 @@ corTable <- function(key_trait, traitSignal, corterm, mincor = 0,
   
   if(is.null(key_trait) || is.null(traitSignal))
     return(NULL)
-
-  # Select rows of traitSignal() with Key Traot or Related Datasets.
-  object <- select_data_pairs(traitSignal, key_trait, reldataset)
   
   if(is.null(reldataset))
-    return(dplyr::distinct(object, .data$dataset, .data$trait))
+    return(NULL)
+  #    return(dplyr::distinct(object, .data$dataset, .data$trait))
   
+  # Select rows of traitSignal() with Key Trait or Related Datasets.
+  object <- select_data_pairs(traitSignal, key_trait, reldataset)
+
   # Filter by mincor
   dplyr::filter(
     bestcor(object, key_trait, corterm),

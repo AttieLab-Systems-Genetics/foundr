@@ -31,13 +31,9 @@ title <- "Test ShinyTimes Module"
 ui <- function() {
   # INPUTS
   #   input$facet 
-  #   input$strains 
-  #
-  # OUTPUTS
-  #   output$filename
-  #   output$downloadPlot
-  #   output$downloadTable
-  
+  #   input$strains
+  #   input$height
+
   shiny::fluidPage(
     shiny::titlePanel(title),
     shiny::sidebarLayout(
@@ -66,17 +62,9 @@ server <- function(input, output, session) {
     shiny::checkboxGroupInput("strains", "Strains",
                               choices = choices, selected = choices, inline = TRUE)
   })
-  
-  # DATA OBJECTS 
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
-  })
 
   timesOutput <- foundr::shinyTimesPanel("shinyTest", input, 
-                  traitData, traitSignalInput, traitStatsInput)
+                  traitData, traitSignal, traitStats)
 }
 
 shiny::shinyApp(ui = ui, server = server)

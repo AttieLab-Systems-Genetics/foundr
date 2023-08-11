@@ -13,7 +13,8 @@ shinyTraitTableOutput(id)
 shinyTraitTable(
   id,
   main_par,
-  trait_names,
+  keyTrait,
+  relTraits,
   traitData,
   traitSignal,
   customSettings = NULL
@@ -24,9 +25,9 @@ shinyTraitTable(
 
 \item{main_par}{reactive arguments}
 
-\item{trait_names}{reactive with trait names}
+\item{keyTrait, relTraits}{reactives with trait names}
 
-\item{traitData, traitSignal}{reactive objects from `foundrServer`}
+\item{traitData, traitSignal}{static objects}
 
 \item{input, output, session}{standard shiny arguments}
 }

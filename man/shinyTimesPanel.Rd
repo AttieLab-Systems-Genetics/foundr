@@ -20,9 +20,7 @@ shinyTimesPanel(id, main_par, traitData, traitSignal, traitStats)
 
 \item{main_par}{reactive arguments}
 
-\item{traitData}{static objects}
-
-\item{traitSignal, traitStats}{reactive objects}
+\item{traitData, traitSignal, traitStats}{static objects}
 }
 \value{
 nothing returned

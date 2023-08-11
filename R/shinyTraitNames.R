@@ -43,15 +43,12 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
     
     # Select traits
     output$shiny_names <- shiny::renderUI({
-      shiny::req(traitNamesArranged())
       inputId <- ifelse(multiples, "Related Traits:", "Key Trait:")
       shiny::selectizeInput(ns("trait"), inputId, choices = NULL,
                             multiple = multiples)
     })
     shiny::observeEvent(
-      shiny::tagList(
-        shiny::req(traitNamesArranged()),
-        main_par$tabpanel),
+      traitArranged(),
       {
         choices <- traitNamesArranged()
         selected <- trait_selection()
@@ -60,18 +57,20 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
         shiny::updateSelectizeInput(session, "trait", choices = choices,
                                     server = TRUE, selected = selected)
       },
-      label = "update_trait")
+      ignoreNULL = FALSE, label = "update_trait")
     trait_selection <- shiny::reactiveVal(NULL, label = "trait_selection")
     shiny::observeEvent(input$trait, trait_selection(input$trait))
-    
+    shiny::observeEvent(traitArranged(), trait_selection(NULL))
     
     traitNamesArranged <- shiny::reactive({
-      shiny::req(traitArranged())
-      
-      unite_datatraits(
-        dplyr::distinct(
-          traitArranged(),
-          .data$dataset, .data$trait))
+      if(shiny::isTruthy(traitArranged())) {
+        unite_datatraits(
+          dplyr::distinct(
+            traitArranged(),
+            .data$dataset, .data$trait))
+      } else {
+        NULL
+      }
     },
     label = "traitNamesArranged")
     

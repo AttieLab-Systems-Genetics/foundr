@@ -34,7 +34,8 @@ shinyCorTableOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param main_par,traits_par reactive inputs from calling modules
-#' @param keyTrait,traitSignal reactive data frames
+#' @param keyTrait reactive character string
+#' @param traitSignal static data frame
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object
@@ -81,12 +82,12 @@ shinyCorTable <- function(id, main_par, traits_par,
                         term_selection(input$corterm))
     
     corobject <- shiny::reactive({
-      shiny::req(traitSignal(), term_selection())
+      shiny::req(term_selection())
       
       if(!shiny::isTruthy(keyTrait()))
         return(NULL)
       
-      corTable(keyTrait(), traitSignal(),
+      corTable(keyTrait(), traitSignal,
                term_selection(), 0.0,
                traits_par$reldataset)
     })

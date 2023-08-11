@@ -44,15 +44,18 @@ server <- function(input, output, session) {
 
   # INPUTS  
   output$inputs <- renderUI({
-    shiny::selectInput("dataset", "Dataset:", datasets(), input$dataset)
+    shiny::selectInput("dataset", "Dataset:", datasets(), multiple = TRUE)
   })
 
   # DATA OBJECTS 
   traitStatsInput <- shiny::reactive({
-    shiny::req(input$dataset)
-    dplyr::filter(
-      traitStats,
-      .data$dataset %in% input$dataset)
+    if(shiny::isTruthy(input$dataset)) {
+      dplyr::filter(
+        traitStats,
+        .data$dataset %in% input$dataset)
+    } else {
+      NULL
+    }
    },
    label = "traitStatsInput")
   

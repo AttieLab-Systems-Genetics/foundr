@@ -39,13 +39,18 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # MODULES
-  moduleOutput <- foundr::shinyTraitTable("shinyTest", input, trait_names,
-                                          traitDataInput, traitSignalInput)
+  moduleOutput <- foundr::shinyTraitTable("shinyTest", input,
+                                          keyTrait, relTraits,
+                                          traitData, traitSignal)
   # Mockup of trait names
-  trait_names <- shiny::reactive({
+  keyTrait <- shiny::reactive({
     shiny::req(input$trait)
     },
-    label = "trait_names")
+    label = "keyTrait")
+  relTraits <- shiny::reactive({
+    NULL
+  },
+  label = "relTraits")
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -55,7 +60,7 @@ server <- function(input, output, session) {
                               inline = TRUE)
   })
   output$traits <- shiny::renderUI({
-    traits <- unique(foundr::unite_datatraits(traitSignalInput()))[1:5]
+    traits <- unique(foundr::unite_datatraits(traitSignal))[1:5]
 
     shiny::selectInput("trait","Traits:", traits)
   })
@@ -64,10 +69,7 @@ server <- function(input, output, session) {
   traitDataInput <- shiny::reactive({
     traitData
   })
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  
+
   # MODULE OUTPUT: DataTable
   output$downloadTable <- shiny::downloadHandler(
     filename = function() {

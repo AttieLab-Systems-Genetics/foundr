@@ -329,6 +329,9 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     object <- dplyr::mutate(object, cors = abs(.data$cors))
   }
   
+  # Make sure summary has at least one entry.
+  mincor <- min(mincor, max(object$absmax, na.rm = TRUE))
+  
   object <- 
     dplyr::select(
       dplyr::filter(
@@ -381,6 +384,11 @@ summary_bestcor <- function(object, mincor = 0.5, ...) {
   if(is.null(object) || !("cors" %in% names(object)))
     return(NULL)
   
+  # Make sure summary has at least one entry.
+  mincor <- min(mincor, max(object$absmax, na.rm = TRUE))
+  
+  # Filter to entries at or above `mincor`.
+  # Rename correlation and round to 4 digits.
   dplyr::mutate(
     dplyr::select(
       dplyr::filter(

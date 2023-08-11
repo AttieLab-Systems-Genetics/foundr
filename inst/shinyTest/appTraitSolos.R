@@ -54,8 +54,9 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # MODULES
-  tableOutput <- foundr::shinyTraitTable("shinyObject", input, trait_names,
-                                           traitDataInput, traitSignalInput)
+  tableOutput <- foundr::shinyTraitTable("shinyObject", input,
+                                         keyTrait, relTraits,
+                                         traitData, traitSignal)
   solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
   
   # SERVER-SIDE INPUTS
@@ -65,59 +66,18 @@ server <- function(input, output, session) {
                               choices = choices, selected = choices, inline = TRUE)
   })
 
-  # DATA OBJECTS
-  traitDataInput <- shiny::reactive({
-    traitData
+  # REACTIVES
+  keyTrait <- shiny::reactive({
+    shiny::req(input$trait)[1]
   })
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
-  })
-  
-  # RETURN OBJECTS FROM MODULES
-  trait_names <- shiny::reactive({
-    shiny::req(input$trait)
+  relTraits <- shiny::reactive({
+    NULL
   })
   datasets <- shiny::reactive({
     shiny::req(tableOutput())
     
     unique(tableOutput()$dataset)
   })
-  
-  # I/O FROM MODULE
-  
-  # MODULE INPUT: File Prefix
-  output$filename <- renderUI({
-    shiny::req(datasets())
-    filename <- paste0(
-      "module_",
-      paste(datasets(), collapse = "."))
-    shiny::textAreaInput("filename", "File Prefix", filename)
-  })
-
-  # MODULE OUTPUT: Plot
-  output$downloadPlot <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".pdf")
-    },
-    content = function(file) {
-      grDevices::pdf(file, width = 9, height = 6)
-      print(solosOutput())
-      grDevices::dev.off()
-    })
-
-  # MODULE OUTPUT: DataTable
-  output$downloadTable <- shiny::downloadHandler(
-    filename = function() {
-      paste0(shiny::req(input$filename), ".csv")
-    },
-    content = function(file) {
-      utils::write.csv(
-        tableOutput(),
-        file, row.names = FALSE)
-    })
 }
 
 shiny::shinyApp(ui = ui, server = server)

@@ -25,9 +25,7 @@ shinyTraitPanel(
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{traitData}{static data frame}
-
-\item{traitSignal, traitStats}{reactive data frames}
+\item{traitData, traitSignal, traitStats}{static data frames}
 
 \item{customSettings}{list of custom settings}
 

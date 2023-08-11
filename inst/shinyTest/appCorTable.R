@@ -25,8 +25,10 @@ ui <- function() {
       
       shiny::mainPanel(
         shiny::tagList(
-          foundr::shinyTraitOrderUI ("shinyOrder"),
+          shiny::textOutput("orderTable"),
           shiny::textOutput("keyTrait"),
+          shiny::textOutput("corTable"),
+          foundr::shinyTraitOrderUI ("shinyOrder"),
           foundr::shinyCorTableOutput("shinyCorTable")))
     ))
 }
@@ -43,37 +45,35 @@ server <- function(input, output, session) {
   # OUTPUTS (see shinyTraitStats)
   #   corobject()
   
-  
-  # DATA OBJECTS 
-  traitSignalInput <- shiny::reactive({
-    traitSignal
-  })
-  traitStatsInput <- shiny::reactive({
-    traitStats
-  })
-  
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStatsInput)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStats, traitSignal)
   
   # Key Trait.
   keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
   
   # Correlation Table.
   corTableOutput <- foundr::shinyCorTable("shinyCorTable", input, input,
-                                          keyTraitOutput, traitSignalInput)
-
+                                          keyTraitOutput, traitSignal)
+  
   # I/O FROM MODULE
   output$keyTrait <- renderText({
-    shiny::req(orderOutput(), corTableOutput())
+    paste("keyTrait", shiny::req(keyTraitOutput()))
+  })
+  output$orderTable <- renderText({
+    shiny::req(orderOutput())
     
-    foundr::unite_datatraits(corTableOutput(), key = TRUE)[1]
+    paste("orderOutput", foundr::unite_datatraits(orderOutput())[1])
+  })
+  output$corTable <- renderText({
+    shiny::req(corTableOutput())
+    
+    paste("corTableOutput", foundr::unite_datatraits(corTableOutput(), key = TRUE)[1])
   })
   
   # Related Datasets.
   datasets <- shiny::reactive({
-    shiny::req(traitStatsInput())
-    unique(traitStatsInput()$dataset)
+    unique(traitStats$dataset)
   })
   output$reldataset <- renderUI({
     shiny::req(datasets())
