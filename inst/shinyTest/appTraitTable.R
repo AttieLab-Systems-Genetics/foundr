@@ -39,7 +39,7 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # MODULES
-  moduleOutput <- foundr::shinyTraitTable("shinyTest", input,
+  moduleOutput <- foundr::shinyTraitTable("shinyTest", input, input,
                                           keyTrait, relTraits,
                                           traitData, traitSignal)
   # Mockup of trait names

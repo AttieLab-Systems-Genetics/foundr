@@ -59,8 +59,10 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
       },
       ignoreNULL = FALSE, label = "update_trait")
     trait_selection <- shiny::reactiveVal(NULL, label = "trait_selection")
-    shiny::observeEvent(input$trait, trait_selection(input$trait))
-    shiny::observeEvent(traitArranged(), trait_selection(NULL))
+    shiny::observeEvent(input$trait, trait_selection(input$trait),
+                        ignoreNULL = FALSE)
+    shiny::observeEvent(traitArranged(), trait_selection(NULL),
+                        ignoreNULL = FALSE)
     
     traitNamesArranged <- shiny::reactive({
       if(shiny::isTruthy(traitArranged())) {

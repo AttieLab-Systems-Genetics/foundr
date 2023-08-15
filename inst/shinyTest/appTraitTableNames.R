@@ -44,14 +44,14 @@ ui <- function() {
           shiny::column(6, shiny::uiOutput("reldataset")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyRelTraits"))),
         
+        # Trait Table Response.
+        foundr::shinyTraitTableUI("shinyTable"),
+        
         shiny::uiOutput("strains"),
         
         # Correlation Type.
         foundr::shinyCorTableUI("shinyCorTable"),
-        shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7),
-      
-        # Trait Table Response.
-        foundr::shinyTraitTableUI("shinyTable"),
+        shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7)
       ),
 
       shiny::mainPanel(
@@ -84,7 +84,7 @@ server <- function(input, output, session) {
                                      corTableOutput, TRUE)
 
   # Trait Table.
-  tableOutput <- foundr::shinyTraitTable("shinyTable", input,
+  tableOutput <- foundr::shinyTraitTable("shinyTable", input, input,
                                          keyTraitOutput, relTraitsOutput,
                                          traitData, traitSignal)
   
@@ -115,12 +115,6 @@ server <- function(input, output, session) {
     shiny::isTruthy(relTraits())
     paste("relTraits", relTraits())
   })
-  
-  # Trait Names.
-  trait_names <- shiny::reactive({
-    c(shiny::req(keyTraitOutput()), relTraitsOutput())
-  },
-  label = "trait_names")
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({

@@ -79,7 +79,7 @@ shinyTimesPanel <- function(id, main_par,
     # output$timeplots is displayed in parent output$tab_time
     
     # MODULES
-    tableOutput <- shinyTraitTable("shinyTable", main_par,
+    tableOutput <- shinyTraitTable("shinyTable", main_par, main_par,
                                    keyTrait, relTraits,
                                    traitDataInput(), traitSignal)
     
@@ -181,7 +181,7 @@ shinyTimesPanel <- function(id, main_par,
       timetraits_filter(timetrait_all(), shiny::req(time_selection()),
                         shiny::req(timetrait_selection()))
     })
-    relTraits <- shiny::reactive(NULL)
+    relTraits <- shiny::reactiveVal(NULL)
     
     trait_names <- shiny::reactive({
       shiny::req(time_selection())

@@ -16,13 +16,13 @@ traitStats$dataset <- "Enrich"
 
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-#traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
-db <- RSQLite::dbConnect(RSQLite::SQLite(),
-                         file.path(dirpath, "traitData.sqlite"))
-traitData <- dplyr::tbl(db, "traitData")
+#db <- RSQLite::dbConnect(RSQLite::SQLite(),
+#                         file.path(dirpath, "traitData.sqlite"))
+#traitData <- dplyr::tbl(db, "traitData")
 
 ################################################################
 
@@ -54,7 +54,7 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-  shiny::onStop(function() {RSQLite::dbDisconnect(db)})
+#  shiny::onStop(function() {RSQLite::dbDisconnect(db)})
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({

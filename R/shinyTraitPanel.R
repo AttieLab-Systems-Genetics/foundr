@@ -20,14 +20,12 @@ shinyTraitPanelInput <- function(id) {
       shiny::column(6, shiny::uiOutput(ns("reldataset"))),
       shiny::column(6, shinyTraitNamesUI(ns("shinyRelTraits")))),
     
-    # Correlation Type, Absolute, Minimum Settings.
-    shiny::fluidRow( 
-      shiny::column(6, shinyCorTableUI(ns("shinyCorTable"))),
-      shiny::column(6, shinyCorPlotUI(ns("shinyCorPlot")))),
-    shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7),
-    
     # Trait Table Response.
     shinyTraitTableUI(ns("shinyTable")),
+    
+    # Correlation Type, Absolute, Minimum Settings.
+    shinyCorTableUI(ns("shinyCorTable")),
+    shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7)
   )
 }
 
@@ -75,7 +73,7 @@ shinyTraitPanelOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column downloadHandler moduleServer observeEvent
+#' @importFrom shiny column downloadHandler h3 moduleServer observeEvent
 #'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
@@ -117,7 +115,7 @@ shinyTraitPanel <- function(id, main_par,
     corPlotOutput <- shinyCorPlot("shinyCorPlot", input, main_par,
                                   corTableOutput)
     # Trait Table.
-    tableOutput <- shinyTraitTable("shinyTable", main_par,
+    tableOutput <- shinyTraitTable("shinyTable", input, main_par,
                                    keyTraitOutput, relTraitsOutput,
                                    traitData, traitSignal)
     # Solo and Pairs Plots.
@@ -149,21 +147,37 @@ shinyTraitPanel <- function(id, main_par,
     # Tables
     output$tables <- shiny::renderUI({
       shiny::tagList(
-        shiny::radioButtons(ns("buttable"), "", c("Traits","Correlations","Stats"), "Traits",
+        shiny::radioButtons(ns("buttable"), "", c("Cell Means","Correlations","Stats"), "Cell Means",
                             inline = TRUE),
+        shiny::h3("Cell Means"),
         shinyTraitTableOutput(ns("shinyTable")),
+        shiny::h3("Correlations"),
         shinyCorTableOutput(ns("shinyCorTable")),
+        shiny::h3("Stats"),
         shinyTraitOrderUI(ns("shinyOrder"))
       )
     })
     # Plots
     output$plots <- shiny::renderUI({
+      condition <- customSettings$condition
+      if(shiny::isTruthy(condition))
+        condition <- stringr::str_to_title(condition)
+      else
+        condition <- "Condition"
+      
       shiny::tagList(
+        shiny::h3("Trait Plots"),
         shinyTraitSolosUI(ns("shinySolos")),
         if(length(shiny::req(trait_names())) > 1)
-          shinyTraitPairsUI(ns("shinyPairs")),
+          shiny::tagList(
+            shiny::h3("Trait Pairs"),
+            shinyTraitPairsUI(ns("shinyPairs"))),
         if(is_bestcor(corTableOutput()))
-          shinyCorPlotOutput(ns("shinyCorPlot")),
+          shiny::tagList(
+            shiny::h3("Correlations"),
+            shinyCorPlotUI(ns("shinyCorPlot")),
+            shinyCorPlotOutput(ns("shinyCorPlot"))),
+        shiny::h3(paste(condition, "Differences")),
         shinyTraitOrderOutput(ns("shinyOrder")))
     })
     
@@ -206,7 +220,7 @@ shinyTraitPanel <- function(id, main_par,
         shiny::req(tableOutput())
         utils::write.csv(
           switch(shiny::req(input$buttable),
-                 Traits = summary(tableOutput()),
+                 "Cell Means" = summary(tableOutput()),
                  Correlations = summary_bestcor(
                    mutate_datasets(
                      corTableOutput(),

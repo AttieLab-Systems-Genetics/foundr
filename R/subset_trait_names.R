@@ -19,6 +19,9 @@ subset_trait_names <- function(object, traitnames = NULL,
                                drop_united = TRUE,
                                sep = ": ") {
   
+  if(is.null(object) || is.null(traitnames))
+    return(NULL)
+  
   # If `object` is a function, it is assumed to be subsetting from a database
   # using `subset_trait_names.sql()`.
   if(inherits(object, "tbl_SQLiteConnection")) {
@@ -30,10 +33,10 @@ subset_trait_names <- function(object, traitnames = NULL,
     .data$dataset, .data$trait,
     sep = sep, remove = remove_columns)
   
-  if(!is.null(traitnames) && all(traitnames %in% object$datatraits)) {
-    object <- dplyr::filter(object,
-      .data$datatraits %in% traitnames)
-  }
+  if(!all(traitnames %in% object$datatraits))
+    return(NULL)
+  
+  object <- dplyr::filter(object, .data$datatraits %in% traitnames)
   
   if(drop_united) {
     object <- dplyr::select(object, -datatraits)

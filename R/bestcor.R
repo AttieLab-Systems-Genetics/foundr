@@ -172,6 +172,10 @@ bestcor <- function(traitSignal,
         names = c("key_dataset", "key_trait")),
       key_trait = factor(.data$key_trait, unique(ukey_trait$trait)),
       key_dataset = factor(.data$key_dataset, unique(ukey_trait$dataset)))
+  # Order with correlation early.
+  out <-
+    dplyr::select(out,
+      dataset, trait, cors, key_dataset, key_trait, dplyr::everything())
   
   # If condition and trait may be combined; separate now.
   if(cond_trait) {
@@ -195,7 +199,7 @@ bestcor <- function(traitSignal,
             newcol,
             by = "condtrait"),
           -condtrait),
-        dataset, trait, condition, key_dataset, key_trait, key_condition,
+        dataset, trait, condition, cors, key_dataset, key_trait, key_condition,
         dplyr::everything())
     
     if(all(is.na(out$condition))) out$condition <- NULL

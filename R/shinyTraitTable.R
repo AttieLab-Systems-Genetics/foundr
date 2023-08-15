@@ -37,7 +37,7 @@ shinyTraitTableOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
-#' @param main_par reactive arguments
+#' @param trait_par,main_par reactive arguments
 #' @param keyTrait,relTraits reactives with trait names
 #' @param traitData,traitSignal static objects 
 #'
@@ -48,7 +48,7 @@ shinyTraitTableOutput <- function(id) {
 #' @export
 #'
 
-shinyTraitTable <- function(id, main_par, keyTrait, relTraits,
+shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
                             traitData, traitSignal,
                             customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
@@ -57,6 +57,7 @@ shinyTraitTable <- function(id, main_par, keyTrait, relTraits,
     # INPUTS
     # Main inputs:
     #   main_par$strains
+    #   trait_par$reldataset
     # traitObject inputs: (see traitObjectUI)
     #   input$butresp
     
@@ -69,10 +70,23 @@ shinyTraitTable <- function(id, main_par, keyTrait, relTraits,
                         resp_selection(input$butresp))
     
     # Filter static traitData based on selected trait_names.
-    traitDataInput <- shiny::reactive({
-      shiny::req(trait_names())
+    keyData <- shiny::reactive({
+      shiny::req(keyTrait())
       
-      subset_trait_names(traitData, trait_names())
+      subset_trait_names(traitData, keyTrait())
+    })
+    relData <- shiny::reactive({
+      shiny::req(trait_par$reldataset)
+      
+      subset_trait_names(traitData, relTraits())
+    })
+    traitDataInput <- shiny::reactive({
+      out <- shiny::req(keyData())
+      
+      if(shiny::isTruthy(trait_par$reldataset)) {
+        out <- dplyr::bind_rows(out, relData())
+      }
+      out
     })
     
     # traitSolosObject Data Frame
@@ -84,24 +98,13 @@ shinyTraitTable <- function(id, main_par, keyTrait, relTraits,
                  shiny::req(main_par$strains))
     })
     
-    # Trick to update trait_names() whenever keyTrait or relTraits changes.
-    trait_names <- shiny::reactiveVal()
-    shiny::observeEvent(
-      keyTrait(),
-      {
-        trait_names(c(keyTrait(), relTraits()))
-      },
-      ignoreNULL = FALSE)
-    shiny::observeEvent(
-      relTraits(),
-      {
-        trait_names(c(keyTrait(), relTraits()))
-      },
-      ignoreNULL = FALSE)
+    trait_names <- shiny::reactive({
+      c(shiny::req(keyTrait()), relTraits())
+    })
 
     # Data Table
     datameans <- shiny::reactive({
-      shiny::req(trait_names(), main_par$strains, input$butresp)
+      shiny::req(traitSolosObject())
       
       summary(traitSolosObject())
     })

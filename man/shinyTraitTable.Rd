@@ -12,6 +12,7 @@ shinyTraitTableOutput(id)
 
 shinyTraitTable(
   id,
+  trait_par,
   main_par,
   keyTrait,
   relTraits,
@@ -23,7 +24,7 @@ shinyTraitTable(
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{reactive arguments}
+\item{trait_par, main_par}{reactive arguments}
 
 \item{keyTrait, relTraits}{reactives with trait names}
 
