@@ -52,7 +52,7 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
       {
         choices <- traitNamesArranged()
         selected <- trait_selection()
-        if(!(all(selected) %in% choices))
+        if(!is.null(selected) && !(all(selected %in% choices)))
           selected <- NULL
         shiny::updateSelectizeInput(session, "trait", choices = choices,
                                     server = TRUE, selected = selected)
@@ -60,7 +60,7 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
       ignoreNULL = FALSE, label = "update_trait")
     trait_selection <- shiny::reactiveVal(NULL, label = "trait_selection")
     shiny::observeEvent(input$trait, trait_selection(input$trait),
-                        ignoreNULL = FALSE)
+                        ignoreNULL = !multiples)
     shiny::observeEvent(traitArranged(), trait_selection(NULL),
                         ignoreNULL = FALSE)
     

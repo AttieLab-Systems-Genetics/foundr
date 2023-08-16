@@ -60,7 +60,7 @@ shinyTraitOrderOutput <- function(id) {
 #' @param traitStats,traitSignal static data frame
 #'
 #' @return reactive object
-#' @importFrom shiny moduleServer observeEvent reactive renderUI req 
+#' @importFrom shiny moduleServer observeEvent reactive reactiveVal renderUI req 
 #'             selectInput updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
@@ -77,33 +77,29 @@ shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
     # RETURNS
     # orderstats()
     
-    datasets <- shiny::reactive({
-      unique(traitStats$dataset)
-    })
-    
     # Key Datasets.
     output$keydataset <- renderUI({
+      datasets <- unique(traitStats$dataset)
       shiny::selectInput(ns("keydataset"), "Key Datasets:",
-                         datasets(), datasets()[1], multiple = TRUE)
+                         datasets, datasets[1], multiple = TRUE)
     })
+    key_selection <- shiny::reactiveVal(NULL, label = "key_selection")
+    shiny::observeEvent(input$keydataset, key_selection(input$keydataset))
     shiny::observeEvent(
-      datasets(),
+      shiny::req(key_selection()),
       {
-        selected <- datasets()[1]
-        choices <- datasets()
-        selected <- selected[selected %in% choices]
-        if(!length(selected))
-          selected <- choices[1]
-        shiny::updateSelectInput(session, "keydataset", choices = choices,
-                                 selected = selected)
+        selected <- key_selection()
+        shiny::updateSelectInput(session, "keydataset", selected = selected)
       })
-    
+
     # Order Criteria for Trait Names
     output$order <- shiny::renderUI({
       p_types <- paste0("p_", unique(traitStats$term))
       choices <- c(p_types, "alphabetical", "original")
       shiny::selectInput(ns("order"), "Order traits by", choices, p_types[1])
     })
+    order_selection <- shiny::reactiveVal(NULL, label = "order_selection")
+    shiny::observeEvent(input$order, order_selection(input$order))
     
     # Table
     output$key_stats <- DT::renderDataTable(
@@ -118,14 +114,14 @@ shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
       options = list(scrollX = TRUE, pageLength = 5))
 
     orderstats <- shiny::reactive({
-      shiny::req(input$order)
+      shiny::req(order_selection())
       
-      if(shiny::isTruthy(input$keydataset)) {
+      if(shiny::isTruthy(key_selection())) {
         orderTraitStats(
-          input$order, 
+          order_selection(), 
           dplyr::filter(
             traitStats,
-            .data$dataset %in% input$keydataset))
+            .data$dataset %in% key_selection()))
       } else {
         NULL
       }

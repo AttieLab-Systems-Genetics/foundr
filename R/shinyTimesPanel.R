@@ -81,7 +81,7 @@ shinyTimesPanel <- function(id, main_par,
     # MODULES
     tableOutput <- shinyTraitTable("shinyTable", main_par, main_par,
                                    keyTrait, relTraits,
-                                   traitDataInput(), traitSignal)
+                                   traitData, traitSignal)
     
     output$shinyInput <- shiny::renderUI({
       shiny::tagList(
@@ -112,18 +112,10 @@ shinyTimesPanel <- function(id, main_par,
       options
     })
     time_selection <- shiny::reactiveVal(NULL, label = "time_selection")
-    shiny::observeEvent(input$time,
-                        time_selection(input$time))
+    shiny::observeEvent(input$time, time_selection(input$time))
     response_selection <- shiny::reactiveVal(NULL, label = "response_selection")
     shiny::observeEvent(input$time_response,
                         response_selection(input$time_response))
-    
-    # Filter static traitData based on selected trait_names.
-    traitDataInput <- shiny::reactive({
-      shiny::req(keyTrait())
-
-      subset_trait_names(traitData, keyTrait())
-    })
     
     # Main return
     output$timeplots <- shiny::renderUI({
@@ -197,17 +189,17 @@ shinyTimesPanel <- function(id, main_par,
       shiny::req(timetrait_selection(), response_selection(), time_selection())
       
       traitTimes(
-        traitDataInput(), traitSignal,
+        traitData, traitSignal,
         timetrait_selection(), response_selection(), time_selection(),
         strains = main_par$strains)
-    })
+    }, label = "traitTime")
     traitTimeSum <- shiny::reactive({
       shiny::req(timetrait_selection(), time_selection())
       
       traitTimes(
         traitStats,
         timetrait_selection(), "p.value", time_selection(), "terms")
-    })
+    }, label = "traitTimeSum")
     
     # DOWNLOADS
     # Download File Prefix

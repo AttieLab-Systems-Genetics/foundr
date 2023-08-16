@@ -87,7 +87,7 @@ shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
         out <- dplyr::bind_rows(out, relData())
       }
       out
-    })
+    }, label = "traitDataInput")
     
     # traitSolosObject Data Frame
     traitSolosObject <- shiny::reactive({
@@ -96,11 +96,11 @@ shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
                  shiny::req(trait_names()),
                  shiny::req(resp_selection()),
                  shiny::req(main_par$strains))
-    })
+    }, label = "traitSolosObject")
     
     trait_names <- shiny::reactive({
       c(shiny::req(keyTrait()), relTraits())
-    })
+    }, label = "trait_names")
 
     # Data Table
     datameans <- shiny::reactive({
