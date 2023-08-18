@@ -54,7 +54,7 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # MODULES
-  tableOutput <- foundr::shinyTraitTable("shinyObject", input,
+  tableOutput <- foundr::shinyTraitTable("shinyObject", input, input,
                                          keyTrait, relTraits,
                                          traitData, traitSignal)
   solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)

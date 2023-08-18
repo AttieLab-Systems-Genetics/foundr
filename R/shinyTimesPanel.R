@@ -53,7 +53,7 @@ shinyTimesPanelOutput <- function(id) {
 #' @param traitData,traitSignal,traitStats static objects
 #'
 #' @return nothing returned
-#' @importFrom shiny column fluidRow observeEvent plotOutput reactive
+#' @importFrom shiny column fluidRow h3 observeEvent plotOutput reactive
 #'             reactiveVal renderPlot renderUI req selectInput selectizeInput
 #'             tagList uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
@@ -127,6 +127,7 @@ shinyTimesPanel <- function(id, main_par,
         
         shinyTraitTableOutput(ns("shinyTable")),
 
+        shiny::h3("Stats: -log10(p.value)"),
         DT::renderDataTable(
           statstable(),
           escape = FALSE,

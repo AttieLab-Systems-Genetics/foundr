@@ -22,14 +22,16 @@ shinyTraitOrderInput <- function(id) {
 #'
 #' @return nothing returned
 #' @rdname shinyTraitOrder
-#' @importFrom shiny NS
+#' @importFrom shiny h3 NS tagList
 #' @importFrom DT dataTableOutput
 #' @export
 #'
 shinyTraitOrderUI <- function(id) {
   ns <- shiny::NS(id)
-  
-  DT::dataTableOutput(ns("key_stats"))
+
+  shiny::tagList(  
+    shiny::h3("Stats"),
+    DT::dataTableOutput(ns("key_stats")))
 }
 
 #' Shiny Module Output for Trait Stats

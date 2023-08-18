@@ -48,9 +48,10 @@
 #' @importFrom dplyr distinct group_by mutate select summarize ungroup
 #' @importFrom tidyr all_of unite
 #' @importFrom rlang .data
-#' @importFrom ggplot2 aes element_text facet_grid geom_jitter ggplot ggtitle
-#'             guides guide_legend scale_fill_manual scale_shape_manual theme xlab ylab
-#' @importFrom cowplot plot_grid
+#' @importFrom ggplot2 aes element_blank element_text facet_grid geom_jitter
+#'             ggplot ggtitle guides guide_legend scale_fill_manual
+#'             scale_shape_manual theme xlab ylab
+#' @importFrom cowplot draw_grob ggdraw plot_grid
 #' @importFrom grid unit
 #' @export
 #'
@@ -76,21 +77,48 @@ ggplot_template <- function(object,
         plots[[i]] <- plots[[i]] +
           ggplot2::theme(legend.position = "none")
     }
+    # For last plot, separate legend.
+    leg <- cowplot::get_legend(
+      plots[[lplots]] + ggplot2::theme(legend.position = "bottom"))
+    # Last plot: no labels or axis.
+    p <- plots[[lplots]] +
+      ggplot2::theme(legend.position = "none")
+    # Drop X labels and title unless it is pair plot.
+    if(is.null(pairplot <- attr(object[[lplots]], "pair"))) {
+      p <- p + 
+        ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
+        ggplot2::xlab("")
+    }
+    # Drop X title if time.
+    if(!is.null(pairplot) && pairplot[1] == "time")
+      p <- p + ggplot2::xlab("")
+    
+    plots[[lplots]] <- p
+    
+    # Add legend as new plot
+    plots[[lplots + 1]] <- cowplot::ggdraw() + cowplot::draw_grob(leg)
+    
+    rel_heights <- c(rep(9, lplots), 1)
+    lplots <- lplots + 1
+  } else {
+    rel_heights <- 1
   }
   
   # Patch plots together by rows
-  cowplot::plot_grid(plotlist = plots, nrow = lplots)
+  cowplot::plot_grid(plotlist = plots, nrow = lplots,
+                     rel_heights = rel_heights)
 }
 ggplot_onerow <- function(object,
-                            facet_strain = FALSE,
-                            shape_sex = FALSE,
-                            boxplot = FALSE,
-                            pairplot = attr(object, "pair"),
-                            title = "",
-                            xname = "value",
-                            legend_position = "none",
-                          legend_nrow = 3,
-                            ...) {
+                          facet_strain = FALSE,
+                          shape_sex = FALSE,
+                          boxplot = FALSE,
+                          pairplot = attr(object, "pair"),
+                          title = "",
+                          xname = "value",
+                          legend_position = "none",
+                          legend_nrow = 2,
+                          textsize = 12,
+                          ...) {
   
   # Used for optional lines.
   smooth_method <- attr(object, "smooth_method")
@@ -240,12 +268,15 @@ ggplot_onerow <- function(object,
   p <- p +
     ggplot2::theme(
       legend.position = legend_position,
-      legend.text = ggplot2::element_text(size = 12),
-      axis.text = ggplot2::element_text(size = 12),
-      strip.text = ggplot2::element_text(size = 12),
+      legend.text = ggplot2::element_text(size = textsize),
+      axis.text = ggplot2::element_text(size = textsize),
+      axis.title = ggplot2::element_text(size = textsize),
+      strip.text = ggplot2::element_text(size = textsize),
       legend.key.width = grid::unit(1, "strwidth","abcdefgh"),
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
-  if(legend_position == "bottom")
+  
+  # Make sure legend has no title and is on one row.
+  # if(legend_position == "bottom")
     p <- p + ggplot2::guides(
       color = ggplot2::guide_legend(
         nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"),

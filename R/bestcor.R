@@ -329,6 +329,9 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
   if(!is_bestcor(object))
     return(plot_null("No Correlations to Plot."))
 
+  object <- dplyr::mutate(object,
+                          corsign = c("a+", "b-")[1 + (.data$cors < 0)])
+  
   if(abscor) {
     object <- dplyr::mutate(object, cors = abs(.data$cors))
   }
@@ -353,7 +356,7 @@ ggplot_bestcor <- function(object, mincor = 0.7, abscor = TRUE, ...) {
     return(plot_null(paste("No Correlations above", mincor)))
   
   p <- ggplot2::ggplot(object) +
-    ggplot2::aes(.data$cors, .data$trait, col = .data$key_trait) +
+    ggplot2::aes(.data$cors, .data$trait, col = .data$corsign) +
     ggplot2::geom_point(size = 2) + 
     ggplot2::facet_grid(.data$key_dataset + .data$key_trait ~ .) +
     ggplot2::theme(

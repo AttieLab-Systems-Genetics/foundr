@@ -3,6 +3,7 @@ dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
 traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+customSettings <- list(condition = "diet")
 
 #db <- RSQLite::dbConnect(RSQLite::SQLite(),
 #                         file.path(dirpath, "traitData.sqlite"))
@@ -50,7 +51,8 @@ server <- function(input, output, session) {
   
   # CALL MODULES
   foundr::shinyTraitPanel("shinyPanel", input,
-                          traitData, traitSignal, traitStats)
+                          traitData, traitSignal, traitStats,
+                          customSettings)
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({

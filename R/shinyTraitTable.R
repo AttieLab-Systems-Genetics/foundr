@@ -23,14 +23,16 @@ shinyTraitTableUI <- function(id) {
 #' @return nothing returned
 #' 
 #' @rdname shinyTraitTable
-#' @importFrom shiny NS 
+#' @importFrom shiny h3 NS tagList 
 #' @importFrom DT dataTableOutput
 #' @export
 #'
 shinyTraitTableOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  DT::dataTableOutput(ns("shiny_traitObject"))
+  shiny::tagList(
+    shiny::h3("Cell Means"),
+    DT::dataTableOutput(ns("shiny_traitObject")))
 }
 
 #' Shiny Module Server for Trait Object
@@ -106,7 +108,7 @@ shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
     datameans <- shiny::reactive({
       shiny::req(traitSolosObject())
       
-      summary(traitSolosObject())
+      summary(traitSolosObject(), customSettings)
     })
     
     output$shiny_traitObject <- DT::renderDataTable(

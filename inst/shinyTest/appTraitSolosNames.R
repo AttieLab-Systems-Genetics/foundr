@@ -9,7 +9,7 @@ traitSignal <- dplyr::filter(
 traitStats <- dplyr::filter(
   readRDS(file.path(dirpath, "traitStats.rds")),
   dataset %in% c("Physio", "PlaMet0"))
-customSettings <- NULL
+customSettings <- list(condition = "diet")
 
 ################################################################
 
@@ -78,7 +78,7 @@ server <- function(input, output, session) {
   relTraitsOutput <- shinyTraitNames("shinyRelTraits", input,
                                      corTableOutput, TRUE)
   # Trait Table.
-  tableOutput <- foundr::shinyTraitTable("shinyTable", input,
+  tableOutput <- foundr::shinyTraitTable("shinyTable", input, input,
                                          keyTraitOutput, relTraitsOutput,
                                          traitData, traitSignal)
   # Solo plot.

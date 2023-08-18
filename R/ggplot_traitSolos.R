@@ -59,7 +59,7 @@ ggplot_traitSolos <- function(object,
   
   attr(object, "response") <- response
   
-  ggplot_template(object, ..., drop_xlab = TRUE)
+  ggplot_template(object, ..., legend_nrow = 1, drop_xlab = TRUE)
 }
 #' @export
 #' @importFrom ggplot2 autoplot

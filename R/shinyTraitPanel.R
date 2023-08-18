@@ -117,7 +117,8 @@ shinyTraitPanel <- function(id, main_par,
     # Trait Table.
     tableOutput <- shinyTraitTable("shinyTable", input, main_par,
                                    keyTraitOutput, relTraitsOutput,
-                                   traitData, traitSignal)
+                                   traitData, traitSignal,
+                                   customSettings)
     # Solo and Pairs Plots.
     solosOutput <- shinyTraitSolos("shinySolos", main_par, tableOutput)
     pairsOutput <- shinyTraitPairs("shinyPairs", main_par, trait_names,
@@ -149,11 +150,8 @@ shinyTraitPanel <- function(id, main_par,
       shiny::tagList(
         shiny::radioButtons(ns("buttable"), "", c("Cell Means","Correlations","Stats"), "Cell Means",
                             inline = TRUE),
-        shiny::h3("Cell Means"),
         shinyTraitTableOutput(ns("shinyTable")),
-        shiny::h3("Correlations"),
         shinyCorTableOutput(ns("shinyCorTable")),
-        shiny::h3("Stats"),
         shinyTraitOrderUI(ns("shinyOrder"))
       )
     })

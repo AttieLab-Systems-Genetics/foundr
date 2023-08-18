@@ -20,14 +20,16 @@ shinyCorTableUI <- function(id) {
 #'
 #' @return nothing returned
 #' @rdname shinyCorTable
-#' @importFrom shiny NS uiOutput
+#' @importFrom shiny h3 NS tagList
 #' @importFrom DT dataTableOutput
 #' @export
 #'
 shinyCorTableOutput <- function(id) {
   ns <- shiny::NS(id)
-  
-  DT::dataTableOutput(ns("cortable"))
+
+  shiny::tagList( 
+    shiny::h3("Correlations"),
+    DT::dataTableOutput(ns("cortable")))
 }
 
 #' Shiny Module Server for Trait Stats
