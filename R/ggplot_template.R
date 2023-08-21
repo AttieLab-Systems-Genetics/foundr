@@ -72,6 +72,7 @@ ggplot_template <- function(object,
   if(drop_xlab) {
     for(i in seq_len(lplots - 1)) {
       plots[[i]] <- plots[[i]] +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("")
       if(legend_position != "none")
         plots[[i]] <- plots[[i]] +
@@ -98,7 +99,9 @@ ggplot_template <- function(object,
     # Add legend as new plot
     plots[[lplots + 1]] <- cowplot::ggdraw() + cowplot::draw_grob(leg)
     
-    rel_heights <- c(rep(9, lplots), 1)
+    # *** Adjust rel_heights based on number of plots.
+    # *** If more than 3, 
+    rel_heights <- c(rep(ifelse(lplots > 3, 6, 9), lplots), 1)
     lplots <- lplots + 1
   } else {
     rel_heights <- 1
@@ -249,7 +252,7 @@ ggplot_onerow <- function(object,
         ggplot2::aes(
           shape = .data$sex,
           fill = .data[[fillname]]),
-        width = 0.25, height = 0,
+        width = 0.1, height = 0,
         size = size, color = "black", alpha = 0.65) +
       ggplot2::scale_shape_manual(values = c(23, 22))
   } else {
@@ -258,7 +261,7 @@ ggplot_onerow <- function(object,
         ggplot2::aes(
           fill = .data[[fillname]]),
         shape = 21, 
-        width = 0.25, height = 0,
+        width = 0.1, height = 0,
         size = size, color = "black", alpha = 0.65)
   }
   

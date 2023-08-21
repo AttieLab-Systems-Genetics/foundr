@@ -25,10 +25,7 @@ shinyTimesPanelInput <- function(id) {
 shinyTimesPanelUI <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::fluidRow(
-    shiny::column(6, shiny::uiOutput(ns("filename"))),
-    shiny::column(3, shiny::downloadButton(ns("downloadPlot"), "Plots")),
-    shiny::column(3, shiny::downloadButton(ns("downloadTable"), "Data")))
+  shiny::uiOutput(ns("downloadsx"))
 }
 
 #' Shiny Module Output for Times Plot
@@ -123,8 +120,14 @@ shinyTimesPanel <- function(id, main_par,
                  timeplots(), timestats())
       
       shiny::tagList(
-        shiny::radioButtons(ns("buttime"), "", c("Traits","Stats"), "Traits",
-                            inline = TRUE),
+        shiny::fluidRow(
+          shiny::column(
+            3,
+            shiny::radioButtons(ns("buttime"), "", c("Traits","Stats"), "Traits",
+                                inline = TRUE)),
+          shiny::column(
+            9,
+            shiny::uiOutput(ns("downloads")))),
         
         shiny::uiOutput(ns("time_stat")),
           
@@ -224,6 +227,12 @@ shinyTimesPanel <- function(id, main_par,
     }, label = "traitTimeSum")
     
     # DOWNLOADS
+    output$downloads <- shiny::renderUI({
+      shiny::fluidRow(
+        shiny::column(3, shiny::downloadButton(ns("downloadPlots"), "Plots")),
+        shiny::column(3, shiny::downloadButton(ns("downloadTables"), "Tables")),
+        shiny::column(6, shiny::uiOutput(ns("filename"))))
+    })
     # Download File Prefix
     output$filename <- renderUI({
       shiny::req(timetrait_selection())
@@ -234,13 +243,13 @@ shinyTimesPanel <- function(id, main_par,
     })
     
     # Download Plot
-    output$downloadPlot <- shiny::downloadHandler(
+    output$downloadPlots <- shiny::downloadHandler(
       filename = function() {
         paste0(shiny::req(input$filename), ".pdf")
       },
       content = function(file) {
-        shiny::req(timeplots(), timestats())
-        grDevices::pdf(file, width = 9, height = 6)
+        shiny::req(timeplots(), timestats(), main_par$height)
+        grDevices::pdf(file, width = 9, height = main_par$height)
         print(timeplots())
         print(timestats())
         invisible()
@@ -248,7 +257,7 @@ shinyTimesPanel <- function(id, main_par,
       })
     
     # Download DataTable
-    output$downloadTable <- shiny::downloadHandler(
+    output$downloadTables <- shiny::downloadHandler(
       filename = function() {
         paste0(shiny::req(input$filename), ".csv")
       },

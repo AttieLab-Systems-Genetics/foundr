@@ -2,6 +2,8 @@
 #'
 #' @param datasets vector of dataset names.
 #' @param dirname name of directory
+#' @param traitRoot root for trait dataset
+#' @param CSV save as CSV if `TRUE`
 #'
 #' @return side effects: save data in local RDS and CSV files
 #' @export
@@ -10,7 +12,8 @@
 #' @importFrom purrr map set_names
 #' @importFrom readr write_csv
 #'
-bind_traits <- function(datasets, dirname = ".") {
+bind_traits <- function(datasets, dirname = ".", traitRoot = "trait",
+                        CSV = FALSE) {
   traitStats <- bind_traits_object(datasets, "Stats", dirname)
 
   # This should have been done already.
@@ -29,31 +32,31 @@ bind_traits <- function(datasets, dirname = ".") {
   # Additional traits were dropped due to failed fit. Keep what is left.
   keepTraits <- unique(traitStats$trait)
 
-  saveRDS(traitStats, "traitStats.rds")
-  readr::write_csv(traitStats, "traitStats.csv")
+  saveRDS(traitStats, paste0(traitRoot, "Stats.rds"))
+  readr::write_csv(traitStats, paste0(traitRoot, "Stats.csv"))
   
   traitData <- 
     dplyr::filter(
       bind_traits_object(datasets, "Data", dirname),
       .data$trait %in% keepTraits)
   
-  saveRDS(traitData, "traitData.rds")
-  readr::write_csv(traitData, "traitData.csv")
+  saveRDS(traitData, paste0(traitRoot, "Data.rds"))
+  readr::write_csv(traitData, paste0(traitRoot, "Data.csv"))
   
   traitSignal <-
     dplyr::filter(
       bind_traits_object(datasets, "Signal", dirname),
       .data$trait %in% keepTraits)
 
-  saveRDS(traitSignal, "traitSignal.rds")
-  readr::write_csv(traitSignal, "traitSignal.csv")
+  saveRDS(traitSignal, paste0(traitRoot, "Signal.rds"))
+  readr::write_csv(traitSignal, paste0(traitRoot, "Signal.csv"))
   
   traitObject <- list(
     Data = traitData,
     Signal = traitSignal,
     Stats = traitStats)
   class(traitObject) <- c("traitObject", class(traitObject))
-  saveRDS(traitObject, "traitObject.rds")
+  saveRDS(traitObject, paste0(traitRoot, "Object.rds"))
   
   invisible(traitObject)
 }

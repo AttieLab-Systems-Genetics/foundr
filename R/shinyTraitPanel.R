@@ -20,31 +20,10 @@ shinyTraitPanelInput <- function(id) {
       shiny::column(6, shiny::uiOutput(ns("reldataset"))),
       shiny::column(6, shinyTraitNamesUI(ns("shinyRelTraits")))),
     
-    # Trait Table Response.
-    shinyTraitTableUI(ns("shinyTable")),
-    
     # Correlation Type, Absolute, Minimum Settings.
     shinyCorTableUI(ns("shinyCorTable")),
     shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7)
   )
-}
-
-#' Shiny Module UI for Trait Panel
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyTraitPanel
-#' @importFrom shiny column downloadButton fluidRow NS uiOutput
-#' @export
-#'
-shinyTraitPanelUI <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shiny::fluidRow(
-    shiny::column(6, shiny::uiOutput(ns("filename"))),
-    shiny::column(3, shiny::downloadButton(ns("downloadPlot"), "Plots")),
-    shiny::column(3, shiny::downloadButton(ns("downloadTable"), "Data")))
 }
 
 #' Shiny Module Output for Trait Panel
@@ -60,8 +39,17 @@ shinyTraitPanelOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
-    shiny::radioButtons(ns("buttrait"), "", c("Plots","Tables"), "Plots",
-                        inline = TRUE),
+    shiny::fluidRow(
+      shiny::column(
+        4,
+        shiny::radioButtons(ns("butshow"), "", c("Plots","Tables"), "Plots",
+                            inline = TRUE)),
+      shiny::column(
+        2,
+        shiny::uiOutput(ns("downloads"))),
+      shiny::column(
+        6,
+        shiny::uiOutput(ns("filename")))),
     shiny::uiOutput(ns("traitOutput"))
   )
 }
@@ -141,9 +129,18 @@ shinyTraitPanel <- function(id, main_par,
 
     # Output
     output$traitOutput <- shiny::renderUI({
-      switch(shiny::req(input$buttrait),
-             Plots = shiny::uiOutput(ns("plots")),
-             Tables = shiny::uiOutput(ns("tables")))
+      shiny::tagList(
+#      shiny::fluidRow(
+#        shiny::column(3, shiny::downloadButton(ns("downloadPlots"), "Plots")),
+#        shiny::column(3, shiny::downloadButton(ns("downloadTables"), "Data"))),
+      switch(shiny::req(input$butshow),
+             Plots = {
+               shiny::tagList(
+                 # Trait Table Response.
+                 shinyTraitTableUI(ns("shinyTable")),
+                 shiny::uiOutput(ns("plots")))
+              },
+             Tables = shiny::uiOutput(ns("tables"))))
     })
     # Tables
     output$tables <- shiny::renderUI({
@@ -180,20 +177,26 @@ shinyTraitPanel <- function(id, main_par,
     })
     
     # DOWNLOADS
+    output$downloads <- shiny::renderUI({
+      shiny::req(input$butshow)
+      
+      shiny::downloadButton(ns(paste0("download", input$butshow)),
+                            input$butshow)
+    })
     # Download File Prefix
     output$filename <- renderUI({
       shiny::req(trait_names())
       
       filename <- "Traits_"
-      if(shiny::req(input$buttrait) == "Tables")
+      if(shiny::req(input$butshow) == "Tables")
         filename <- paste0(input$buttable, "_")
       filename <- paste0(filename, trait_names()[1])
       
-      shiny::textAreaInput(ns("filename"), "File Prefix", filename)
+      shiny::textAreaInput(ns("filename"), "File Prefix:", filename)
     })
     
     # Download Plot
-    output$downloadPlot <- shiny::downloadHandler(
+    output$downloadPlots <- shiny::downloadHandler(
       filename = function() {
         paste0(shiny::req(input$filename), ".pdf")
       },
@@ -210,7 +213,7 @@ shinyTraitPanel <- function(id, main_par,
       })
     
     # Download DataTable
-    output$downloadTable <- shiny::downloadHandler(
+    output$downloadTables <- shiny::downloadHandler(
       filename = function() {
         paste0(shiny::req(input$filename), ".csv")
       },

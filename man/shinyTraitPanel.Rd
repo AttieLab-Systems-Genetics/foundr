@@ -2,14 +2,11 @@
 % Please edit documentation in R/shinyTraitPanel.R
 \name{shinyTraitPanelInput}
 \alias{shinyTraitPanelInput}
-\alias{shinyTraitPanelUI}
 \alias{shinyTraitPanelOutput}
 \alias{shinyTraitPanel}
 \title{Shiny Module Input for Trait Panel}
 \usage{
 shinyTraitPanelInput(id)
-
-shinyTraitPanelUI(id)
 
 shinyTraitPanelOutput(id)
 
@@ -36,14 +33,10 @@ nothing returned
 
 nothing returned
 
-nothing returned
-
 reactive object
 }
 \description{
 Shiny Module Input for Trait Panel
-
-Shiny Module UI for Trait Panel
 
 Shiny Module Output for Trait Panel
 

@@ -4,12 +4,16 @@
 \alias{bind_traits}
 \title{Bind trait data together into unified objects.}
 \usage{
-bind_traits(datasets, dirname = ".")
+bind_traits(datasets, dirname = ".", traitRoot = "trait", CSV = FALSE)
 }
 \arguments{
 \item{datasets}{vector of dataset names.}
 
 \item{dirname}{name of directory}
+
+\item{traitRoot}{root for trait dataset}
+
+\item{CSV}{save as CSV if `TRUE`}
 }
 \value{
 side effects: save data in local RDS and CSV files

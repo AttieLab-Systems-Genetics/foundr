@@ -92,22 +92,14 @@ server <- function(input, output, session,
         
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
         
-        shiny::tagList(
-          shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-          shiny::checkboxInput("facet", "Facet by strain?", FALSE),
-          shiny::sliderInput("height", "Plot height (in):", 3, 10, 6,
-                             step = 1)),
-        
-        shiny::hr(style="border-width:5px;color:black;background-color:black"),
-        
-        switch(shiny::req(input$tabpanel),
-               Traits = shinyTraitPanelUI("tabTraits"),
-               Volcano = shinyVolcanoUI("tabVolcano"),
-               Times  = if(length(timetraits_all())) {
-                 shinyTimesPanelUI("tabTimes")}
-        )
-      )
-    }
+        if(shiny::req(input$tabpanel) != "Volcano") {
+          shiny::tagList(
+            shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
+            shiny::checkboxInput("facet", "Facet by strain?", TRUE))
+        },
+        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6,
+                           step = 1))
+      }
   })
   # Don't show Entry Key if there is no need.
   output$entrykey <- shiny::renderUI({

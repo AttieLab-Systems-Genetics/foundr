@@ -25,10 +25,7 @@ shinyVolcanoInput <- function(id) {
 shinyVolcanoUI <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::fluidRow(
-    shiny::column(6, shiny::uiOutput(ns("filename"))),
-    shiny::column(3, shiny::downloadButton(ns("downloadPlot"), "Plots")),
-    shiny::column(3, shiny::downloadButton(ns("downloadTable"), "Data")))
+  shiny::uiOutput(ns("downloadsx"))
 }
 
 #' Shiny Module Output for Volcano Plot
@@ -80,28 +77,8 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
     # Server-side UIs
     output$shiny_input <- shiny::renderUI({
       # Get new input parameters for Volcano.
-      shiny::tagList(
-        shiny::selectInput(ns("dataset"), "Datasets:",
-                           datasets(), datasets()[1], multiple = TRUE),
-        
-        shiny::fluidRow(
-          shiny::column(
-            4,
-            shiny::selectInput(ns("term"), "Volcano term:", term_stats())),
-          shiny::column(
-            4,
-            shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
-          shiny::column(
-            4,
-            shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
-        
-        # Sliders from Volcano plot display.
-        shiny::sliderInput(ns("volsd"), "SD line:",
-              0, signif(max(traitStats$SD, na.rm = TRUE), 2),
-              1, step = 0.1),
-        shiny::sliderInput(ns("volpval"), "-log10(p.value) line:",
-              0, min(10, round(-log10(min(traitStats$p.value, na.rm = TRUE)), 1)),
-              2, step = 0.5))
+      shiny::selectInput(ns("dataset"), "Datasets:",
+                         datasets(), datasets()[1], multiple = TRUE)
     })
     
     # Dataset selection.
@@ -130,6 +107,18 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
     output$shiny_output <- shiny::renderUI({
 
       shiny::tagList(
+        shiny::uiOutput(ns("downloads")),
+        shiny::fluidRow(
+          shiny::column(
+            4,
+            shiny::selectInput(ns("term"), "Volcano term:", term_stats())),
+          shiny::column(
+            4,
+            shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
+          shiny::column(
+            4,
+            shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
+        
         # Condition for plot based on `interact` parameter.
         if(shiny::isTruthy(input$interact)) {
           plotly::plotlyOutput(ns("volcanoly"))
@@ -137,6 +126,19 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
           shiny::plotOutput(ns("volcanopr"),
                             height = paste0(shiny::req(main_par$height), "in"))
         },
+        
+        # Sliders from Volcano plot display.
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::sliderInput(ns("volsd"), "SD line:",
+                           0, signif(max(traitStats$SD, na.rm = TRUE), 2),
+                           1, step = 0.1)),
+          shiny::column(
+            6,
+            shiny::sliderInput(ns("volpval"), "-log10(p.value) line:",
+                           0, min(10, round(-log10(min(traitStats$p.value, na.rm = TRUE)), 1)),
+                           2, step = 0.5))),
         
         # Data table.
         DT::dataTableOutput(ns("tablesum")))
@@ -189,6 +191,12 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
       options = list(scrollX = TRUE, pageLength = 10))
     
     # DOWNLOADS
+    output$downloads <- renderUI({
+      shiny::fluidRow(
+        shiny::column(3, shiny::downloadButton(ns("downloadPlots"), "Plots")),
+        shiny::column(3, shiny::downloadButton(ns("downloadTables"), "Tables")),
+        shiny::column(6, shiny::uiOutput(ns("filename"))))
+    })
     # Download File Prefix
     output$filename <- renderUI({
       shiny::req(term_selection(), volcano_plot(), volcano_table())
@@ -199,20 +207,20 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
       shiny::textAreaInput(ns("filename"), "File Prefix", filename)
     })
     
-    # Download Plot
-    output$downloadPlot <- shiny::downloadHandler(
+    # Download Plots
+    output$downloadPlots <- shiny::downloadHandler(
       filename = function() {
         paste0(shiny::req(input$filename), ".pdf")
       },
       content = function(file) {
-        shiny::req(volcano_plot())
-        grDevices::pdf(file, width = 9, height = 6)
+        shiny::req(volcano_plot(), main_par$height)
+        grDevices::pdf(file, width = 9, height = main_par$height)
         print(volcano_plot())
         grDevices::dev.off()
       })
     
-    # Download DataTable
-    output$downloadTable <- shiny::downloadHandler(
+    # Download Tables
+    output$downloadTables <- shiny::downloadHandler(
       filename = function() {
         paste0(shiny::req(input$filename), ".csv")
       },
