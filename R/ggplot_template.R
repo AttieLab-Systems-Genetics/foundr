@@ -116,7 +116,7 @@ ggplot_onerow <- function(object,
                           title = "",
                           xname = "value",
                           legend_position = "none",
-                          legend_nrow = 2,
+                          legend_nrow = 1,
                           textsize = 12,
                           ...) {
   

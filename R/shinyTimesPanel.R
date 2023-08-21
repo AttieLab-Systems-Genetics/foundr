@@ -119,12 +119,15 @@ shinyTimesPanel <- function(id, main_par,
     
     # Main return
     output$timeplots <- shiny::renderUI({
-      shiny::req(main_par$height, tableOutput(), statstable())
+      shiny::req(main_par$height, tableOutput(), statstable(),
+                 timeplots(), timestats())
       
       shiny::tagList(
-        shiny::plotOutput(ns("timeplot"),
-                          height = paste0(main_par$height, "in")),
+        shiny::radioButtons(ns("buttime"), "", c("Traits","Stats"), "Traits",
+                            inline = TRUE),
         
+        shiny::uiOutput(ns("time_stat")),
+          
         shinyTraitTableOutput(ns("shinyTable")),
 
         shiny::h3("Stats: -log10(p.value)"),
@@ -133,22 +136,40 @@ shinyTimesPanel <- function(id, main_par,
           escape = FALSE,
           options = list(scrollX = TRUE, pageLength = 10)))
     })
-    
+    output$time_stat <- shiny::renderUI({
+      switch(
+        shiny::req(input$buttime),
+        Traits = {
+          shiny::plotOutput(
+            ns("timeplot"),
+            height = paste0(main_par$height, "in"))
+        },
+        Stats  =  {
+          shiny::plotOutput(
+            ns("statplot"),
+            height = paste0(main_par$height, "in"))
+        })
+    })
+    output$timeplot <- shiny::renderPlot(print(timeplots()))
+    output$statplot <- shiny::renderPlot(print(timestats()))
+
     statstable <- shiny::reactive({
       shiny::req(traitTimeSum())
       
       stats_time_table(traitTimeSum())
     })
     timeplots <- shiny::reactive({
-      shiny::req(traitTime(), traitTimeSum(), main_par$strains)
+      shiny::req(traitTime(), main_par$strains)
       
       ggplot_traitTimes(
         traitTime(),
-        traitTimeSum(),
         facet_strain = main_par$facet)
     })
-    output$timeplot <- shiny::renderPlot({
-      print(timeplots())
+    timestats <- shiny::reactive({
+      shiny::req(traitTimeSum())
+      
+      ggplot_traitTimes(
+        traitTimeSum())
     })
     shiny::observeEvent(
       shiny::req(trait_names(), response_selection()),
@@ -218,9 +239,10 @@ shinyTimesPanel <- function(id, main_par,
         paste0(shiny::req(input$filename), ".pdf")
       },
       content = function(file) {
-        shiny::req(timeplots())
+        shiny::req(timeplots(), timestats())
         grDevices::pdf(file, width = 9, height = 6)
         print(timeplots())
+        print(timestats())
         invisible()
         grDevices::dev.off()
       })

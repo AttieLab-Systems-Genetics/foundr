@@ -240,7 +240,7 @@ ggplot_traitTimes_twoplot <- function(
     drop_xlab = drop_xlab,
     facet_strain = facet_strain,
     legend_position = legend_position,
-    legend_nrow = 2)
+    legend_nrow = 1)
   
   p2 <- ggplot_traitTimes(
     objectSum,
@@ -249,5 +249,5 @@ ggplot_traitTimes_twoplot <- function(
     facet_strain = TRUE,
     legend_position = legend_position)
   
-  cowplot::plot_grid(p1,p2, ncol = 2, rel_widths = c(2.5,1))
+  cowplot::plot_grid(p1,p2, nrow = 2)
 }
