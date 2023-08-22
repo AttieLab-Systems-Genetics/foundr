@@ -10,7 +10,8 @@ harmonize(
   userHarmony,
   ...,
   normalize = TRUE,
-  condition_name = "condition"
+  condition_name = "condition",
+  minstrains = nstrains - 2
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ harmonize(
 \item{normalize}{apply `normalscores` if `TRUE`}
 
 \item{condition_name}{name of `condition` column if present.}
+
+\item{minstrains}{minimum number of `strains` allowed per `trait`}
 }
 \value{
 side action to save RDS files locally
