@@ -28,6 +28,30 @@ tidyr::pivot_wider(
   names_from = "strains", values_from = "n", values_fill = 0)
 ```
 
+```{r}
+dplyr::summarize(
+  dplyr::count( 
+    dplyr::count(
+      dplyr::distinct(traitSignal, 
+                      .data$dataset, .data$trait, .data$strain),
+      .data$dataset, .data$trait, name = "strains"),
+    .data$dataset, .data$strains),
+  n = sum(.data$n))
+```
+
+```{r}
+dplyr::summarize(
+  dplyr::filter(
+  dplyr::count( 
+    dplyr::count(
+      dplyr::distinct(traitSignal, 
+                      .data$dataset, .data$trait, .data$strain),
+      .data$dataset, .data$trait, name = "strains"),
+    .data$dataset, .data$strains),
+  .data$dataset %in% c("Physio","LivMet","Lipid")),
+  n = sum(.data$n))
+```
+
 # Liver RNA data.
 
 ```{r}
@@ -35,7 +59,6 @@ LivRnaSignal <- readRDS(file.path(dirpath, "../LivRna", "LivRnaSignal.rds"))
 ```
 
 ```{r}
-knitr::kable(
   dplyr::mutate(
   dplyr::count(
   dplyr::filter(
@@ -45,7 +68,7 @@ knitr::kable(
       .data$trait, name = "strains"),
     .data$strains <= 8),
   .data$strains, name = "count"),
-  percent = signif(100 * count / sum(count), 4)))
+  percent = signif(100 * count / sum(count), 4))
 ```
 
 ```{r}

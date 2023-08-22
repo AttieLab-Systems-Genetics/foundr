@@ -33,7 +33,8 @@ bind_traits <- function(datasets, dirname = ".", traitRoot = "trait",
   keepTraits <- unique(traitStats$trait)
 
   saveRDS(traitStats, paste0(traitRoot, "Stats.rds"))
-  readr::write_csv(traitStats, paste0(traitRoot, "Stats.csv"))
+  if(CSV)
+    readr::write_csv(traitStats, paste0(traitRoot, "Stats.csv"))
   
   traitData <- 
     dplyr::filter(
@@ -41,7 +42,8 @@ bind_traits <- function(datasets, dirname = ".", traitRoot = "trait",
       .data$trait %in% keepTraits)
   
   saveRDS(traitData, paste0(traitRoot, "Data.rds"))
-  readr::write_csv(traitData, paste0(traitRoot, "Data.csv"))
+  if(CSV)
+    readr::write_csv(traitData, paste0(traitRoot, "Data.csv"))
   
   traitSignal <-
     dplyr::filter(
@@ -49,7 +51,8 @@ bind_traits <- function(datasets, dirname = ".", traitRoot = "trait",
       .data$trait %in% keepTraits)
 
   saveRDS(traitSignal, paste0(traitRoot, "Signal.rds"))
-  readr::write_csv(traitSignal, paste0(traitRoot, "Signal.csv"))
+  if(CSV)
+    readr::write_csv(traitSignal, paste0(traitRoot, "Signal.csv"))
   
   traitObject <- list(
     Data = traitData,
