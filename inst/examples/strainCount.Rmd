@@ -55,6 +55,24 @@ dplyr::summarize(
 # Liver RNA data.
 
 ```{r}
+LivRnaStats <- readRDS(file.path(dirpath, "../LivRna", "LivRnaStats.rds"))
+LivRnaData <- readRDS(file.path(dirpath, "../LivRna", "LivRnaData.rds"))
+```
+
+```{r}
+  dplyr::mutate(
+  dplyr::count(
+  dplyr::filter(
+    dplyr::count(
+      dplyr::distinct(LivRnaData, 
+                      .data$trait, .data$strain),
+      .data$trait, name = "strains"),
+    .data$strains <= 8),
+  .data$strains, name = "count"),
+  percent = signif(100 * count / sum(count), 4))
+```
+
+```{r}
 LivRnaSignal <- readRDS(file.path(dirpath, "../LivRna", "LivRnaSignal.rds"))
 ```
 

@@ -87,8 +87,7 @@ harmonize <- function(dataset, links, userHarmony, ...,
   saveRDS(traitData, file.path(dataset, paste0(dataset, "Data.rds")))
   
   cat("Running partition of traits ...\n", stderr())
-  traitSignal <- 
-    partition(traitData),
+  traitSignal <- partition(traitData)
   saveRDS(traitSignal, file.path(dataset, paste0(dataset, "Signal.rds")))
   
   invisible()
