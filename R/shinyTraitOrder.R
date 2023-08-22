@@ -59,6 +59,7 @@ shinyTraitOrderOutput <- function(id) {
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
+#' @param main_par input reactive list
 #' @param traitStats,traitSignal static data frame
 #'
 #' @return reactive object
@@ -67,11 +68,12 @@ shinyTraitOrderOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
+shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
+    #   main_par$tabpanel
     # shinyTraitOrder inputs
     #   input$keydataset
     #   input$order
@@ -88,7 +90,7 @@ shinyTraitOrder <- function(id, traitStats, traitSignal = NULL) {
     key_selection <- shiny::reactiveVal(NULL, label = "key_selection")
     shiny::observeEvent(input$keydataset, key_selection(input$keydataset))
     shiny::observeEvent(
-      shiny::req(key_selection()),
+      shiny::tagList(shiny::req(key_selection()), main_par$tabpanel),
       {
         selected <- key_selection()
         shiny::updateSelectInput(session, "keydataset", selected = selected)

@@ -13,10 +13,12 @@ shinyTraitOrderUI(id)
 
 shinyTraitOrderOutput(id)
 
-shinyTraitOrder(id, traitStats, traitSignal = NULL)
+shinyTraitOrder(id, main_par, traitStats, traitSignal = NULL)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
+
+\item{main_par}{input reactive list}
 
 \item{traitStats, traitSignal}{static data frame}
 }

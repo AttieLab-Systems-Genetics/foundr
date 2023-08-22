@@ -38,6 +38,7 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
     ns <- session$ns
     
     # INPUTS
+    #   main_par$tabpanel
     # shinyTraitNames inputs: (see output$shiny_modcomp below)
     #   input$trait Trait Names
     
@@ -48,7 +49,7 @@ shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
                             multiple = multiples)
     })
     shiny::observeEvent(
-      traitArranged(),
+      shiny::tagList(traitArranged(), main_par$tabpanel),
       {
         choices <- traitNamesArranged()
         selected <- trait_selection()

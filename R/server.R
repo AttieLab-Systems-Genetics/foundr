@@ -16,6 +16,11 @@
 server <- function(input, output, session,
                    traitData = NULL, traitSignal = NULL, traitStats = NULL,
                    customSettings = NULL) {
+  # INPUTS
+  #    input$strains
+  #    input$height
+  #    input$facet
+  #    input$tabpanel
   
   # CALL MODULES
   traitOutput <- shinyTraitPanel("tabTraits", input,

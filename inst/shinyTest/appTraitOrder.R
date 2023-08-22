@@ -36,7 +36,8 @@ server <- function(input, output, session) {
   
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStats, traitSignal)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input,
+                                         traitStats, traitSignal)
 
   # I/O FROM MODULE
   output$key_trait <- renderText({
