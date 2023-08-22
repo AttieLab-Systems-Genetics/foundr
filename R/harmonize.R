@@ -64,7 +64,7 @@ harmonize <- function(dataset, links, userHarmony, ...,
         .data$trait, .data$strain),
       .data$trait, name = "strains")
   nstrains <- max(keepTraits$strains) # for default value of minstrains
-  keepTraits  
+  keepTraits <-
     dplyr::filter(
       keepTraits,
       .data$strains >= minstrains)$trait
@@ -88,9 +88,7 @@ harmonize <- function(dataset, links, userHarmony, ...,
   
   cat("Running partition of traits ...\n", stderr())
   traitSignal <- 
-    dplyr::filter(
-      partition(traitData),
-      .data$trait %in% keepTraits)
+    partition(traitData),
   saveRDS(traitSignal, file.path(dataset, paste0(dataset, "Signal.rds")))
   
   invisible()
