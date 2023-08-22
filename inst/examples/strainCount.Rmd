@@ -1,0 +1,89 @@
+---
+title: "strainct"
+output: html_document
+date: "2023-08-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is an exploration of missing strains in datsets.
+
+```{r}
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+```
+
+```{r}
+tidyr::pivot_wider(
+  dplyr::count( 
+    dplyr::count(
+      dplyr::distinct(traitSignal, 
+                      .data$dataset, .data$trait, .data$strain),
+      .data$dataset, .data$trait, name = "strains"),
+    .data$dataset, .data$strains),
+  names_from = "strains", values_from = "n", values_fill = 0)
+```
+
+# Liver RNA data.
+
+```{r}
+LivRnaSignal <- readRDS(file.path(dirpath, "../LivRna", "LivRnaSignal.rds"))
+```
+
+```{r}
+knitr::kable(
+  dplyr::mutate(
+  dplyr::count(
+  dplyr::filter(
+    dplyr::count(
+      dplyr::distinct(LivRnaSignal, 
+                      .data$trait, .data$strain),
+      .data$trait, name = "strains"),
+    .data$strains <= 8),
+  .data$strains, name = "count"),
+  percent = signif(100 * count / sum(count), 4)))
+```
+
+```{r}
+keepTraits <- dplyr::filter(
+    dplyr::count(
+      dplyr::distinct(LivRnaSignal, 
+                      .data$trait, .data$strain),
+      .data$trait, name = "strains"),
+    .data$strains >= max(.data$strains) - 2)$trait
+```
+
+```{r}
+length(keepTraits)
+```
+
+## Reduce LivRna data and save
+
+
+```{r}
+dataset <- file.path(dirpath, "../LivRna")
+
+  LivRnaStats <- 
+    dplyr::filter(
+      LivRnaStats,
+      .data$trait %in% keepTraits)
+  
+  saveRDS(LivRnaStats, file.path(dataset, paste0(dataset, "Stats.rds")))
+  
+  LivRnaData <-
+    dplyr::filter(
+      LivRnaData,
+      .data$trait %in% keepTraits)
+  saveRDS(LivRnaData, file.path(dataset, paste0(dataset, "Data.rds")))
+  
+  LivRnaSignal <- 
+    dplyr::filter(
+      LivRnaSignal,
+      .data$trait %in% keepTraits)
+  saveRDS(LivRnaSignal, file.path(dataset, paste0(dataset, "Signal.rds")))
+```
+
