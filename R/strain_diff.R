@@ -9,6 +9,8 @@ strain_diff <- function(traitSignal, traitStats, termname = "signal") {
   if("SD" %in% names(traitStats)) traitStats$SD <- NULL
   
   conditions <- unique(traitSignal$condition)
+  conditions <- conditions[!is.na(conditions)]
+  
   if("condition" %in% names(traitSignal) && length(conditions) == 2) {
     # Create difference of conditions.
     traitSignal <-
@@ -35,6 +37,9 @@ strain_diff <- function(traitSignal, traitStats, termname = "signal") {
 }
 ggplot_strain_diff <- function(object, bysex = TRUE, ntrait = 20) {
   conditions <- attr(object, "conditions")
+  
+  if(is.null(object) || is.null(conditions))
+    return(plot_null("no difference data"))
   
   # Pick top traits to plot
   object <- dplyr::filter(

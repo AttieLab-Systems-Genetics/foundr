@@ -47,13 +47,7 @@ shinyTraitOrderUI <- function(id) {
 shinyTraitOrderOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tagList(
-    shiny::fluidRow(
-      shiny::column(6,
-                    shiny::checkboxInput(ns("sex"), "By Sex?", FALSE)),
-      shiny::column(6,
-                    shiny::numericInput(ns("ntrait"), "Rows:", 20, 5, 100, 5))),
-    shiny::plotOutput(ns("plot")))
+  shiny::uiOutput(ns("plot"))
 }
 
 #' Shiny Module Server for Trait Stats
@@ -61,6 +55,7 @@ shinyTraitOrderOutput <- function(id) {
 #' @param id identifier for shiny reactive
 #' @param main_par input reactive list
 #' @param traitStats,traitSignal static data frame
+#' @param customSettings custom settings list
 #'
 #' @return reactive object
 #' @importFrom shiny moduleServer observeEvent reactive reactiveVal renderUI req 
@@ -68,7 +63,8 @@ shinyTraitOrderOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL) {
+shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
+                            customSettings = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -132,16 +128,32 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL) {
     })
     
     # Plot
-    strainplot <- shiny::reactive({
+    straindiff <- shiny::reactive({
       shiny::req(orderstats(), input$ntrait)
       
       object <- strain_diff(traitSignal, orderstats())
-      ggplot_strain_diff(object, bysex = input$sex, ntrait = input$ntrait)
-    })
-    output$plot <- shiny::renderPlot({
-      shiny::req(strainplot())
+    }, label = "straindiff")
+    strainplot <- shiny::reactive({
+      shiny::req(straindiff())
       
-      print(strainplot())
+      ggplot_strain_diff(straindiff(), bysex = input$sex,
+                         ntrait = shiny::req(input$ntrait))
+    }, label = "strainplot")
+    output$plot <- shiny::renderUI({
+      condition <- customSettings$condition
+      if(shiny::isTruthy(condition))
+        condition <- stringr::str_to_title(condition)
+      else
+        condition <- "Condition"
+      
+      shiny::tagList(
+        shiny::h3(paste(condition, "Differences")),
+        shiny::fluidRow(
+          shiny::column(6,
+                        shiny::checkboxInput(ns("sex"), "By Sex?", FALSE)),
+          shiny::column(6,
+                        shiny::numericInput(ns("ntrait"), "Rows:", 20, 5, 100, 5))),
+        shiny::renderPlot(print(shiny::req(strainplot()))))
     })
     
     ##########################################################

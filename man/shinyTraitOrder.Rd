@@ -13,7 +13,13 @@ shinyTraitOrderUI(id)
 
 shinyTraitOrderOutput(id)
 
-shinyTraitOrder(id, main_par, traitStats, traitSignal = NULL)
+shinyTraitOrder(
+  id,
+  main_par,
+  traitStats,
+  traitSignal = NULL,
+  customSettings = NULL
+)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -21,6 +27,8 @@ shinyTraitOrder(id, main_par, traitStats, traitSignal = NULL)
 \item{main_par}{input reactive list}
 
 \item{traitStats, traitSignal}{static data frame}
+
+\item{customSettings}{custom settings list}
 }
 \value{
 nothing returned

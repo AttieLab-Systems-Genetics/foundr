@@ -80,6 +80,7 @@ shinyTimesPanel <- function(id, main_par,
                                    keyTrait, relTraits,
                                    traitData, traitSignal)
     
+    # Inputs
     output$shinyInput <- shiny::renderUI({
       shiny::tagList(
         shiny::fluidRow(

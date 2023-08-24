@@ -88,7 +88,8 @@ shinyTraitPanel <- function(id, main_par,
     # MODULES
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", main_par,
-                                   traitStats, traitSignal)
+                                   traitStats, traitSignal,
+                                   customSettings)
     
     # Key Trait.
     keyTraitOutput <- shinyTraitNames("shinyKeyTrait", main_par, orderOutput)
@@ -155,12 +156,6 @@ shinyTraitPanel <- function(id, main_par,
     })
     # Plots
     output$plots <- shiny::renderUI({
-      condition <- customSettings$condition
-      if(shiny::isTruthy(condition))
-        condition <- stringr::str_to_title(condition)
-      else
-        condition <- "Condition"
-      
       shiny::tagList(
         shiny::h3("Trait Plots"),
         shinyTraitSolosUI(ns("shinySolos")),
@@ -173,7 +168,6 @@ shinyTraitPanel <- function(id, main_par,
             shiny::h3("Correlations"),
             shinyCorPlotUI(ns("shinyCorPlot")),
             shinyCorPlotOutput(ns("shinyCorPlot"))),
-        shiny::h3(paste(condition, "Differences")),
         shinyTraitOrderOutput(ns("shinyOrder")))
     })
     
