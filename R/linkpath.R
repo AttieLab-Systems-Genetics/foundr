@@ -14,3 +14,31 @@ linkpath <- function(dataset, links) {
   
   (dplyr::filter(links, .data$shortname == dataset))$address
 }
+#' Title
+#'
+#' @param object data frame
+#' @param linkfile CSV file with shortname, URL, longname
+#' @param deployDir directory with `help.Rmd` for `help.md`
+#'
+#' @return invisible
+#' @export
+#' @importFrom rmarkdown md_document render
+#'
+link_datasets <- function(object, linkfile, deployDir = "deploy") {
+  # Pull dataset names from `source.csv`
+  dataset <- read.csv(linkfile)
+  dataset <- dataset[dataset$longname != "", c(1,3)]
+  rownames(dataset) <- NULL
+  datasets <- dataset$longname
+  names(datasets) <- dataset$shortname
+  
+  # Restrict to datasets used in this app.
+  datasets <- datasets[names(datasets) %in% unique(object$dataset)]
+  
+  # Save `datasets` as RDS in `deployDir`.
+  saveRDS(datasets, file.path(deployDir, "datasets.rds"))
+  
+  # Render `help.md` in `deployDir`.
+  rmarkdown::render(file.path(deployDir, "help.Rmd"), rmarkdown::md_document())
+  invisible()
+}

@@ -5,7 +5,7 @@ devtools::install_cran("ggdendro") #  not yet on UW dataviz
 #devtools::install_github("byandell/foundr")
 
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 
 traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 #db <- RSQLite::dbConnect(RSQLite::SQLite(),
@@ -15,19 +15,15 @@ traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
-# Pull dataset names from `source.csv`
-dataset <- read.csv(file.path(dirpath, "../../RawData", "source.csv"))
-dataset <- dataset[dataset$longname != "", c(1,3)]
-rownames(dataset) <- NULL
-datasets <- dataset$longname
-names(datasets) <- dataset$shortname
-
-rmarkdown::render("~/FounderDietStudy/help.Rmd",
-                  rmarkdown::md_document(),
-                  output_file = "~/FounderDietStudy/help.md")
+# Set up help.md using datasets in `traitSignal`
+foundr::link_datasets(
+  traitSignal,
+  file.path(dirpath, "../RawData/source.csv"),
+  file.path(dirpath, "deploy"))
+datasets <- readRDS(file.path(dirpath, "deploy", "datasets.rds"))
 
 customSettings <- list(
-  help = "~/FounderDietStudy/help.md",
+  help = file.path(dirpath, "deploy", "help.md"),
   condition = "diet",
   entrykey = "Founder",
   dataset = datasets)
