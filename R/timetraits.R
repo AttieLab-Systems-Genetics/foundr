@@ -28,6 +28,11 @@ timetraitsall <- function(traitSignal) {
   else
     datatraits
 }
+#' Get time trait roots
+#' 
+#' @param object data frame
+#' @param timecol time column
+#' 
 #' @importFrom dplyr arrange count desc distinct filter mutate select
 #' @importFrom rlang .data
 #' @export
@@ -44,53 +49,68 @@ timetraits <- function(object,
     return(NULL)
 
   timecol <- match.arg(timecol)
-  if(timecol == "minute_summary")
-    timecol <- "minute"
-  if(timecol == "week_summary")
-    timecol <- "week"
-  
+
   # Get traitnames without time information.
-  traitnames <- 
-    unite_datatraits(
-      dplyr::mutate(
-        object,
-        # Replace _MM_NNwk by _NNwk:MM
-        trait =
-          stringr::str_replace(
-            .data$trait,
-            time_codes("minute"),
-            "_\\2:\\1"),
-        # Remove _NNwk or :MM only at end of name.
-        trait = 
-          # Remove :MM$
-          stringr::str_remove(
-            # Remove _NNwk$
-            stringr::str_remove(
-              .data$trait,
-              time_codes("week")),
-            ":[0-9]+$")))
+  traitnames <- untime_traitnames(object)
   
   # Unite dataset, trait into `traitnames` = `dataset: trait` vector.
   unite_datatraits(
-    # Arrange in descending order of number of time points.
-    dplyr::arrange(
+    # Deselect constructed `datatrait`.
+    dplyr::select(
       # Filter to traits with at least 2 time points.
       dplyr::filter(
         # Count number of time units per dataset, trait.
         dplyr::count(
-          # Get distinct dataset, trait, 
-          dplyr::distinct(
-            # Separate timecol as column(s) for `object`.
-            # minute and week for timecol = "minute"
-            # week for timecol = "week"
-            separate_time(
-              object,
-              traitnames,
-              timecol),
-            .data$dataset, .data$trait, .data[[timecol]]),
-          .data$dataset, .data$trait),
+          # Make trait names as factor to keep order.
+          dplyr::mutate(
+            # Get distinct dataset, trait, 
+            dplyr::distinct(
+              # Separate timecol as column(s) for `object`.
+              # minute and week for timecol = "minute"
+              # week for timecol = "week"
+              separate_time(
+                object,
+                traitnames,
+                timecol),
+              .data$dataset, .data$trait, .data[[timecol]]),
+            datatrait = paste(.data$dataset, .data$trait, sep = ": "),
+            datatrait = factor(.data$datatrait, unique(.data$datatrait))),
+          .data$datatrait, .data$dataset, .data$trait),
         n > 1),
-      dplyr::desc(.data$n)))
+      -datatrait))
+}
+untime_traitnames <- function(object) {
+  # Get traitnames without time information.
+  unite_datatraits(
+    dplyr::mutate(
+      object,
+      # Replace _MM_NNwk by _NNwk:MM (minute)
+      trait =
+        stringr::str_replace(
+          .data$trait,
+          time_codes("minute"),
+          "_\\2::"),
+      # Replace _AA_NNwk by _NNwk:AA (minute_summary)
+      trait =
+        stringr::str_replace(
+          .data$trait,
+          time_codes("minute_summary"),
+          "_\\2::"),
+      # Remove week ending (_NNwk)
+      trait = 
+        stringr::str_remove(
+          .data$trait,
+          time_codes("week")),
+      # Remove week summary ending (_AA)
+      trait =
+        stringr::str_remove(
+          .data$trait,
+          time_codes("week_summary")),
+      # Remove :: (minute or minute_summary)
+      trait =         
+        stringr::str_remove(
+          .data$trait,
+          "::$")))
 }
 timetraits_filter <- function(object,
                               timeunit = c("week", "minute",
@@ -112,25 +132,12 @@ timetraits_filter <- function(object,
     object,
     .data$timetrait == timeunit)
   
-  # Remove segment of trait name corresponding to time unit.
-  if(timeunit %in% c("minute", "week")) {
-    switch(
-      timeunit,
-      minute = {
-        object <- dplyr::mutate(object,
-                                traitroot = stringr::str_replace(.data$trait, "_[0-9]*_", "_"))
-      },
-      week   = {
-        object <- dplyr::mutate(object,
-                                traitroot = stringr::str_remove(.data$trait, "_[0-9]*wk$"))
-      })
-    
-    object <- dplyr::filter(
+  object <- 
+    dplyr::filter(
       dplyr::mutate(
         object,
-        traitroot = paste(dataset, traitroot, sep = ": ")),
+        traitroot = untime_traitnames(object)),
       .data$traitroot %in% traitnames)
-  }
   
   paste(object$dataset, object$trait, sep = ": ")
 }
@@ -144,7 +151,7 @@ time_codes <- function(timeunit = c("week", "minute",
     "week" = {"_[0-9]+wk$"},
     "minute" = {"_([0-9]+)_([0-9]+wk)$"},
     "week_summary" = {"_(Ave|Vmax|Tmax|Slope)$"},
-    "minute_summary" = {"_(AUC|Emax|Tmax|HalfLife)_[0-9]+wk"},
+    "minute_summary" = {"_(AUC|Emax|Tmax|HalfLife)_([0-9]+wk)$"},
     "userAUC" = {"_([0-9]+|tAUC|iAUC)_[0-9]+wk$"})
 }
 

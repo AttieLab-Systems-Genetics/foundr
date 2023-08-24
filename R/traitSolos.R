@@ -10,7 +10,8 @@
 #' @return data frame
 #' @seealso \code{\link{ggplot_traitSolos}}
 #' @export
-#' @importFrom dplyr all_of arrange distinct filter left_join mutate select
+#' @importFrom dplyr all_of any_of arrange distinct filter left_join mutate
+#'             select
 #' @importFrom tidyr pivot_wider unite
 #' @importFrom rlang .data
 #'
@@ -159,7 +160,7 @@ summary_traitSolos <- function(object,
       tidyr::pivot_wider(
         object,
         names_from = "strain", values_from = "value"),
-      dplyr::all_of(nobject)),
+      dplyr::any_of(nobject)),
     .data$trait, .data$sex)
   
   # Use custom condition name if present
