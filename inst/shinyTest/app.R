@@ -28,7 +28,6 @@ customSettings <- list(
   entrykey = "Founder",
   dataset = datasets)
 
-
 ################################################################
 
 title <- "Test Shiny Tab"
