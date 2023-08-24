@@ -140,6 +140,8 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
                          ntrait = shiny::req(input$ntrait))
     }, label = "strainplot")
     output$plot <- shiny::renderUI({
+      shiny::req(straindiff())
+      
       condition <- customSettings$condition
       if(shiny::isTruthy(condition))
         condition <- stringr::str_to_title(condition)
