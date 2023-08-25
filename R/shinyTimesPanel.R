@@ -85,7 +85,7 @@ shinyTimesPanel <- function(id, main_par,
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", main_par,
                                    traitStatsInput, traitSignal,
-                                   customSettings)
+                                   customSettings, TRUE)
     
     # Trait Table.
     tableOutput <- shinyTraitTable("shinyTable", main_par, main_par,

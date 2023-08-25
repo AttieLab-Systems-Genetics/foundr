@@ -1,10 +1,10 @@
 time_units <- function(timetrait_all) {
   # Find time units in datasets
   timeunits <- NULL
-  if("week" %in% timetrait_all$timetrait)
-    timeunits <- c("week","week_summary")
   if("minute" %in% timetrait_all$timetrait)
-    timeunits <- c(timeunits, "minute","minute_summary")
+    timeunits <- c("minute","minute_summary")
+  if("week" %in% timetrait_all$timetrait)
+    timeunits <- c(timeunits, "week","week_summary")
   timeunits
 }
 time_trait_subset <- function(object, timetrait_all) {

@@ -18,7 +18,8 @@ shinyTraitOrder(
   main_par,
   traitStats,
   traitSignal = NULL,
-  customSettings = NULL
+  customSettings = NULL,
+  allDatasets = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ shinyTraitOrder(
 \item{traitStats, traitSignal}{static data frame}
 
 \item{customSettings}{custom settings list}
+
+\item{allDatasets}{initially select all datasets if `TRUE`}
 }
 \value{
 nothing returned

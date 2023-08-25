@@ -56,6 +56,7 @@ shinyTraitOrderOutput <- function(id) {
 #' @param main_par input reactive list
 #' @param traitStats,traitSignal static data frame
 #' @param customSettings custom settings list
+#' @param allDatasets initially select all datasets if `TRUE`
 #'
 #' @return reactive object
 #' @importFrom shiny moduleServer observeEvent reactive reactiveVal renderUI req 
@@ -64,7 +65,7 @@ shinyTraitOrderOutput <- function(id) {
 #' @export
 #'
 shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
-                            customSettings = NULL) {
+                            customSettings = NULL, allDatasets = FALSE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -80,8 +81,10 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
     # Key Datasets.
     output$keydataset <- renderUI({
       datasets <- unique(traitStats$dataset)
+      choices <- datasets[1]
+      if(allDatasets) choices <- datasets
       shiny::selectInput(ns("keydataset"), "Key Datasets:",
-                         datasets, datasets[1], multiple = TRUE)
+                         datasets, choices, multiple = TRUE)
     })
     key_selection <- shiny::reactiveVal(NULL, label = "key_selection")
     shiny::observeEvent(input$keydataset, key_selection(input$keydataset))
