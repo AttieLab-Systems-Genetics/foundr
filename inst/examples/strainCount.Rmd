@@ -12,7 +12,7 @@ This is an exploration of missing strains in datsets.
 
 ```{r}
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 ```
@@ -52,11 +52,93 @@ dplyr::summarize(
   n = sum(.data$n))
 ```
 
-# Liver RNA data.
+# Liver RNA stats
 
 ```{r}
-LivRnaStats <- readRDS(file.path(dirpath, "../LivRna", "LivRnaStats.rds"))
-LivRnaData <- readRDS(file.path(dirpath, "../LivRna", "LivRnaData.rds"))
+LivRnaStats <- readRDS(file.path(dirpath, "LivRna", "LivRnaStats.rds"))
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+ggplot(LivRnaStats %>% filter(term == "signal")) +
+  aes(p.value) +
+  geom_hline(yintercept = 1, col = "blue") +
+  geom_vline(xintercept = 0.05, col = "blue") +
+  geom_density()
+```
+
+```{r}
+count(LivRnaStats %>% filter(term == "signal") %>% mutate(sig = p.value <= 0.05),
+      sig)
+```
+
+# LivMet stats
+
+```{r}
+LivMetStats <- readRDS(file.path(dirpath, "LivMet", "LivMetStats.rds"))
+```
+
+```{r}
+ggplot(LivMetStats %>% filter(term == "signal")) +
+  aes(p.value) +
+  geom_hline(yintercept = 1, col = "blue") +
+  geom_vline(xintercept = 0.05, col = "blue") +
+  geom_density()
+```
+
+```{r}
+count(LivMetStats %>% filter(term == "signal") %>% mutate(sig = p.value <= 0.05),
+      sig)
+```
+
+# Liver Met data.
+
+```{r}
+LivMetData <- readRDS(file.path(dirpath, "LivMet", "LivMetData.rds"))
+```
+
+```{r}
+LivRnaData <- readRDS(file.path(dirpath, "LivRna", "LivRnaData.rds"))
+```
+
+LivMetStats has analysis as is. Now want to use `Pltp` as covariate.
+
+```{r}
+LivMetAncova <- foundr::traitAncova(LivMetData, LivMetStats,
+                                    LivRnaData, "Pltp", "diet")
+```
+
+```{r}
+summary_traitAncova(LivMetAncova, c("N-Hydroxy-IQ", "LAURATE"))
+```
+
+```{r}
+ggplot_traitAncova(LivMetAncova, c("N-Hydroxy-IQ", "LAURATE"))
+```
+
+```{r}
+LivMetAncova <- foundr::traitAncova(LivMetData, LivMetStats,
+                                    LivRnaData, "Ugt1a1", "diet")
+```
+
+```{r}
+summary_traitAncova(LivMetAncova, c("5-L-Glutamyl-taurine", "Neamine"))
+```
+
+```{r}
+ggplot_traitAncova(LivMetAncova, c("5-L-Glutamyl-taurine", "Neamine"))
+```
+
+# Liver RNA data.
+
+
+```{r}
+LivRnaData <- readRDS(file.path(dirpath, "LivRna", "LivRnaData.rds"))
 ```
 
 ```{r}
