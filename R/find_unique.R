@@ -1,4 +1,7 @@
 find_unique <- function(data) {
+  if(is.null(data))
+    return(NULL)
+  
   if(!("datatraits" %in% names(data))) {
     if("dataset" %in% names(data))
       data <- tidyr::unite(data, datatraits, dataset, trait)

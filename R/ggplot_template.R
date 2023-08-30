@@ -123,6 +123,9 @@ ggplot_onerow <- function(object,
                           textsize = 12,
                           ...) {
   
+  if(is.null(object))
+    return(plot_null())
+  
   # Used for optional lines.
   smooth_method <- attr(object, "smooth_method")
   # Response

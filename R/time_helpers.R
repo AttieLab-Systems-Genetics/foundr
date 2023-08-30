@@ -8,6 +8,9 @@ time_units <- function(timetrait_all) {
   timeunits
 }
 time_trait_subset <- function(object, timetrait_all) {
+  if(is.null(object))
+    return(NULL)
+  
   object <- tidyr::unite(object,
                          datatraits,
                          .data$dataset, .data$trait,

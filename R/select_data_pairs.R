@@ -10,6 +10,9 @@
 #' 
 #' @return data frame
 select_data_pairs <- function(object, key_trait, rel_dataset = NULL) {
+  if(is.null(object))
+    return(NULL)
+  
   dplyr::select(
     dplyr::filter(
       tidyr::unite(

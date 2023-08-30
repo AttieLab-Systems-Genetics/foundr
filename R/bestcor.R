@@ -253,7 +253,7 @@ bestcorStats <- function(traitStats, traitnames = NULL,
                          term = c("signal", "cellmean")) {
   corterm <- match.arg(term)
 
-  if(is.null(traitStats))
+  if(is.null(traitStats) || is.null(bestcorObject))
     return(NULL)
   
   bestcorObject <- 
