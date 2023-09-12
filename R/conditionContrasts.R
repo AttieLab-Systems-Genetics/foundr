@@ -1,4 +1,4 @@
-strain_diff <- function(traitSignal, traitStats, termname = "signal") {
+conditionContrasts <- function(traitSignal, traitStats, termname = "signal") {
   # Arrange stats by `p.value` for `signal`.
   traitStats <- 
     dplyr::select(
@@ -35,7 +35,7 @@ strain_diff <- function(traitSignal, traitStats, termname = "signal") {
   attr(out, "conditions") <- conditions
   out
 }
-ggplot_strain_diff <- function(object, bysex = TRUE, ntrait = 20) {
+ggplot_conditionContrasts <- function(object, bysex = TRUE, ntrait = 20) {
   conditions <- attr(object, "conditions")
   
   if(is.null(object) || is.null(conditions))

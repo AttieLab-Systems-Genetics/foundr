@@ -131,19 +131,19 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
     })
     
     # Plot
-    straindiff <- shiny::reactive({
+    contrasts <- shiny::reactive({
       shiny::req(orderstats(), input$ntrait)
       
-      object <- strain_diff(traitSignal, orderstats())
-    }, label = "straindiff")
-    strainplot <- shiny::reactive({
-      shiny::req(straindiff())
+      object <- conditionContrasts(traitSignal, orderstats())
+    }, label = "contrasts")
+    contrastPlot <- shiny::reactive({
+      shiny::req(contrasts())
       
-      ggplot_strain_diff(straindiff(), bysex = input$sex,
+      ggplot_conditionContrasts(contrasts(), bysex = input$sex,
                          ntrait = shiny::req(input$ntrait))
-    }, label = "strainplot")
+    }, label = "contrastPlot")
     output$plot <- shiny::renderUI({
-      shiny::req(straindiff())
+      shiny::req(contrasts())
       
       condition <- customSettings$condition
       if(shiny::isTruthy(condition))
@@ -158,7 +158,7 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
                         shiny::checkboxInput(ns("sex"), "By Sex?", FALSE)),
           shiny::column(6,
                         shiny::numericInput(ns("ntrait"), "Rows:", 20, 5, 100, 5))),
-        shiny::renderPlot(print(shiny::req(strainplot()))))
+        shiny::renderPlot(print(shiny::req(contrastPlot()))))
     })
     
     ##########################################################
