@@ -1,22 +1,40 @@
-conditionContrasts <- function(traitSignal, traitStats, termname = "signal") {
-  # Arrange stats by `p.value` for `signal`.
-  traitStats <- 
-    dplyr::select(
-      dplyr::filter(
-        traitStats,
-        .data$term == termname),
-      -term)
-  if("SD" %in% names(traitStats)) traitStats$SD <- NULL
+#' Contrasts of Conditions
+#'
+#' @param traitSignal data frame of signals 
+#' @param traitStats data frame of stats
+#' @param termname name of term
+#' @param rawStats data frame with `rawSD`
+#'
+#' @return object of class `conditionContrasts`
+#' @export
+#' @importFrom dplyr filter matches mutate right_join select
+#' @importFrom tidyr pivot_wider
+#' @importFrom stats reorder
+#'
+conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
+                               rawStats = traitStats) {
+  if(is.null(traitSignal) || is.null(traitStats))
+    return(NULL)
   
   conditions <- unique(traitSignal$condition)
   conditions <- conditions[!is.na(conditions)]
   
   if("condition" %in% names(traitSignal) && length(conditions) == 2) {
+    traitStats <- replace_rawSD(
+      dplyr::select(
+        dplyr::filter(
+          traitStats,
+          .data$term == termname),
+        -term),
+      rawStats)
+
     # Create difference of conditions.
     traitSignal <-
       dplyr::select(
         dplyr::mutate(
+          # Pivot to put conditions on same row.
           tidyr::pivot_wider(
+            # Focus on `cellmean`, drop `signal`.
             dplyr::select(traitSignal, -signal),
             names_from = "condition", values_from = "cellmean"),
           dif = .data[[conditions[1]]] - .data[[conditions[2]]]),
@@ -25,62 +43,129 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal") {
     return(NULL)
   }
   
-  out <- dplyr::mutate(
-    dplyr::right_join(
-      traitSignal,
-      traitStats,
-      by = c("dataset", "trait")),
-    trait = stats::reorder(trait, -p.value))
+  out <- 
+    dplyr::select(
+      dplyr::mutate(
+        # Join Stats to add `SD` and `p.value` columns.
+        dplyr::right_join(
+          traitSignal,
+          traitStats,
+          by = c("dataset", "trait")),
+        # Standardize by SD to have comparable trait ranges.
+        dif = .data$dif / .data$SD,
+        # Reorder levels of trait by `p.value`.
+        trait = stats::reorder(.data$trait, -.data$p.value)),
+      # Remove `SD` from dataset. 
+      -SD)
   
+  class(out) <- c("conditionContrasts", class(out))
   attr(out, "conditions") <- conditions
   out
 }
-ggplot_conditionContrasts <- function(object, bysex = TRUE, ntrait = 20) {
+#' GGplot of Contrasts of Conditions
+#'
+#' @param object object of class `conditionContrasts`
+#' @param bysex type of sex from c("F","M","F-M","F+M")
+#' @param ntraits number of traits (if not volcano)
+#' @param volcano volcano plot if `TRUE`
+#'
+#' @return ggplot object
+#' @export
+#' @rdname conditionContrasts
+#' @importFrom dplyr filter group_by mutate summarize ungroup
+#' @importFrom ggplot2 aes element_text facet_wrap geom_jitter geom_point
+#'             geom_vline ggplot scale_fill_manual theme xlab
+#'
+ggplot_conditionContrasts <- function(object, bysex = names(sexes),
+                                      ntraits = 20, volcano = FALSE) {
   conditions <- attr(object, "conditions")
   
   if(is.null(object) || is.null(conditions))
     return(plot_null("no difference data"))
   
-  # Pick top traits to plot
-  object <- dplyr::filter(
-    object,
-    trait %in% rev(levels(object$trait))[seq_len(ntrait)])
+  sexes <- c("Female", "Male", "Female - Male", "Female + Male")
+  names(sexes) <- c("F","M","F-M","F+M")
+  bysex <- match.arg(bysex)
   
-  # Standardize by dataset, trait to have range [0,1].
-  if(bysex) {
-    object <- dplyr::ungroup(
+  # Switch based on sex, sex contrast, or sex mean.
+  switch(
+    bysex,
+    F, M  = {
+      object <- dplyr::filter(object, .data$sex == bysex)
+    },
+    "F-M" = {
+      # Contrast: female - male.
+      object <- dplyr::ungroup(
+        dplyr::summarize(
+          dplyr::group_by(object, .data$dataset, .data$trait, .data$strain),
+          dif = diff(.data$dif, na.rm = TRUE),
+          p.value = mean(p.value),
+          .groups = "drop"))
+    },
+    "F+M" = {
+      # Mean: (female + male) / 2.
+      object <- dplyr::ungroup(
+        dplyr::summarize(
+          dplyr::group_by(object, .data$dataset, .data$trait, .data$strain),
+          dif = mean(.data$dif, na.rm = TRUE),
+          p.value = mean(p.value),
+          .groups = "drop"))
+    })
+  
+  if(volcano) { # Volcano Plot
+    p <- volcano(
       dplyr::mutate(
-        dplyr::group_by(object, .data$dataset, .data$trait),
-        strain = .data$strain,
-        sex = .data$sex,
-        dif = .data$dif / sd(.data$dif, na.rm = TRUE)))
-  } else {
-    object <- dplyr::ungroup(
+        dplyr::rename(object, SD = "dif"),
+        term = "strain"),
+      "signal", facet = TRUE, traitnames = FALSE)
+    if(FALSE) {
+    p <- ggplot2::ggplot(object) +
+      ggplot2::aes(.data$dif, -log10(.data$p.value), fill = .data$strain) +
+      ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
+      ggplot2::geom_point(color = "black",
+                          size = 3, shape = 21, alpha = 0.65) +
+      ggplot2::scale_fill_manual(values = foundr::CCcolors) +
+      ggplot2::theme(legend.position = "right",
+                     legend.text = ggplot2::element_text(size = 12),
+                     axis.text = ggplot2::element_text(size = 12)) +
+      ggplot2::facet_wrap(~ .data$strain)
+    }
+  } else { # Plot contrasts of strains by trait.
+    # Pick top traits to plot
+    object <- 
       dplyr::mutate(
-        dplyr::group_by(
-          dplyr::ungroup(
-            dplyr::summarize(
-              dplyr::group_by(object, .data$dataset, .data$trait, .data$strain),
-              dif = mean(.data$dif, na.rm = TRUE),
-              .groups = "drop")),
-          .data$dataset, .data$trait),
-        strain = .data$strain,
-        dif = .data$dif / sd(.data$dif, na.rm = TRUE)))
+        dplyr::filter(
+          object,
+          .data$trait %in% rev(levels(object$trait))[seq_len(ntraits)]),
+        trait = abbreviate(paste(.data$dataset, .data$trait, sep = ": "), 30))
+    
+    p <- ggplot2::ggplot(object) +
+      ggplot2::aes(.data$dif, .data$trait, fill = .data$strain) +
+      ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
+      ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
+                           size = 3, shape = 21, alpha = 0.65) +
+      ggplot2::scale_fill_manual(values = foundr::CCcolors) +
+      ggplot2::theme(legend.position = "right",
+                     legend.text = ggplot2::element_text(size = 12),
+                     axis.text = ggplot2::element_text(size = 12))
   }
-  p <- ggplot2::ggplot(object) +
-    ggplot2::aes(.data$dif, .data$trait, fill = .data$strain) +
-    ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
-    ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
-                         size = 3, shape = 21, alpha = 0.65) +
-    ggplot2::scale_fill_manual(values = foundr::CCcolors) +
-    ggplot2::theme(legend.position = "right",
-                   legend.text = ggplot2::element_text(size = 12),
-                   axis.text = ggplot2::element_text(size = 12))
-  if(bysex) {
-    p <- p + ggplot2::facet_wrap(~ .data$sex)
-  }
+
+  # Modify X label to be sex and conditions
+  xlab <- sexes[bysex]
   if(!is.null(conditions)) {
-    p <- p + ggplot2::xlab(paste(conditions, collapse = " - "))
+    xlab <- paste(xlab, "and", paste(conditions, collapse = " - "))
   }
-  p
+  p + ggplot2::xlab(xlab)
+}
+#' Plot method for Contrasts of Condtions
+#'
+#' @param x object of class `conditionContrasts`
+#' @param ... parameters passed to `ggplot_conditionContrasts`
+#'
+#' @return ggplot object
+#' @export
+#' @rdname conditionContrasts
+#'
+plot.conditionContrasts <- function(x, ...) {
+  ggplot_conditionContrasts(x, ...)  
 }
