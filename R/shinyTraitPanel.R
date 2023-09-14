@@ -167,8 +167,7 @@ shinyTraitPanel <- function(id, main_par,
           shiny::tagList(
             shiny::h3("Correlations"),
             shinyCorPlotUI(ns("shinyCorPlot")),
-            shinyCorPlotOutput(ns("shinyCorPlot"))),
-        shinyTraitOrderOutput(ns("shinyOrder")))
+            shinyCorPlotOutput(ns("shinyCorPlot"))))
     })
     
     # DOWNLOADS

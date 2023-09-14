@@ -26,6 +26,7 @@ ui <- function() {
 
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
         
+        shiny::uiOutput("strains"),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)
       ),
 
@@ -42,6 +43,14 @@ server <- function(input, output, session) {
   foundr::shinyContrastPanel("shinyPanel", input,
                           traitSignal, traitStats,
                           customSettings)
+  
+  # SERVER-SIDE INPUTS
+  output$strains <- shiny::renderUI({
+    choices <- names(foundr::CCcolors)
+    shiny::checkboxGroupInput(
+      "strains", "Strains",
+      choices = choices, selected = choices, inline = TRUE)
+  })
 }
 
 shiny::shinyApp(ui = ui, server = server)

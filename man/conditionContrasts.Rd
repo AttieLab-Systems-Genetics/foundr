@@ -4,6 +4,8 @@
 \alias{conditionContrasts}
 \alias{ggplot_conditionContrasts}
 \alias{plot.conditionContrasts}
+\alias{summary_conditionContrasts}
+\alias{summary.conditionContrasts}
 \title{Contrasts of Conditions}
 \usage{
 conditionContrasts(
@@ -18,10 +20,15 @@ ggplot_conditionContrasts(
   bysex = names(sexes),
   ntraits = 20,
   volcano = FALSE,
-  interact = FALSE
+  interact = FALSE,
+  ...
 )
 
 \method{plot}{conditionContrasts}(x, ...)
+
+summary_conditionContrasts(object, ntrait = 20, ...)
+
+\method{summary}{conditionContrasts}(object, ...)
 }
 \arguments{
 \item{traitSignal}{data frame of signals}
@@ -36,15 +43,17 @@ ggplot_conditionContrasts(
 
 \item{bysex}{type of sex from c("F","M","F-M","F+M")}
 
-\item{ntraits}{number of traits (if not volcano)}
+\item{ntraits}{number of traits to plot}
 
 \item{volcano}{volcano plot if `TRUE`}
 
 \item{interact}{interactive plot if `TRUE`}
 
+\item{...}{parameters passed to `ggplot_conditionContrasts`}
+
 \item{x}{object of class `conditionContrasts`}
 
-\item{...}{parameters passed to `ggplot_conditionContrasts`}
+\item{ntrait}{number of traits to plot}
 }
 \value{
 object of class `conditionContrasts`
@@ -52,6 +61,10 @@ object of class `conditionContrasts`
 ggplot object
 
 ggplot object
+
+data frame
+
+data frame
 }
 \description{
 Contrasts of Conditions
@@ -59,4 +72,8 @@ Contrasts of Conditions
 GGplot of Contrasts of Conditions
 
 Plot method for Contrasts of Condtions
+
+Summary method for Contrasts of Condtions
+
+Summary method for Contrasts of Condtions
 }

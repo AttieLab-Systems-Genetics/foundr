@@ -3,15 +3,12 @@
 \name{shinyTraitOrderInput}
 \alias{shinyTraitOrderInput}
 \alias{shinyTraitOrderUI}
-\alias{shinyTraitOrderOutput}
 \alias{shinyTraitOrder}
 \title{Shiny Module Input for Trait Stats}
 \usage{
 shinyTraitOrderInput(id)
 
 shinyTraitOrderUI(id)
-
-shinyTraitOrderOutput(id)
 
 shinyTraitOrder(
   id,
@@ -38,16 +35,12 @@ nothing returned
 
 nothing returned
 
-nothing returned
-
 reactive object
 }
 \description{
 Shiny Module Input for Trait Stats
 
 Shiny Module UI for Trait Stats
-
-Shiny Module Output for Trait Stats
 
 Shiny Module Server for Trait Stats
 }

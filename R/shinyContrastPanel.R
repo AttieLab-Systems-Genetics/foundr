@@ -10,7 +10,12 @@
 shinyContrastPanelInput <- function(id) {
   ns <- shiny::NS(id)
 
-  shinyTraitOrderInput(ns("shinyOrder"))
+  shiny::fluidRow(
+    shiny::column(9,
+                  shinyTraitOrderInput(ns("shinyOrder"))),
+    shiny::column(3,
+                  shiny::numericInput(ns("ntrait"), "Rows:",
+                                    20, 5, 100, 5)))
 }
 
 #' Shiny Module Output for Contrast Panel
@@ -63,6 +68,8 @@ shinyContrastPanel <- function(id, main_par,
     # INPUTS
     # shinyContrastPanel inputs
     #   main_par$tabpanel
+    #   main_par$height
+    #   main_par$strains
     #
     # RETURNS
     #   
@@ -76,10 +83,81 @@ shinyContrastPanel <- function(id, main_par,
     # Output
     output$traitOutput <- shiny::renderUI({
       switch(shiny::req(input$butshow),
-             Plots  = shinyTraitOrderOutput(ns("shinyOrder")),
-             Tables = shinyTraitOrderUI(ns("shinyOrder")))
+             Plots  = shiny::uiOutput(ns("plot")),
+             Tables = DT::renderDataTable(contable()))
     })
-
+    
+    # Plot
+    contrasts <- shiny::reactive({
+      shiny::req(orderOutput())
+      
+      termname <- orderOutput()$term[1]
+      conditionContrasts(traitSignal, orderOutput(), termname,
+                         rawStats = traitStats)
+    }, label = "contrasts")
+    contrasts_strains <- shiny::reactive({
+      shiny::req(contrasts(), main_par$strains)
+      
+      dplyr::filter(contrasts(), .data$strain %in% main_par$strains)
+    })
+    contrastVolcano <- shiny::reactive({
+      shiny::req(contrasts_strains(), sextype())
+      
+      plot(contrasts_strains(), bysex = sextype(), volcano = TRUE,
+           interact = shiny::isTruthy(input$interact))
+    }, label = "contrastVolcano")
+    contrastPlot <- shiny::reactive({
+      shiny::req(contrasts_strains(), input$ntrait, sextype())
+      
+      plot(contrasts_strains(), bysex = sextype(), ntrait = input$ntrait)
+    }, label = "contrastPlot")
+    
+    sexes <- c("Both Sexes", "Female", "Male", "Sex Contrast")
+    names(sexes) <- c("F+M","F","M","F-M")
+    sextype <- shiny::reactive({
+      names(sexes)[match(shiny::req(input$sex), sexes)]
+    }, label = "sextype")
+    
+    output$plot <- shiny::renderUI({
+      shiny::req(contrasts_strains())
+      
+      condition <- customSettings$condition
+      if(shiny::isTruthy(condition))
+        condition <- stringr::str_to_title(condition)
+      else
+        condition <- "Condition"
+      
+      shiny::tagList(
+        shiny::h3(paste(condition, "Contrasts")),
+        shiny::fluidRow(
+          shiny::column(8,
+                        shiny::selectInput(ns("sex"), "Sex:",
+                                           as.vector(sexes))),
+          shiny::column(4,
+                        shiny::checkboxInput(ns("interact"), "Interactive?"))),
+        shiny::uiOutput(ns("conplot")),
+        shiny::uiOutput(ns("convolc")))
+    })
+    output$convolc <- shiny::renderUI({
+      if(shiny::isTruthy(input$interact)) {
+        plotly::renderPlotly(shiny::req(contrastVolcano()))
+      } else {
+        shiny::renderPlot(print(shiny::req(contrastVolcano())))
+      }
+    })
+    output$conplot <- shiny::renderUI({
+      if(shiny::isTruthy(input$interact)) {
+        plotly::renderPlotly(shiny::req(contrastPlot()))
+      } else {
+        shiny::renderPlot(print(shiny::req(contrastPlot())))
+      }
+    })
+    
+    # Table
+    contable <- shiny::reactive({
+      summary(shiny::req(contrasts()), shiny::req(input$ntrait))
+    })
+    
     # DOWNLOADS
     output$downloads <- shiny::renderUI({
       shiny::req(input$butshow)
@@ -102,9 +180,10 @@ shinyContrastPanel <- function(id, main_par,
         paste0(shiny::req(input$filename), ".pdf")
       },
       content = function(file) {
-        shiny::req(orderOutput())
+        shiny::req(contrastPlot(), contrastVolcano())
         grDevices::pdf(file, width = 9, height = main_par$height)
-        print(orderOutput())
+        print(contrastPlot())
+        print(contrastVolcano())
         grDevices::dev.off()
       })
     
@@ -114,9 +193,9 @@ shinyContrastPanel <- function(id, main_par,
         paste0(shiny::req(input$filename), ".csv")
       },
       content = function(file) {
-        shiny::req(orderOutput())
+        shiny::req(contable())
         utils::write.csv(
-          orderOutput(),
+          contable(),
           file, row.names = FALSE)
       })
     

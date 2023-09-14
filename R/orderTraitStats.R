@@ -30,26 +30,8 @@ orderTraitStats <- function(orders, traitStats) {
   }
   out
 }
-
-# Replace `SD` with `rawSD` in `termstats`
-replace_rawSD <- function(termstats, rawstats = NULL) {
-  # `termstats` is filtered to `term` of interest.
-  # `rawstats` is all stats (for traits in `termstats`).
-  if(!is.null(rawstats) && "rawSD" %in% unique(rawstats$term)) {
-    # Extract rawSD from `rawstats`
-    rawSD <- dplyr::select(
-      dplyr::filter(
-        rawstats,
-        .data$term == "rawSD"),
-      dataset, trait, SD)
-
-    # Replace SD by rawSD    
-    dplyr::left_join(
-      dplyr::select(termstats, -SD),
-      rawSD,
-      by = c("dataset", "trait"))
-    
-  } else {
-    dplyr::mutate(termstats, SD = 1)
-  }
+orderChoices <- function(traitStats) {
+  p_types <- paste0("p_", unique(traitStats$term))
+  p_types <- p_types[!(p_types %in% c("p_rest", "p_noise", "p_rawSD"))]
+  c(p_types, "alphabetical", "original")
 }

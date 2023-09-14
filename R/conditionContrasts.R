@@ -21,10 +21,13 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
   
   if("condition" %in% names(traitSignal) && length(conditions) == 2) {
     traitStats <- replace_rawSD(
+      # Filter `traitStats` to `termname` and arrange by `p.value`.
       dplyr::select(
-        dplyr::filter(
-          traitStats,
-          .data$term == termname),
+        dplyr::arrange(
+          dplyr::filter(
+            traitStats,
+            .data$term == termname),
+          .data$p.value),
         -term),
       rawStats)
 
@@ -60,6 +63,7 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
   
   class(out) <- c("conditionContrasts", class(out))
   attr(out, "conditions") <- conditions
+  attr(out, "termname") <- termname
   out
 }
 #' GGplot of Contrasts of Conditions
@@ -73,14 +77,15 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
 #' @return ggplot object
 #' @export
 #' @rdname conditionContrasts
-#' @importFrom dplyr filter group_by mutate summarize ungroup
+#' @importFrom dplyr dense_rank filter group_by mutate summarize ungroup
 #' @importFrom ggplot2 aes element_text facet_wrap geom_jitter geom_point
 #'             geom_vline ggplot scale_fill_manual theme xlab ylab
 #'
 ggplot_conditionContrasts <- function(object, bysex = names(sexes),
                                       ntraits = 20, volcano = FALSE,
-                                      interact = FALSE) {
+                                      interact = FALSE, ...) {
   conditions <- attr(object, "conditions")
+  termname <- attr(object, "termname")
   
   if(is.null(object) || is.null(conditions))
     return(plot_null("no difference data"))
@@ -118,7 +123,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
     p <- volcano(
       dplyr::mutate(
         dplyr::rename(object, SD = "dif"),
-        term = "strain"),
+        term = termname),
       "signal", facet = TRUE, traitnames = FALSE, interact = interact)
   } else { # Plot contrasts of strains by trait.
     # Pick top traits to plot
@@ -127,7 +132,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
         dplyr::filter(
           object,
           .data$trait %in% rev(levels(object$trait))[seq_len(ntraits)]),
-        trait = abbreviate(paste(.data$dataset, .data$trait, sep = ": "), 30))
+        trait = abbreviate(paste(.data$dataset, .data$trait, sep = ": "), 40))
     
     textsize <- 12
     p <- ggplot2::ggplot(object) +
@@ -160,7 +165,46 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
 #' @return ggplot object
 #' @export
 #' @rdname conditionContrasts
+#' @method plot conditionContrasts
 #'
 plot.conditionContrasts <- function(x, ...) {
   ggplot_conditionContrasts(x, ...)  
 }
+
+#' Summary method for Contrasts of Condtions
+#'
+#' @param object object of class `conditionContrasts`
+#' @param ntrait number of traits to plot
+#' @param ... parameters passed to `ggplot_conditionContrasts`
+#'
+#' @return data frame
+#' @export
+#' @rdname conditionContrasts
+#'
+summary_conditionContrasts <- function(object, ntrait = 20, ...) {
+  tidyr::pivot_wider(
+      dplyr::mutate(
+        dplyr::filter(
+          dplyr::arrange(
+            object,
+            p.value),
+          dplyr::dense_rank(.data$p.value) <= ntrait),
+        p.value = signif(.data$p.value, 4),
+        dif = signif(.data$dif, 4),
+        strain = factor(strain, names(foundr::CCcolors))),
+      names_from = "strain", values_from = "dif")
+}
+
+#' Summary method for Contrasts of Condtions
+#'
+#' @param object object of class `conditionContrasts`
+#' @param ntraits number of traits to plot
+#' @param ... parameters passed to `ggplot_conditionContrasts`
+#'
+#' @return data frame
+#' @export
+#' @rdname conditionContrasts
+#' @method summary conditionContrasts
+#'
+summary.conditionContrasts <- function(object, ...) 
+  summary_conditionContrasts(object, ...)

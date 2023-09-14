@@ -34,22 +34,6 @@ shinyTraitOrderUI <- function(id) {
     DT::dataTableOutput(ns("key_stats")))
 }
 
-#' Shiny Module Output for Trait Stats
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyTraitOrder
-#' @importFrom shiny checkboxInput column fluidRow NS numericInput
-#'             plotOutput tagList
-#' @export
-#'
-shinyTraitOrderOutput <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shiny::uiOutput(ns("plot"))
-}
-
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
@@ -98,9 +82,8 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
 
     # Order Criteria for Trait Names
     output$order <- shiny::renderUI({
-      p_types <- paste0("p_", unique(traitStats$term))
-      choices <- c(p_types, "alphabetical", "original")
-      shiny::selectInput(ns("order"), "Order traits by", choices, p_types[1])
+      choices <- orderChoices(traitStats)
+      shiny::selectInput(ns("order"), "Order traits by", choices)
     })
     order_selection <- shiny::reactiveVal(NULL, label = "order_selection")
     shiny::observeEvent(input$order, order_selection(input$order))
@@ -131,70 +114,7 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
         NULL
       }
     })
-    
-    # Plot
-    contrasts <- shiny::reactive({
-      shiny::req(orderstats())
-      
-      conditionContrasts(traitSignal, orderstats(),
-                         rawStats = key_stats())
-    }, label = "contrasts")
-    contrastVolcano <- shiny::reactive({
-      shiny::req(contrasts(), sextype())
-      
-      plot(contrasts(), bysex = sextype(), volcano = TRUE,
-           interact = shiny::isTruthy(input$interact))
-    }, label = "contrastVolcano")
-    contrastPlot <- shiny::reactive({
-      shiny::req(contrasts(), input$ntrait, sextype())
-      
-      plot(contrasts(), bysex = sextype(), ntrait = input$ntrait)
-    }, label = "contrastPlot")
-    
-    sexes <- c("Both Sexes", "Female", "Male", "Sex Contrast")
-    names(sexes) <- c("F+M","F","M","F-M")
-    sextype <- shiny::reactive({
-      names(sexes)[match(shiny::req(input$sex), sexes)]
-    }, label = "sextype")
-    
-    output$plot <- shiny::renderUI({
-      shiny::req(contrasts())
-      
-      condition <- customSettings$condition
-      if(shiny::isTruthy(condition))
-        condition <- stringr::str_to_title(condition)
-      else
-        condition <- "Condition"
 
-      shiny::tagList(
-        shiny::h3(paste(condition, "Contrasts")),
-        shiny::fluidRow(
-          shiny::column(6,
-                        shiny::selectInput(ns("sex"), "Sex:",
-                                           as.vector(sexes))),
-          shiny::column(3,
-                        shiny::numericInput(ns("ntrait"), "Rows:",
-                                            20, 5, 100, 5)),
-          shiny::column(3,
-                        shiny::checkboxInput(ns("interact"), "Interactive?"))),
-        shiny::uiOutput(ns("conplot")),
-        shiny::uiOutput(ns("convolc")))
-    })
-    output$convolc <- shiny::renderUI({
-      if(shiny::isTruthy(input$interact)) {
-        plotly::renderPlotly(shiny::req(contrastVolcano()))
-      } else {
-        shiny::renderPlot(print(shiny::req(contrastVolcano())))
-      }
-    })
-    output$conplot <- shiny::renderUI({
-      if(shiny::isTruthy(input$interact)) {
-        plotly::renderPlotly(shiny::req(contrastPlot()))
-      } else {
-        shiny::renderPlot(print(shiny::req(contrastPlot())))
-      }
-    })
-    
     ##########################################################
     # Return
     orderstats

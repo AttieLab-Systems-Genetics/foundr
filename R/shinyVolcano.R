@@ -67,7 +67,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     ns <- session$ns
     
     # INPUTS
-    # Main inputs: (see shinyapp.R)
+    # Main inputs:
     #   main_par$height
     # Volcano inputs: (see output$tab_volcano below)
     #   input$term
