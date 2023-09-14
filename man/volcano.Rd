@@ -10,7 +10,8 @@ volcano(
   threshold = c(SD = 1, p = 0.01),
   interact = FALSE,
   traitnames = TRUE,
-  facet = FALSE
+  facet = FALSE,
+  ...
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ volcano(
 \item{traitnames}{include trait names if `TRUE`}
 
 \item{facet}{facet on `strain` if `TRUE`}
+
+\item{...}{additional parameters ignored}
 }
 \value{
 ggplot object

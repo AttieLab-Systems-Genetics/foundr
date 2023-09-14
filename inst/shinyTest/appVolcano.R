@@ -26,9 +26,8 @@ ui <- function() {
     
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyVolcanoInput("shinyTest"),
-        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-        foundr::shinyVolcanoUI("shinyTest")),
+        shiny::uiOutput("dataset"),
+        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
         
       shiny::mainPanel(
         foundr::shinyVolcanoOutput("shinyTest")
@@ -38,12 +37,15 @@ ui <- function() {
 server <- function(input, output, session) {
   
   # SERVER-SIDE INPUTS
-  output$strains <- shiny::renderUI({
-    choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput("strains", "Strains",
-                              choices = choices, selected = choices, inline = TRUE)
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+
+    # Get new input parameters for Volcano.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
   })
-  
+
   volcanoOutput <- foundr::shinyVolcano("shinyTest", input, traitStats)
 }
 

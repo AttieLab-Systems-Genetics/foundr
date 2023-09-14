@@ -1,33 +1,3 @@
-#' Shiny Module Input for Volcano Plot
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyVolcano
-#' @export
-#' @importFrom shiny NS uiOutput
-#'
-shinyVolcanoInput <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shiny::uiOutput(ns("shiny_input"))
-}
-
-#' Shiny Module UI for Volcano Plot
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyVolcano
-#' @export
-#' @importFrom shiny column downloadButton fluidRow NS uiOutput
-#'
-shinyVolcanoUI <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shiny::uiOutput(ns("downloadsx"))
-}
-
 #' Shiny Module Output for Volcano Plot
 #'
 #' @param id identifier for shiny reactive
@@ -69,6 +39,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     # INPUTS
     # Main inputs:
     #   main_par$height
+    #   main_par$dataset
     # Volcano inputs: (see output$tab_volcano below)
     #   input$term
     #   input$traitnames
@@ -88,8 +59,8 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
       unique(traitStats$dataset)
     })
     data_selection <- shiny::reactiveVal(NULL, label = "data_selection")
-    shiny::observeEvent(input$dataset,
-                        data_selection(input$dataset))
+    shiny::observeEvent(main_par$dataset,
+                        data_selection(main_par$dataset))
     shiny::observeEvent(
       !shiny::isTruthy(main_par$tabpanel) | main_par$tabpanel == "Volcano",
       {

@@ -72,7 +72,7 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
 #' @param bysex type of sex from c("F","M","F-M","F+M")
 #' @param ntraits number of traits (if not volcano)
 #' @param volcano volcano plot if `TRUE`
-#' @param interact interactive plot if `TRUE`
+#' @param ... additional parameters for `volcano()`
 #'
 #' @return ggplot object
 #' @export
@@ -83,7 +83,7 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
 #'
 ggplot_conditionContrasts <- function(object, bysex = names(sexes),
                                       ntraits = 20, volcano = FALSE,
-                                      interact = FALSE, ...) {
+                                      ...) {
   conditions <- attr(object, "conditions")
   termname <- attr(object, "termname")
   
@@ -124,7 +124,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
       dplyr::mutate(
         dplyr::rename(object, SD = "dif"),
         term = termname),
-      "signal", facet = TRUE, traitnames = FALSE, interact = interact)
+      "signal", facet = TRUE, traitnames = FALSE, ...)
   } else { # Plot contrasts of strains by trait.
     # Pick top traits to plot
     object <- 

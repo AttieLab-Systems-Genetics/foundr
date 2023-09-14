@@ -30,7 +30,9 @@ server <- function(input, output, session,
                                 traitData, traitSignal, traitStats)
   volcanoOutput <- shinyVolcano("tabVolcano", input, traitStats,
                                 customSettings)
-  
+  contrastOutput <- shinyContrastPanel("tabContrasts", input,
+                                       traitSignal, traitStats,
+                                       customSettings)
   
   output$intro <- foundrIntro(customSettings$help)
   
@@ -40,6 +42,14 @@ server <- function(input, output, session,
     shiny::checkboxGroupInput(
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
+  })
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+
+    # Get new input parameters for Volcano.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
   })
   
   # Entry key
@@ -59,11 +69,13 @@ server <- function(input, output, session,
         shiny::showTab(inputId = "tabpanel", target = "Traits")
         if(length(timetraits_all()))
           shiny::showTab(inputId = "tabpanel", target = "Times")
+        shiny::showTab(inputId = "tabpanel", target = "Contrasts")
         shiny::showTab(inputId = "tabpanel", target = "Volcano")
         shiny::showTab(inputId = "tabpanel", target = "About")
       } else {
         shiny::hideTab(inputId = "tabpanel", target = "Traits")
         shiny::hideTab(inputId = "tabpanel", target = "Times")
+        shiny::hideTab(inputId = "tabpanel", target = "Contrasts")
         shiny::hideTab(inputId = "tabpanel", target = "Volcano")
         shiny::hideTab(inputId = "tabpanel", target = "About")
       }
@@ -75,8 +87,12 @@ server <- function(input, output, session,
       if(shiny::isTruthy(entrykey())) {
         if(length(timetraits_all())) {
           shiny::showTab(inputId = "tabpanel", target = "Times")
+          # Hidden for calcium study for now.
+          shiny::showTab(inputId = "tabpanel", target = "Contrasts")
         } else {
           shiny::hideTab(inputId = "tabpanel", target = "Times")
+          # Hidden for calcium study for now.
+          shiny::hideTab(inputId = "tabpanel", target = "Contrasts")
         }}
     })
   timetraits_all <- shiny::reactive({
@@ -89,9 +105,12 @@ server <- function(input, output, session,
     if(shiny::isTruthy(entrykey())) {
       shiny::tagList(
         switch(shiny::req(input$tabpanel),
-               Traits = shinyTraitPanelInput("tabTraits"),
-               Volcano = shinyVolcanoInput("tabVolcano"),
-               Times  = if(length(timetraits_all())) {
+               Traits    = shinyTraitPanelInput("tabTraits"),
+               Contrasts = if(length(timetraits_all())) {
+                 shinyContrastPanelInput("tabContrasts")
+               },
+               Volcano   = shiny::uiOutput("dataset"),
+               Times     = if(length(timetraits_all())) {
                  shinyTimesPanelInput("tabTimes") 
                }),
         
@@ -100,7 +119,9 @@ server <- function(input, output, session,
         if(shiny::req(input$tabpanel) != "Volcano") {
           shiny::tagList(
             shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-            shiny::checkboxInput("facet", "Facet by strain?", TRUE))
+            if(shiny::req(input$tabpanel) != "Contrasts") {
+              shiny::checkboxInput("facet", "Facet by strain?", TRUE)
+          })
         },
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6,
                            step = 1))
@@ -118,6 +139,7 @@ server <- function(input, output, session,
       shiny::tabsetPanel(
         type = "tabs", header = "", id = "tabpanel",
         shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
+        shiny::tabPanel("Contrasts",  shinyContrastPanelOutput("tabContrasts")),
         shiny::tabPanel("Volcano",  shinyVolcanoOutput("tabVolcano")),
         shiny::tabPanel("Times",  shinyTimesPanelOutput("tabTimes")),
         shiny::tabPanel("About",  shiny::uiOutput("intro"))

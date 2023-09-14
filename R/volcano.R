@@ -6,6 +6,7 @@
 #' @param interact prepare for interactive if `TRUE`
 #' @param traitnames include trait names if `TRUE`
 #' @param facet facet on `strain` if `TRUE`
+#' @param ... additional parameters ignored
 #'
 #' @return ggplot object
 #' @export
@@ -23,7 +24,7 @@ volcano <- function(object,
                     threshold = c(SD = 1, p = 0.01),
                     interact = FALSE,
                     traitnames = TRUE,
-                    facet = FALSE) {
+                    facet = FALSE, ...) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
   CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
@@ -58,6 +59,10 @@ volcano <- function(object,
     SDT <- c(-1,1)
   else
     SDT <- 1
+  
+  if(interact) {
+    object <- dplyr::filter(object, foldchange != "NO")
+  }
   
   # Prettify x label
   xlab <- paste("deviations for", termname)

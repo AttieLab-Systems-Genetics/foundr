@@ -14,7 +14,7 @@ shinyContrastPanelInput <- function(id) {
     shiny::column(9,
                   shinyTraitOrderInput(ns("shinyOrder"))),
     shiny::column(3,
-                  shiny::numericInput(ns("ntrait"), "Rows:",
+                  shiny::numericInput(ns("ntrait"), "Traits:",
                                     20, 5, 100, 5)))
 }
 
@@ -54,7 +54,7 @@ shinyContrastPanelOutput <- function(id) {
 #'
 #' @return reactive object 
 #' @importFrom shiny column downloadHandler h3 moduleServer observeEvent
-#'             reactive renderUI req selectInput tagList uiOutput
+#'             reactive renderText renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
@@ -101,9 +101,11 @@ shinyContrastPanel <- function(id, main_par,
       dplyr::filter(contrasts(), .data$strain %in% main_par$strains)
     })
     contrastVolcano <- shiny::reactive({
-      shiny::req(contrasts_strains(), sextype())
+      shiny::req(contrasts_strains(), sextype(),
+                 input$volsd, input$volpval)
       
       plot(contrasts_strains(), bysex = sextype(), volcano = TRUE,
+           threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
            interact = shiny::isTruthy(input$interact))
     }, label = "contrastVolcano")
     contrastPlot <- shiny::reactive({
@@ -129,6 +131,13 @@ shinyContrastPanel <- function(id, main_par,
       
       shiny::tagList(
         shiny::h3(paste(condition, "Contrasts")),
+        shiny::renderText({
+          paste0("This panel examines contrasts (differences) of ",
+                 condition, " means by strain and sex.",
+                 "These may be viewed by sex or averaged over sex",
+                 " (Both Sexes) or by contrast of Female - Male",
+                 " (Sex Contrast).")
+        }),
         shiny::fluidRow(
           shiny::column(8,
                         shiny::selectInput(ns("sex"), "Sex:",
@@ -136,8 +145,31 @@ shinyContrastPanel <- function(id, main_par,
           shiny::column(4,
                         shiny::checkboxInput(ns("interact"), "Interactive?"))),
         shiny::uiOutput(ns("conplot")),
-        shiny::uiOutput(ns("convolc")))
+        shiny::uiOutput(ns("convolc")),
+        
+        # Sliders from Volcano plot display.
+        shiny::fluidRow(
+          shiny::column(
+            6,
+            shiny::sliderInput(ns("volsd"), "SD line:",
+                               min = 0, max = 2, value = 1, step = 0.1)),
+          shiny::column(
+            6,
+            shiny::sliderInput(ns("volpval"), "-log10(p.value) line:",
+                               min = 0, max = 10, value = 2, step = 0.5)))
+      )
     })
+    shiny::observeEvent(
+      shiny::req(contrasts()),
+      {
+        maxsd <- signif(max(abs(contrasts()$dif), na.rm = TRUE), 2)
+        shiny::updateSliderInput(session, "volsd", max = maxsd)
+        
+        maxpval <- min(
+          10,
+          round(-log10(min(contrasts()$p.value, na.rm = TRUE)), 1))
+        shiny::updateSliderInput(session, "volpval", max = maxpval)
+      }, label = "observeSlider")
     output$convolc <- shiny::renderUI({
       if(shiny::isTruthy(input$interact)) {
         plotly::renderPlotly(shiny::req(contrastVolcano()))

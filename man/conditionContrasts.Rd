@@ -20,7 +20,6 @@ ggplot_conditionContrasts(
   bysex = names(sexes),
   ntraits = 20,
   volcano = FALSE,
-  interact = FALSE,
   ...
 )
 
@@ -46,8 +45,6 @@ summary_conditionContrasts(object, ntrait = 20, ...)
 \item{ntraits}{number of traits to plot}
 
 \item{volcano}{volcano plot if `TRUE`}
-
-\item{interact}{interactive plot if `TRUE`}
 
 \item{...}{parameters passed to `ggplot_conditionContrasts`}
 
