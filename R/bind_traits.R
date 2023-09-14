@@ -24,7 +24,7 @@ bind_traits <- function(datasets, dirname = ".", traitRoot = "trait",
       # Ignore "noise" term as it has no p.value.
       dplyr::filter(
         traitStats,
-        .data$term != "noise"),
+        !(.data$term %in% c("noise", "rawSD"))),
       is.na(.data$p.value)))$trait
   
   traitStats <- dplyr::filter(traitStats, !(.data$trait %in% dropTraits))

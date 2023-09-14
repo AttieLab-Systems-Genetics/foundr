@@ -29,7 +29,7 @@ stats_time <- function(traitStats,
           dplyr::mutate(
             dplyr::filter(
               traitStats,
-              .data$term != "noise"),
+              !(.data$term %in% c("noise", "rawSD"))),
             p.value = -log10(.data$p.value)),
           value = "p.value"),
         -SD)
@@ -48,7 +48,7 @@ stats_time <- function(traitStats,
     dplyr::mutate(
       object,
       model = ifelse(
-        .data$term %in% c("cellmean","signal","rest","noise"),
+        .data$term %in% c("cellmean","signal","rest","noise","rawSD"),
         "parts", "terms"))
   
   # Rename timecol to `time`. Add "wk" to `week column if it is "minute".

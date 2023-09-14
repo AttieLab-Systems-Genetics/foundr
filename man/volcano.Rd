@@ -9,7 +9,8 @@ volcano(
   termname = terms[1],
   threshold = c(SD = 1, p = 0.01),
   interact = FALSE,
-  traitnames = TRUE
+  traitnames = TRUE,
+  facet = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ volcano(
 \item{interact}{prepare for interactive if `TRUE`}
 
 \item{traitnames}{include trait names if `TRUE`}
+
+\item{facet}{facet on `strain` if `TRUE`}
 }
 \value{
 ggplot object

@@ -104,7 +104,7 @@ fitsplit <- function(traitdata, signal, rest, condition_name = "condition") {
     dplyr::bind_rows(
       sig,
       strain_stats(stats::drop1(fit, fit, test = "F"))),
-    SD = .data$SD / rawSD,
+    SD = ifelse(.data$term == "rawSD", rawSD, .data$SD / rawSD),
     SD = ifelse(.data$term == condition_name, .data$SD * condsign, .data$SD),
     SD = ifelse(.data$term == "sex", .data$SD * sexsign, .data$SD))
   out
@@ -118,8 +118,12 @@ traitOrderStats <- function(object, termname) {
     .data$p.value)
 }
 
-termStats <- function(object, signal = TRUE, condition_name = "condition") {
+termStats <- function(object, signal = TRUE, condition_name = "condition",
+                      drop_noise = TRUE) {
   terms <- unique(object$term)
+  if(drop_noise) { # Drop noise and other terms not of interest to user.
+    terms <- terms[!(terms %in% c("rest","noise","rawSD"))]
+  }
 
   if(signal) {
     # Return the strain terms with condition if present
@@ -143,10 +147,10 @@ signalfit <- function(traitdata, value, signal, rest) {
   Fful <- sumful$fstatistic
   Fred <- sumred$fstatistic
   extra <- data.frame(
-    term = c("cellmean", "rest", "noise"),
+    term = c("cellmean", "rest", "rawSD"), # `rawSD` was `noise`
     SD = c(sqrt(Fful[1]) * sumful$sigma,
            sqrt(Fred[1]) * sumred$sigma,
-           sumful$sigma),
+           sumful$sigma), # this value is replaced in `fitsplit()` by `rawSD`.
     p.value = c(
       stats::pf(Fful[1],
                 Fful[2], Fful[3],
@@ -251,12 +255,12 @@ summary_strainstats <- function(object,
           parts = {
             dplyr::filter(
               object,
-              .data$term %in% c("signal", "cellmean", "rest", "noise"))
+              .data$term %in% c("signal", "cellmean", "rest", "rawSD"))
           },
           terms ={
             dplyr::filter(
               object,
-              !(.data$term %in% c("signal", "cellmean", "rest", "noise")))
+              !(.data$term %in% c("signal", "cellmean", "rest", "rawSD")))
           })
     }
     
@@ -267,7 +271,7 @@ summary_strainstats <- function(object,
                  dplyr::select(
                    dplyr::filter(
                      object,
-                     .data$term != "noise"),
+                     .data$term != "rawSD"),
                    -.data$log10.p),
                  names_from = "term", values_from = "deviance")
              },

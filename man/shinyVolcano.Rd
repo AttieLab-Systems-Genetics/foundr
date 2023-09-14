@@ -13,7 +13,7 @@ shinyVolcanoUI(id)
 
 shinyVolcanoOutput(id)
 
-shinyVolcano(id, main_par, traitStats, customSettings = NULL)
+shinyVolcano(id, main_par, traitStats, customSettings = NULL, facet = FALSE)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -23,6 +23,8 @@ shinyVolcano(id, main_par, traitStats, customSettings = NULL)
 \item{traitStats}{static data frame}
 
 \item{customSettings}{list of custom settings}
+
+\item{facet}{facet on `strain` if `TRUE`}
 
 \item{input, output, session}{standard shiny arguments}
 }

@@ -45,7 +45,7 @@ shinyModuleDendro <- function(input, output, session,
   datasets <- shiny::reactive(
     c("LivMet","PlaMet0","PlaMet120","Metab"))
   responses <- shiny::reactive(
-    c("value","cellmean","signal","rest","noise"))
+    c("value","cellmean","signal","rest"))
   
   # Dendrogram
   output$shiny_dendro <- shiny::renderUI({

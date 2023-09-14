@@ -5,12 +5,13 @@
 #' @param threshold named vector for `SD` and `p.value`
 #' @param interact prepare for interactive if `TRUE`
 #' @param traitnames include trait names if `TRUE`
+#' @param facet facet on `strain` if `TRUE`
 #'
 #' @return ggplot object
 #' @export
 #' @importFrom dplyr filter mutate
-#' @importFrom ggplot2 aes geom_hline geom_point geom_vline geom_text ggplot
-#'             scale_color_manual theme theme_minimal xlab
+#' @importFrom ggplot2 aes element_text geom_hline geom_point geom_vline
+#'             geom_text ggplot scale_color_manual theme theme_minimal xlab
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom rlang .data
 #'
@@ -21,7 +22,8 @@ volcano <- function(object,
                     termname = terms[1],
                     threshold = c(SD = 1, p = 0.01),
                     interact = FALSE,
-                    traitnames = TRUE) {
+                    traitnames = TRUE,
+                    facet = FALSE) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
   CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
@@ -63,18 +65,26 @@ volcano <- function(object,
     xlab <- "Female - deviations + Male"
     
   # Convert directly in the aes()
+  textsize <- 12
   p <- ggplot2::ggplot(object) +
     ggplot2::aes(SD, -log10(p.value), col = foldchange, label = label) +
     ggplot2::geom_point() +
     # Add more simple "theme"
     ggplot2::theme_minimal() +
-    ggplot2::theme(legend.position = "none") +
+    ggplot2::theme(legend.position = "none",
+                   strip.text = ggplot2::element_text(size = textsize),
+                   axis.text = ggplot2::element_text(size = textsize),
+                   axis.title = ggplot2::element_text(size = textsize)) +
     ggplot2::xlab(xlab) +
     # Add vertical lines for log2FoldChange thresholds, and one horizontal line for the p-value threshold 
     ggplot2::geom_vline(xintercept = SDT * threshold["SD"], col = CB_colors[2]) +
     ggplot2::geom_hline(yintercept = -log10(threshold["p"]), col = CB_colors[2]) +
     # The significantly differentially expressed traits are in the upper quadrats.
     ggplot2::scale_color_manual(values=c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2]))
+  
+  if(facet && "strain" %in% names(object)) {
+    p <- p + ggplot2::facet_wrap(~ .data$strain)
+  }
   
   if(traitnames) {
     if(interact) {

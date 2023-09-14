@@ -49,6 +49,7 @@ shinyVolcanoOutput <- function(id) {
 #' @param main_par reactive arguments from `server()`
 #' @param traitStats static data frame
 #' @param customSettings list of custom settings
+#' @param facet facet on `strain` if `TRUE`
 #'
 #' @return reactive object for `shinyVolcanoUI`
 #' @importFrom shiny column fluidRow moduleServer observeEvent plotOutput
@@ -60,13 +61,14 @@ shinyVolcanoOutput <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
+shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
+                         facet = FALSE) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # Main inputs: (see shinyapp.R)
-    #   main_par$height (see shinyapp.R::foundrUI sidebarPanel)
+    #   main_par$height
     # Volcano inputs: (see output$tab_volcano below)
     #   input$term
     #   input$traitnames
@@ -163,8 +165,9 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL) {
       
       volcano(traitStatsSelected(), term_selection(),
               threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
-              interact = (inter_selection()),
-              traitnames = (trait_selection()))
+              interact = inter_selection(),
+              traitnames = trait_selection(),
+              facet = facet)
     })
     output$volcanoly <- plotly::renderPlotly({
       plotly::ggplotly(

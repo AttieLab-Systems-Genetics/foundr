@@ -60,7 +60,7 @@ shinyModules <- function(input, output, session,
   datasets <- shiny::reactive(
     c("LivMet","PlaMet0","PlaMet120","Metab"))
   responses <- shiny::reactive(
-    c("value","cellmean","signal","rest","noise"))
+    c("value","cellmean","signal","rest"))
   
   output$shiny_module <- shiny::renderUI({
     shiny::tagList(

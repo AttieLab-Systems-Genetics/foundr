@@ -68,22 +68,24 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
 #' @param bysex type of sex from c("F","M","F-M","F+M")
 #' @param ntraits number of traits (if not volcano)
 #' @param volcano volcano plot if `TRUE`
+#' @param interact interactive plot if `TRUE`
 #'
 #' @return ggplot object
 #' @export
 #' @rdname conditionContrasts
 #' @importFrom dplyr filter group_by mutate summarize ungroup
 #' @importFrom ggplot2 aes element_text facet_wrap geom_jitter geom_point
-#'             geom_vline ggplot scale_fill_manual theme xlab
+#'             geom_vline ggplot scale_fill_manual theme xlab ylab
 #'
 ggplot_conditionContrasts <- function(object, bysex = names(sexes),
-                                      ntraits = 20, volcano = FALSE) {
+                                      ntraits = 20, volcano = FALSE,
+                                      interact = FALSE) {
   conditions <- attr(object, "conditions")
   
   if(is.null(object) || is.null(conditions))
     return(plot_null("no difference data"))
   
-  sexes <- c("Female", "Male", "Female - Male", "Female + Male")
+  sexes <- c("Female", "Male", "Sex Contrast", "Both Sexes")
   names(sexes) <- c("F","M","F-M","F+M")
   bysex <- match.arg(bysex)
   
@@ -117,19 +119,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
       dplyr::mutate(
         dplyr::rename(object, SD = "dif"),
         term = "strain"),
-      "signal", facet = TRUE, traitnames = FALSE)
-    if(FALSE) {
-    p <- ggplot2::ggplot(object) +
-      ggplot2::aes(.data$dif, -log10(.data$p.value), fill = .data$strain) +
-      ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
-      ggplot2::geom_point(color = "black",
-                          size = 3, shape = 21, alpha = 0.65) +
-      ggplot2::scale_fill_manual(values = foundr::CCcolors) +
-      ggplot2::theme(legend.position = "right",
-                     legend.text = ggplot2::element_text(size = 12),
-                     axis.text = ggplot2::element_text(size = 12)) +
-      ggplot2::facet_wrap(~ .data$strain)
-    }
+      "signal", facet = TRUE, traitnames = FALSE, interact = interact)
   } else { # Plot contrasts of strains by trait.
     # Pick top traits to plot
     object <- 
@@ -139,6 +129,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
           .data$trait %in% rev(levels(object$trait))[seq_len(ntraits)]),
         trait = abbreviate(paste(.data$dataset, .data$trait, sep = ": "), 30))
     
+    textsize <- 12
     p <- ggplot2::ggplot(object) +
       ggplot2::aes(.data$dif, .data$trait, fill = .data$strain) +
       ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
@@ -146,14 +137,18 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
                            size = 3, shape = 21, alpha = 0.65) +
       ggplot2::scale_fill_manual(values = foundr::CCcolors) +
       ggplot2::theme(legend.position = "right",
-                     legend.text = ggplot2::element_text(size = 12),
-                     axis.text = ggplot2::element_text(size = 12))
+                     legend.text = ggplot2::element_text(size = textsize),
+                     axis.text = ggplot2::element_text(size = textsize),
+                     axis.title = ggplot2::element_text(size = textsize)) +
+      ggplot2::ylab("")
   }
 
   # Modify X label to be sex and conditions
   xlab <- sexes[bysex]
   if(!is.null(conditions)) {
-    xlab <- paste(xlab, "and", paste(conditions, collapse = " - "))
+    xlab <- paste(conditions[2], "-",
+                  xlab,
+                  "+", conditions[1])
   }
   p + ggplot2::xlab(xlab)
 }

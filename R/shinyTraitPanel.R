@@ -196,8 +196,8 @@ shinyTraitPanel <- function(id, main_par,
         paste0(shiny::req(input$filename), ".pdf")
       },
       content = function(file) {
-        shiny::req(solosOutput())
-        grDevices::pdf(file, width = 9, height = 6)
+        shiny::req(solosOutput(), main_par$height)
+        grDevices::pdf(file, width = 9, height = main_par$height)
         print(solosOutput())
         if(length(shiny::req(trait_names())) > 1)
           print(pairsOutput())

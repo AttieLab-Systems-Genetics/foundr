@@ -1,0 +1,49 @@
+---
+title: "Fix RawSD"
+output: html_document
+date: "2023-09-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData")
+```
+
+# Fix traitStats
+
+```{r}
+prefix <- "trait"
+prefix <- "liver"
+```
+
+```{r}
+traitData <- readRDS(file.path(dirpath, paste0(prefix, "Data.rds")))
+traitStats <- readRDS(file.path(dirpath, paste0(prefix, "Stats.rds")))
+```
+
+```{r}
+traitSD <- traitData %>%
+  group_by(dataset, trait) %>%
+  summarize(rawSD = sd(value), .groups = "drop") %>%
+  ungroup
+```
+
+```{r}
+traitStats <-
+  left_join(traitStats, traitSD, by = c("dataset", "trait")) %>%
+  mutate(SD = ifelse(term == "noise", rawSD, SD),
+         term = ifelse(term == "noise", "rawSD", term))
+traitStats$rawSD <- NULL
+```
+
+```{r}
+saveRDS(traitStats, file.path(dirpath, paste0(prefix, "Stats.rds")))
+```

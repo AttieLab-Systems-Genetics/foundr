@@ -62,7 +62,9 @@ effectplot <- function(object, traitnames = NULL,
   # Add columns for `model`, `selected` and `sizes`.
   object <- dplyr::arrange(
     dplyr::mutate(
-      object,
+      dplyr::filter(
+        object,
+        !(.data$terms %in% c("noise","rawSD"))),
       model = ifelse(
         .data$terms %in% c("signal", "cellmean", "rest", "noise"),
         "model parts", "model terms"),
