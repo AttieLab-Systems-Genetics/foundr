@@ -132,7 +132,7 @@ shinyContrastPanel <- function(id, main_par,
       shiny::tagList(
         shiny::h3(paste(condition, "Contrasts")),
         shiny::renderText({
-          paste0("This panel examines contrasts (differences) of ",
+          paste0("This panel examines contrasts (differences or ratios) of ",
                  condition, " means by strain and sex.",
                  "These may be viewed by sex or averaged over sex",
                  " (Both Sexes) or by contrast of Female - Male",

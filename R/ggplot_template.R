@@ -271,23 +271,11 @@ ggplot_onerow <- function(object,
   if(title != "")
     p <- p + ggplot2::ggtitle(title)
   
+  P <- theme_template(p, legend_position, textsize, legend_nrow)
+
   p <- p +
     ggplot2::theme(
-      legend.position = legend_position,
-      legend.text = ggplot2::element_text(size = textsize),
-      axis.text = ggplot2::element_text(size = textsize),
-      axis.title = ggplot2::element_text(size = textsize),
-      strip.text = ggplot2::element_text(size = textsize),
-      legend.key.width = grid::unit(1, "strwidth","abcdefgh"),
       axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust=1))
-  
-  # Make sure legend has no title and is on one row.
-  # if(legend_position == "bottom")
-    p <- p + ggplot2::guides(
-      color = ggplot2::guide_legend(
-        nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"),
-      fill = ggplot2::guide_legend(
-        nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"))
 
   p
 }
@@ -326,6 +314,23 @@ parallels <- function(
   } else {
     object
   }
+}
+theme_template <- function(p, legend_position = "bottom", textsize = 12,
+                           legend_nrow = 1) {
+  p + ggplot2::theme(
+    legend.position = legend_position,
+    legend.text = ggplot2::element_text(size = textsize),
+    legend.key.width = grid::unit(1, "strwidth","abcdefgh"),
+    axis.text = ggplot2::element_text(size = textsize),
+    axis.title = ggplot2::element_text(size = textsize),
+    strip.text = ggplot2::element_text(size = textsize)) +
+    # Make sure legend has no title and is on one row.
+    ggplot2::guides(
+      color = ggplot2::guide_legend(
+        nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"),
+      fill = ggplot2::guide_legend(
+        nrow = legend_nrow, byrow = TRUE, title = "", label.position = "top"))
+    
 }
 strain_lines <- function(
     object,

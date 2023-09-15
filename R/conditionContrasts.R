@@ -141,11 +141,9 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
       ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
                            size = 3, shape = 21, alpha = 0.65) +
       ggplot2::scale_fill_manual(values = foundr::CCcolors) +
-      ggplot2::theme(legend.position = "right",
-                     legend.text = ggplot2::element_text(size = textsize),
-                     axis.text = ggplot2::element_text(size = textsize),
-                     axis.title = ggplot2::element_text(size = textsize)) +
       ggplot2::ylab("")
+    
+    p <- theme_template(p)
   }
 
   # Modify X label to be sex and conditions
