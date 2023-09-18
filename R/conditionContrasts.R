@@ -131,7 +131,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
       dplyr::mutate(
         dplyr::filter(
           object,
-          .data$trait %in% rev(levels(object$trait))[seq_len(ntraits)]),
+          .data$trait %in% rev(levels(object$trait)[seq_len(ntraits)])),
         trait = abbreviate(paste(.data$dataset, .data$trait, sep = ": "), 40))
     
     textsize <- 12
