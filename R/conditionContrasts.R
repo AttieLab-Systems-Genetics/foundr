@@ -128,11 +128,13 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
   } else { # Plot contrasts of strains by trait.
     # Pick top traits to plot
     object <- 
-      dplyr::mutate(
-        dplyr::filter(
+      dplyr::filter(
+        dplyr::mutate(
           object,
-          .data$trait %in% rev(levels(object$trait)[seq_len(ntraits)])),
-        trait = abbreviate(paste(.data$dataset, .data$trait, sep = ": "), 40))
+          trait = abbreviate(
+            paste(.data$dataset, .data$trait, sep = ": "), 40),
+          trait = reorder(trait, -p.value)),
+        .data$trait %in% rev(levels(.data$trait))[seq_len(ntraits)])
     
     textsize <- 12
     p <- ggplot2::ggplot(object) +
