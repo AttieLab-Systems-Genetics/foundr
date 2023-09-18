@@ -6,13 +6,14 @@
 #' @param interact prepare for interactive if `TRUE`
 #' @param traitnames include trait names if `TRUE`
 #' @param facet facet on `strain` if `TRUE`
+#' @param xlab,ylab axis labels
 #' @param ... additional parameters ignored
 #'
 #' @return ggplot object
 #' @export
 #' @importFrom dplyr filter mutate
 #' @importFrom ggplot2 aes element_text geom_hline geom_point geom_vline
-#'             geom_text ggplot scale_color_manual theme theme_minimal xlab
+#'             geom_text ggplot scale_color_manual theme theme_minimal xlab ylab
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom rlang .data
 #'
@@ -24,7 +25,8 @@ volcano <- function(object,
                     threshold = c(SD = 1, p = 0.01),
                     interact = FALSE,
                     traitnames = TRUE,
-                    facet = FALSE, ...) {
+                    facet = FALSE, 
+                    xlab = xlab_default, ylab = ylab_default, ...) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
   CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
@@ -55,7 +57,7 @@ volcano <- function(object,
           (abs(SD) > 2 * threshold["SD"] | p.value < threshold["p"] / 10),
         paste(dataset, trait, sep = ": "), NA))
   
-  if(any(object$foldchange == "DOWN"))
+  if(any(object$SD < 0))
     SDT <- c(-1,1)
   else
     SDT <- 1
@@ -64,10 +66,13 @@ volcano <- function(object,
     object <- dplyr::filter(object, foldchange != "NO")
   }
   
+  # y label
+  ylab_default = "-log10(p.value)"
+  
   # Prettify x label
-  xlab <- paste("deviations for", termname)
+  xlab_default <- paste("deviations for", termname)
   if(termname == "sex")
-    xlab <- "Female - deviations + Male"
+    xlab_default <- "Female - deviations + Male"
     
   # Convert directly in the aes()
   textsize <- 12
@@ -81,6 +86,7 @@ volcano <- function(object,
                    axis.text = ggplot2::element_text(size = textsize),
                    axis.title = ggplot2::element_text(size = textsize)) +
     ggplot2::xlab(xlab) +
+    ggplot2::ylab(ylab) +
     # Add vertical lines for log2FoldChange thresholds, and one horizontal line for the p-value threshold 
     ggplot2::geom_vline(xintercept = SDT * threshold["SD"], col = CB_colors[2]) +
     ggplot2::geom_hline(yintercept = -log10(threshold["p"]), col = CB_colors[2]) +

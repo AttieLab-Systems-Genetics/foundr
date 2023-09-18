@@ -11,6 +11,8 @@ volcano(
   interact = FALSE,
   traitnames = TRUE,
   facet = FALSE,
+  xlab = xlab_default,
+  ylab = ylab_default,
   ...
 )
 }
@@ -26,6 +28,8 @@ volcano(
 \item{traitnames}{include trait names if `TRUE`}
 
 \item{facet}{facet on `strain` if `TRUE`}
+
+\item{xlab, ylab}{axis labels}
 
 \item{...}{additional parameters ignored}
 }
