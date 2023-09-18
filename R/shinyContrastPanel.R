@@ -162,7 +162,7 @@ shinyContrastPanel <- function(id, main_par,
     shiny::observeEvent(
       shiny::req(contrasts()),
       {
-        maxsd <- signif(max(abs(contrasts()$dif), na.rm = TRUE), 2)
+        maxsd <- signif(max(abs(contrasts()$value), na.rm = TRUE), 2)
         shiny::updateSliderInput(session, "volsd", max = maxsd)
         
         maxpval <- min(

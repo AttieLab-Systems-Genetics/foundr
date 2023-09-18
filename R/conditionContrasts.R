@@ -31,7 +31,7 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
         -term),
       rawStats)
 
-    # Create difference of conditions.
+    # Create contrast of conditions.
     traitSignal <-
       dplyr::select(
         dplyr::mutate(
@@ -40,7 +40,7 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
             # Focus on `cellmean`, drop `signal`.
             dplyr::select(traitSignal, -signal),
             names_from = "condition", values_from = "cellmean"),
-          dif = .data[[conditions[1]]] - .data[[conditions[2]]]),
+          value = .data[[conditions[1]]] - .data[[conditions[2]]]),
         -dplyr::matches(conditions))
   } else {
     return(NULL)
@@ -55,11 +55,33 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
           traitStats,
           by = c("dataset", "trait")),
         # Standardize by SD to have comparable trait ranges.
-        dif = .data$dif / .data$SD,
+        value = .data$value / .data$SD,
         # Reorder levels of trait by `p.value`.
         trait = stats::reorder(.data$trait, -.data$p.value)),
       # Remove `SD` from dataset. 
       -SD)
+  
+  # Join with `F-M` and `F+M` sex combinations.
+  out <- dplyr::bind_rows(
+    out,
+    # Contrast: female - male.
+    dplyr::ungroup(
+      dplyr::summarize(
+        dplyr::group_by(out, .data$dataset, .data$trait, .data$strain),
+        value = diff(.data$value, na.rm = TRUE)[1],
+        sex = "F-M",
+        p.value = mean(p.value),
+        .groups = "drop")),
+    # Mean: (female + male) / 2.
+    dplyr::ungroup(
+      dplyr::summarize(
+        dplyr::group_by(out, .data$dataset, .data$trait, .data$strain),
+        value = mean(.data$value, na.rm = TRUE),
+        sex = "F+M",
+        p.value = mean(p.value),
+        .groups = "drop")))
+  
+  out <- dplyr::mutate(out, sex = factor(.data$sex, c("F","M","F+M","F-M")))
   
   class(out) <- c("conditionContrasts", class(out))
   attr(out, "conditions") <- conditions
@@ -88,41 +110,19 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
   termname <- attr(object, "termname")
   
   if(is.null(object) || is.null(conditions))
-    return(plot_null("no difference data"))
+    return(plot_null("no contrast data"))
   
   sexes <- c("Female", "Male", "Sex Contrast", "Both Sexes")
   names(sexes) <- c("F","M","F-M","F+M")
   bysex <- match.arg(bysex)
   
-  # Switch based on sex, sex contrast, or sex mean.
-  switch(
-    bysex,
-    F, M  = {
-      object <- dplyr::filter(object, .data$sex == bysex)
-    },
-    "F-M" = {
-      # Contrast: female - male.
-      object <- dplyr::ungroup(
-        dplyr::summarize(
-          dplyr::group_by(object, .data$dataset, .data$trait, .data$strain),
-          dif = diff(.data$dif, na.rm = TRUE),
-          p.value = mean(p.value),
-          .groups = "drop"))
-    },
-    "F+M" = {
-      # Mean: (female + male) / 2.
-      object <- dplyr::ungroup(
-        dplyr::summarize(
-          dplyr::group_by(object, .data$dataset, .data$trait, .data$strain),
-          dif = mean(.data$dif, na.rm = TRUE),
-          p.value = mean(p.value),
-          .groups = "drop"))
-    })
-  
+  # Filter by sex, sex contrast, or sex mean.
+  object <- dplyr::filter(object, .data$sex == bysex)
+
   if(volcano) { # Volcano Plot
     p <- volcano(
       dplyr::mutate(
-        dplyr::rename(object, SD = "dif"),
+        dplyr::rename(object, SD = "value"),
         term = termname),
       "signal", facet = TRUE, traitnames = FALSE, ...)
   } else { # Plot contrasts of strains by trait.
@@ -136,7 +136,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
     
     textsize <- 12
     p <- ggplot2::ggplot(object) +
-      ggplot2::aes(.data$dif, .data$trait, fill = .data$strain) +
+      ggplot2::aes(.data$value, .data$trait, fill = .data$strain) +
       ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
       ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
                            size = 3, shape = 21, alpha = 0.65) +
@@ -180,17 +180,21 @@ plot.conditionContrasts <- function(x, ...) {
 #' @rdname conditionContrasts
 #'
 summary_conditionContrasts <- function(object, ntrait = 20, ...) {
+  sexes <- c("Female", "Male", "Sex Contrast", "Both Sexes")
+  names(sexes) <- c("F","M","F-M","F+M")
+  
   tidyr::pivot_wider(
       dplyr::mutate(
         dplyr::filter(
           dplyr::arrange(
             object,
-            p.value),
+            .data$p.value, .data$sex),
           dplyr::dense_rank(.data$p.value) <= ntrait),
+        sex = factor(sexes[.data$sex], sexes),
         p.value = signif(.data$p.value, 4),
-        dif = signif(.data$dif, 4),
+        value = signif(.data$value, 4),
         strain = factor(strain, names(foundr::CCcolors))),
-      names_from = "strain", values_from = "dif")
+      names_from = "strain", values_from = "value")
 }
 
 #' Summary method for Contrasts of Condtions
