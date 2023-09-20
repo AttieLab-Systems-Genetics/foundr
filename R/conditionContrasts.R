@@ -141,7 +141,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
       ggplot2::aes(.data$value, .data$trait, fill = .data$strain) +
       ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
       ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
-                           size = 3, shape = 21, alpha = 0.65) +
+                           size = 3, shape = 21, alpha = 0.9) +
       ggplot2::scale_fill_manual(values = foundr::CCcolors) +
       ggplot2::ylab("")
     
