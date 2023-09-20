@@ -7,10 +7,11 @@
 volcano(
   object,
   termname = terms[1],
-  threshold = c(SD = 1, p = 0.01),
+  threshold = threshold_default,
   interact = FALSE,
   traitnames = TRUE,
   facet = FALSE,
+  ordername = c("p.value", "kME", "module"),
   xlab = xlab_default,
   ylab = ylab_default,
   ...
@@ -28,6 +29,8 @@ volcano(
 \item{traitnames}{include trait names if `TRUE`}
 
 \item{facet}{facet on `strain` if `TRUE`}
+
+\item{ordername}{name of column for Y ordering.}
 
 \item{xlab, ylab}{axis labels}
 

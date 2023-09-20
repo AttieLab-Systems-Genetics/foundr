@@ -271,7 +271,7 @@ ggplot_onerow <- function(object,
   if(title != "")
     p <- p + ggplot2::ggtitle(title)
   
-  P <- theme_template(p, legend_position, textsize, legend_nrow)
+  p <- theme_template(p, legend_position, textsize, legend_nrow)
 
   p <- p +
     ggplot2::theme(

@@ -92,13 +92,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
             4,
             shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
         
-        # Condition for plot based on `interact` parameter.
-        if(shiny::isTruthy(input$interact)) {
-          plotly::plotlyOutput(ns("volcanoly"))
-        } else {
-          shiny::plotOutput(ns("volcanopr"),
-                            height = paste0(shiny::req(main_par$height), "in"))
-        },
+        shiny::uiOutput(ns("volcano_inter")),
         
         # Sliders from Volcano plot display.
         shiny::fluidRow(
@@ -121,15 +115,22 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
       termStats(traitStats, FALSE)
     })
     term_selection <- shiny::reactiveVal(NULL, label = "term_selection")
-    shiny::observeEvent(input$term,
-                        term_selection(input$term))
+    shiny::observeEvent(input$term, term_selection(input$term))
     trait_selection <- shiny::reactiveVal(NULL, label = "trait_selection")
-    shiny::observeEvent(input$traitnames,
-                        trait_selection(input$traitnames))
+    shiny::observeEvent(input$traitnames, trait_selection(input$traitnames))
     inter_selection <- shiny::reactiveVal(NULL, label = "inter_selection")
-    shiny::observeEvent(input$interact,
-                        inter_selection(input$interact))
+    shiny::observeEvent(input$interact, inter_selection(input$interact))
     
+    output$volcano_inter <- shiny::renderUI({
+      # Condition for plot based on `interact` parameter.
+      if(shiny::isTruthy(inter_selection())) {
+        plotly::plotlyOutput(ns("volcanoly"),
+                             height = paste0(shiny::req(main_par$height), "in"))
+      } else {
+        shiny::plotOutput(ns("volcanopr"),
+                          height = paste0(shiny::req(main_par$height), "in"))
+      }
+    })
     volcano_plot <- shiny::reactive({
       shiny::req(traitStatsSelected(), term_selection(),
                  input$volsd, input$volpval)
