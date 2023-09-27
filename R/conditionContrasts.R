@@ -20,6 +20,7 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
   conditions <- conditions[!is.na(conditions)]
   
   if("condition" %in% names(traitSignal) && length(conditions) == 2) {
+    # Replace `SD` with `rawSD`.
     traitStats <- replace_rawSD(
       # Filter `traitStats` to `termname` and arrange by `p.value`.
       dplyr::select(
@@ -63,31 +64,55 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
   
   # Join with `F-M` and `F+M` sex combinations.
   out <- dplyr::bind_rows(
+    # Female and Male.
     out,
-    # Contrast: female - male.
+    # Sex Contrast: (Female - Male) / 2.
     dplyr::ungroup(
       dplyr::summarize(
         dplyr::group_by(out, .data$dataset, .data$trait, .data$strain),
-        value = diff(.data$value, na.rm = TRUE)[1],
+        value = ifelse(dplyr::n() == 2,
+                       diff(.data$value, na.rm = TRUE)[1] / 2,
+                       NA),
         sex = "F-M",
         p.value = mean(p.value),
         .groups = "drop")),
-    # Mean: (female + male) / 2.
+    # Both Sexes: (Female + Male) / 2.
     dplyr::ungroup(
       dplyr::summarize(
         dplyr::group_by(out, .data$dataset, .data$trait, .data$strain),
-        value = mean(.data$value, na.rm = TRUE),
+        value = ifelse(dplyr::n() == 2,
+                       mean(.data$value, na.rm = TRUE),
+                       NA),
         sex = "F+M",
         p.value = mean(p.value),
         .groups = "drop")))
   
-  out <- dplyr::mutate(out, sex = factor(.data$sex, c("F","M","F+M","F-M")))
+  sexes <- c("Both Sexes", "Female", "Male", "Sex Contrast")
+  names(sexes) <- c("F+M", "F", "M", "F-M")
+  
+  out <- dplyr::mutate(out, sex = factor(sexes[.data$sex], sexes))
   
   class(out) <- c("conditionContrasts", class(out))
   attr(out, "conditions") <- conditions
   attr(out, "termname") <- termname
+  attr(out, "ordername") <- "p.value"
   out
 }
+
+# Turn `conditionContrasts` object into a `traitSignal` object.
+contrast2signal <- function(contrasts) {
+  if(is.null(contrasts))
+    return(NULL)
+  
+  dplyr::mutate(
+    dplyr::select(
+      dplyr::rename(
+        contrasts,
+        cellmean = "value"),
+      -p.value),
+    signal = .data$cellmean)
+}
+
 #' GGplot of Contrasts of Conditions
 #'
 #' @param object object of class `conditionContrasts`
@@ -103,17 +128,19 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
 #' @importFrom ggplot2 aes element_text facet_wrap geom_jitter geom_point
 #'             geom_vline ggplot scale_fill_manual theme xlab ylab
 #'
-ggplot_conditionContrasts <- function(object, bysex = names(sexes),
+ggplot_conditionContrasts <- function(object, bysex = sexes,
                                       ntraits = 20, volcano = FALSE,
                                       ...) {
   conditions <- attr(object, "conditions")
   termname <- attr(object, "termname")
+  ordername <- attr(object, "ordername")
+  if(is.null(ordername))
+    ordername <- "p.value"
   
   if(is.null(object) || is.null(conditions))
     return(plot_null("no contrast data"))
   
-  sexes <- c("Female", "Male", "Sex Contrast", "Both Sexes")
-  names(sexes) <- c("F","M","F-M","F+M")
+  sexes <- c("Both Sexes", "Female", "Male", "Sex Contrast")
   bysex <- match.arg(bysex)
   
   # Filter by sex, sex contrast, or sex mean.
@@ -124,7 +151,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
       dplyr::mutate(
         dplyr::rename(object, SD = "value"),
         term = termname),
-      "signal", facet = TRUE, traitnames = FALSE, ...)
+      "signal", facet = TRUE, traitnames = FALSE, ordername = ordername, ...)
   } else { # Plot contrasts of strains by trait.
     # Pick top traits to plot
     object <- 
@@ -149,7 +176,7 @@ ggplot_conditionContrasts <- function(object, bysex = names(sexes),
   }
 
   # Modify X label to be sex and conditions
-  xlab <- sexes[bysex]
+  xlab <- bysex
   if(!is.null(conditions)) {
     xlab <- paste(conditions[2], "-",
                   xlab,
@@ -182,21 +209,31 @@ plot.conditionContrasts <- function(x, ...) {
 #' @rdname conditionContrasts
 #'
 summary_conditionContrasts <- function(object, ntrait = 20, ...) {
-  sexes <- c("Female", "Male", "Sex Contrast", "Both Sexes")
-  names(sexes) <- c("F","M","F-M","F+M")
-  
-  tidyr::pivot_wider(
-      dplyr::mutate(
-        dplyr::filter(
-          dplyr::arrange(
-            object,
-            .data$p.value, .data$sex),
-          dplyr::dense_rank(.data$p.value) <= ntrait),
-        sex = factor(sexes[.data$sex], sexes),
-        p.value = signif(.data$p.value, 4),
-        value = signif(.data$value, 4),
-        strain = factor(strain, names(foundr::CCcolors))),
+  ordername <- attr(object, "ordername")
+
+  out <- tidyr::pivot_wider(
+      dplyr::arrange(
+        dplyr::mutate(
+          dplyr::filter(
+            dplyr::arrange(
+              object,
+              .data[[ordername]], .data$sex),
+            dplyr::dense_rank(.data[[ordername]]) <= ntrait),
+          value = signif(.data$value, 4),
+          strain = factor(strain, names(foundr::CCcolors))),
+        .data$strain),
       names_from = "strain", values_from = "value")
+  
+  if(ordername %in% c("p.value", "kME"))
+    out[[ordername]] <- signif(out[[ordername]], 4)
+  
+  if(ordername %in% c("p.value", "module")) {
+    out <- dplyr::arrange(out, .data[[ordername]])
+  } else {
+    out <- dplyr::arrange(out, -abs(.data[[ordername]]))
+  }
+
+  out
 }
 
 #' Summary method for Contrasts of Condtions

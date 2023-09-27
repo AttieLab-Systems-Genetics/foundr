@@ -17,7 +17,7 @@ conditionContrasts(
 
 ggplot_conditionContrasts(
   object,
-  bysex = names(sexes),
+  bysex = sexes,
   ntraits = 20,
   volcano = FALSE,
   ...

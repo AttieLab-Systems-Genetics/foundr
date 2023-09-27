@@ -131,7 +131,8 @@ shinyModuleComp <- function(input, output, session,
       DT::renderDataTable({
         DT::datatable(
           modcomptable(),
-          options = list(paging =TRUE, pageLength = 5))
+          escape = FALSE,
+          options = list(paging =TRUE, scrollX = TRUE, pageLength = 10))
       })
     )
   })

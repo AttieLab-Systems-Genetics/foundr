@@ -108,7 +108,9 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
                            2, step = 0.5))),
         
         # Data table.
-        DT::dataTableOutput(ns("tablesum")))
+        DT::dataTableOutput(ns("tablesum"),
+                            escape = FALSE,
+                            options = list(scrollX = TRUE, pageLength = 10)))
     })
     
     term_stats <- shiny::reactive({
