@@ -112,17 +112,15 @@ untime_traitnames <- function(object) {
           .data$trait,
           "::$")))
 }
-timetraits_filter <- function(object,
-                              timeunit = c("week", "minute",
-                                           "week_summary", "minute_summary"),
-                              traitnames) {
+timetraits_filter <- function(object, traitTimesData) {
   
-  if(is.null(object) || is.null(traitnames) || !length(traitnames))
+  if(is.null(object) || is.null(traitTimesData$traits))
     return(NULL)
+                                
+  timeunit <- attr(traitTimesData$traits, "time")
+  traitnames <- names(traitTimesData$traits)
   
-  timeunit <- match.arg(timeunit)
-  
-  # If `object` not run through timetraitsall to find distinct timetraits, do now.
+  # If `object` not run have `timetrait` columnt, get it now.
   if(!("timetrait" %in% names(object))) {
     object <- timetraitsall(object)
   }

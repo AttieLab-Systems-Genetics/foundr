@@ -12,7 +12,7 @@ shinyTraitTableUI <- function(id) {
   ns <- shiny::NS(id)
 
   shiny::radioButtons(ns("butresp"), "Response",
-                      c("value", "cellmean", "signal"),
+                      c("value", "cellmean"),
                       "value", inline = TRUE)
 }
 
@@ -53,7 +53,7 @@ shinyTraitTableOutput <- function(id) {
 shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
                             traitData, traitSignal,
                             customSettings = NULL) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS

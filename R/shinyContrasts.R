@@ -11,11 +11,9 @@ shinyContrastsInput <- function(id) {
   ns <- shiny::NS(id)
 
   shiny::fluidRow(
-    shiny::column(9,
-                  shinyTraitOrderInput(ns("shinyOrder"))),
-    shiny::column(3,
-                  shiny::numericInput(ns("ntrait"), "Traits:",
-                                    20, 5, 100, 5)))
+    shiny::column(9, shinyTraitOrderInput(ns("shinyOrder"))),
+    shiny::column(3, 
+      shiny::numericInput(ns("ntrait"), "Traits:", 20, 5, 100, 5)))
 }
 
 #' Shiny Module Output for Contrast Panel
@@ -32,16 +30,10 @@ shinyContrastsOutput <- function(id) {
   
   shiny::tagList(
     shiny::fluidRow(
-      shiny::column(
-        4,
-        shiny::radioButtons(ns("butshow"), "", c("Plots","Tables"), "Plots",
-                            inline = TRUE)),
-      shiny::column(
-        2,
-        shiny::uiOutput(ns("downloads"))),
-      shiny::column(
-        6,
-        shiny::uiOutput(ns("filename")))),
+      shiny::column(4, shiny::radioButtons(ns("butshow"),
+        "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(2, shiny::uiOutput(ns("downloads"))),
+      shiny::column(6, shiny::uiOutput(ns("filename")))),
     shiny::uiOutput(ns("traitOutput"))
   )
 }
@@ -53,16 +45,15 @@ shinyContrastsOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column downloadHandler h3 moduleServer observeEvent
-#'             reactive renderText renderUI req selectInput tagList uiOutput
+#' @importFrom shiny column downloadHandler moduleServer observeEvent
+#'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
 #'
 shinyContrasts <- function(id, main_par,
-                            traitSignal, traitStats,
-                            customSettings = NULL) {
-  moduleServer(id, function(input, output, session) {
+                            traitSignal, traitStats, customSettings = NULL) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
@@ -70,33 +61,28 @@ shinyContrasts <- function(id, main_par,
     #   main_par$tabpanel
     #   main_par$height
     #   main_par$strains
-    #
     # RETURNS
-    #   
+    #   contrast2signal()
     
     # MODULES
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", main_par,
-                                   traitStats, traitSignal,
-                                   customSettings)
+                                   traitStats, traitSignal, customSettings)
 
     # Output
     output$traitOutput <- shiny::renderUI({
       switch(shiny::req(input$butshow),
              Plots  = shiny::uiOutput(ns("plot")),
-             Tables = DT::renderDataTable(contable(),
-                                          escape = FALSE,
-                                          options = list(scrollX = TRUE,
-                                                         pageLength = 10)))
+             Tables = DT::renderDataTable(contable(), escape = FALSE,
+                        options = list(scrollX = TRUE, pageLength = 10)))
     })
     
     # Plot
     contrasts <- shiny::reactive({
       shiny::req(orderOutput())
       
-      termname <- orderOutput()$term[1]
-      conditionContrasts(traitSignal, orderOutput(), termname,
-                         rawStats = traitStats)
+      conditionContrasts(traitSignal, orderOutput(), 
+        termname = orderOutput()$term[1], rawStats = traitStats)
     }, label = "contrasts")
     contrasts_strains <- shiny::reactive({
       shiny::req(contrasts(), main_par$strains)
@@ -122,39 +108,20 @@ shinyContrasts <- function(id, main_par,
     output$plot <- shiny::renderUI({
       shiny::req(contrasts_strains())
       
-      condition <- customSettings$condition
-      if(shiny::isTruthy(condition))
-        condition <- stringr::str_to_title(condition)
-      else
-        condition <- "Condition"
-      
       shiny::tagList(
-        shiny::h3(paste(condition, "Contrasts")),
-        shiny::renderText({
-          paste0("This panel examines contrasts (differences or ratios) of ",
-                 condition, " means by strain and sex.",
-                 "These may be viewed by sex or averaged over sex",
-                 " (Both Sexes) or by contrast of Female - Male",
-                 " (Sex Contrast).")
-        }),
         shiny::fluidRow(
-          shiny::column(8,
-                        shiny::selectInput(ns("sex"), "Sex:", sexes)),
-          shiny::column(4,
-                        shiny::checkboxInput(ns("interact"), "Interactive?"))),
+          shiny::column(8, shiny::selectInput(ns("sex"), "", sexes)),
+          shiny::column(4, shiny::checkboxInput(ns("interact"),
+                             "Interactive?"))),
         shiny::uiOutput(ns("conplot")),
         shiny::uiOutput(ns("convolc")),
         
         # Sliders from Volcano plot display.
         shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::sliderInput(ns("volsd"), "SD line:",
-                               min = 0, max = 2, value = 1, step = 0.1)),
-          shiny::column(
-            6,
-            shiny::sliderInput(ns("volpval"), "-log10(p.value) line:",
-                               min = 0, max = 10, value = 2, step = 0.5)))
+          shiny::column(6, shiny::sliderInput(ns("volsd"),
+            "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
+          shiny::column(6, shiny::sliderInput(ns("volpval"),
+            "-log10(p.value) line:", min = 0, max = 10, value = 2, step = 0.5)))
       )
     })
     shiny::observeEvent(
@@ -163,8 +130,7 @@ shinyContrasts <- function(id, main_par,
         maxsd <- signif(max(abs(contrasts()$value), na.rm = TRUE), 2)
         shiny::updateSliderInput(session, "volsd", max = maxsd)
         
-        maxpval <- min(
-          10,
+        maxpval <- min(10,
           round(-log10(min(contrasts()$p.value, na.rm = TRUE)), 1))
         shiny::updateSliderInput(session, "volpval", max = maxpval)
       }, label = "observeSlider")
@@ -197,20 +163,18 @@ shinyContrasts <- function(id, main_par,
     })
     # Download File Prefix
     output$filename <- renderUI({
-      filename <- "Contrasts_"
       datasets <- paste(unique(orderOutput()$dataset), collapse = ",")
-      filename <- paste0(filename, datasets)
+      filename <- paste0("Contrasts_", datasets)
       
       shiny::textAreaInput(ns("filename"), "File Prefix:", filename)
     })
     
     # Download Plot
     output$downloadPlots <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".pdf")
-      },
+      filename = function() paste0(shiny::req(input$filename), ".pdf"),
       content = function(file) {
         shiny::req(contrastPlot(), contrastVolcano())
+        
         grDevices::pdf(file, width = 9, height = main_par$height)
         print(contrastPlot())
         print(contrastVolcano())
@@ -219,19 +183,14 @@ shinyContrasts <- function(id, main_par,
     
     # Download DataTable
     output$downloadTables <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".csv")
-      },
+      filename = function() paste0(shiny::req(input$filename), ".csv"),
       content = function(file) {
         shiny::req(contable())
-        utils::write.csv(
-          contable(),
-          file, row.names = FALSE)
+        
+        utils::write.csv(contable(), file, row.names = FALSE)
       })
     
     ###############################################################
-    shiny::reactive({
-      contrast2signal(shiny::req(contrasts()))
-    })
+    shiny::reactive(contrast2signal(shiny::req(contrasts())))
   })
 }

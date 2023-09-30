@@ -34,7 +34,7 @@ shinyTraitNamesUI <- function(id) {
 #' @export
 #'
 shinyTraitNames <- function(id, main_par, traitArranged, multiples = FALSE) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS

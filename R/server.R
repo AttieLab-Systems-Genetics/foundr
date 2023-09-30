@@ -23,16 +23,12 @@ server <- function(input, output, session,
   #    input$tabpanel
   
   # CALL MODULES
-  traitOutput <- shinyTraitPanel("tabTraits", input,
-                                 traitData, traitSignal, traitStats,
-                                 customSettings)
-  timeOutput <- shinyTimesPanel("tabTimes", input, 
-                                traitData, traitSignal, traitStats)
-  volcanoOutput <- shinyVolcano("tabVolcano", input, traitStats,
-                                customSettings)
-  contrastOutput <- shinyContrastPanel("tabContrasts", input,
-                                       traitSignal, traitStats,
-                                       customSettings)
+  shinyTraitPanel("tabTraits", input, traitData, traitSignal, traitStats,
+                  customSettings)
+  shinyTimePanel("tabTimes", input, traitData, traitSignal, traitStats)
+  shinyVolcano("tabVolcano", input, traitStats, customSettings)
+  shinyContrastPanel("tabContrasts", input, traitSignal, traitStats,
+                     customSettings)
   
   output$intro <- foundrIntro(customSettings$help)
   
@@ -111,7 +107,7 @@ server <- function(input, output, session,
                },
                Volcano   = shiny::uiOutput("dataset"),
                Times     = if(length(timetraits_all())) {
-                 shinyTimesPanelInput("tabTimes") 
+                 shinyTimePanelInput("tabTimes") 
                }),
         
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
@@ -141,7 +137,7 @@ server <- function(input, output, session,
         shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
         shiny::tabPanel("Contrasts",  shinyContrastPanelOutput("tabContrasts")),
         shiny::tabPanel("Volcano",  shinyVolcanoOutput("tabVolcano")),
-        shiny::tabPanel("Times",  shinyTimesPanelOutput("tabTimes")),
+        shiny::tabPanel("Times",  shinyTimePanelOutput("tabTimes")),
         shiny::tabPanel("About",  shiny::uiOutput("intro"))
       )
     }

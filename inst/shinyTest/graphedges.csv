@@ -1,5 +1,7 @@
 node1, node2
 
+# read.csv("inst/shinyTest/graphedges.csv", row.names=NULL, comment.char = "#")
+
 #   input$strains     App         Strains to Plot
 #   input$facet       App         Facet by Strain?
 #   input$height      App         Plot Height
@@ -14,10 +16,24 @@ node1, node2
 #   input$abscor      CorPlot     Absolute Correlation?
 #   input$trait       TraitNames  Trait Names
 
+# Shiny Modules Only
+TraitOrder, TraitNames_key
+TraitNames_key, CorTable
+CorTable, TraitNames_rel
+CorTable, CorPlot
+TraitNames_key, TraitTable
+TraitNames_rel, TraitTable
+TraitTable, TraitSolos
+TraitTable, TraitPairs
+
 # TraitOrder: data frame of key datasets ordered by order preference
-traitStats(), shinyTraitOrder()
+traitStats, shinyTraitOrder()
+traitSignal, shinyTraitOrder()
 shinyTraitOrder(), input$keydataset
 shinyTraitOrder(), input$order
+input$order, orderOutput() 
+input$keydataset, orderOutput() 
+traitStats, orderOutput()
 shinyTraitOrder(), orderOutput()
 
 # TraitNames: key trait from ordered stats

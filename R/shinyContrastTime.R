@@ -1,28 +1,28 @@
-#' Shiny Module Input for Contrast Panel
+#' Shiny Module Input for Contrasts over Time
 #'
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyContrastPanel
+#' @rdname shinyContrastTime
 #' @importFrom shiny NS uiOutput
 #' @export
 #'
-shinyContrastPanelInput <- function(id) {
+shinyContrastTimeInput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::uiOutput(ns("shinyInput"))
 }
 
-#' Shiny Module Output for Contrast Panel
+#' Shiny Module Output for Contrasts over Time
 #'
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyContrastPanel
+#' @rdname shinyContrastTime
 #' @importFrom shiny NS tagList uiOutput
 #' @export
 #'
-shinyContrastPanelOutput <- function(id) {
+shinyContrastTimeOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
@@ -30,7 +30,7 @@ shinyContrastPanelOutput <- function(id) {
     shiny::uiOutput(ns("shinyOutput")))
 }
 
-#' Shiny Module Server for Contrast Panel
+#' Shiny Module Server for Contrasts over Time
 #'
 #' @param input,output,session standard shiny arguments
 #' @param traitSignal,traitStats static data frames
@@ -42,7 +42,7 @@ shinyContrastPanelOutput <- function(id) {
 #' @importFrom stringr str_to_title
 #' @export
 #'
-shinyContrastPanel <- function(id, main_par,
+shinyContrastTime <- function(id, main_par,
                             traitSignal, traitStats,
                             customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -57,6 +57,18 @@ shinyContrastPanel <- function(id, main_par,
                                       traitSignal, traitStats,
                                       customSettings)
     
+    contrastTimeData <- shiny::reactive({
+      timetrait_selection <- timetraits(contrastOutput(), "minute")
+      out <- traitTimes(contrastOutput(), contrastOutput(),
+        timetrait_selection[1], "cellmean", "minute")
+      browser()
+      out
+    })
+    
+    
+    shinyTimePlot("shinyTime", main_par, traitData, traitSignal,
+                  contrastTimeData) 
+
     output$text <- shiny::renderUI({
       condition <- customSettings$condition
       if(shiny::isTruthy(condition))
@@ -71,15 +83,24 @@ shinyContrastPanel <- function(id, main_par,
                  condition, " means by strain and sex.",
                  "These may be viewed by sex or averaged over sex",
                  " (Both Sexes) or by contrast of Female - Male",
-                 " (Sex Contrast).")}))
+                 " (Sex Contrast).")}),
+        shiny::column(4, shiny::radioButtons(ns("buttype"),
+          "", c("Traits","Times"), "Traits", inline = TRUE)),
+      )
     })
     
     output$shinyInput <- shiny::renderUI({
-      shinyContrastsInput(ns("shinyContrasts"))
+      switch(
+        shiny::req(input$buttype),
+        Traits = shinyContrastsInput(ns("shinyContrasts")),
+        Times  = shinyTimePlotInput(ns("shinyTime")))
     })
     
     output$shinyOutput <- shiny::renderUI({
-      shinyContrastsOutput(ns("shinyContrasts"))
+      switch(
+        shiny::req(input$buttype),
+        Traits = shinyContrastsOutput(ns("shinyContrasts")),
+        Times  = shinyTimePlotOutput(ns("shinyTime")))
     })
 
     ###############################################################

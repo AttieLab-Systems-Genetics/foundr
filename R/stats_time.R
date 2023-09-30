@@ -103,9 +103,11 @@ stats_time <- function(traitStats,
   attr(out, "timetype") <- "stats"
   out
 }
-stats_time_table <- function(object) {
+stats_time_table <- function(object, logp = FALSE) {
   if(is.null(object))
     return(NULL)
+  
+  logfn <- ifelse(logp, function(x) x, function(x) 10^-x)
   
   class(object) <- "list"
   for(i in names(object)) {
@@ -116,7 +118,7 @@ stats_time_table <- function(object) {
             dplyr::rename(
               object[[i]], 
               p.value = i),
-            p.value = signif(p.value, 4)),
+            p.value = signif(logfn(p.value), 4)),
           -strain),
         datatraits,
         delim = ": ",

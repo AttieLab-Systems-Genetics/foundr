@@ -18,7 +18,7 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
-title <- "Test ShinyTimes Module"
+title <- "Test shinyTime Module"
 
 ui <- function() {
   # INPUTS
@@ -30,18 +30,16 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyTimesPanelInput("shinyTest"),
+        foundr::shinyTimePanelInput("shinyTimePanel"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
-        
-#        foundr::shinyTimesPanelUI("shinyTest")
         ),
       
       shiny::mainPanel(
-        foundr::shinyTimesPanelOutput("shinyTest")
-        )))
+        foundr::shinyTimePanelOutput("shinyTimePanel")
+      )))
 }
 
 server <- function(input, output, session) {
@@ -51,12 +49,13 @@ server <- function(input, output, session) {
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput("strains", "Strains",
-                              choices = choices, selected = choices, inline = TRUE)
+    shiny::checkboxGroupInput("strains", "Strains", choices = choices,
+                              selected = choices, inline = TRUE)
   })
 
-  timesOutput <- foundr::shinyTimesPanel("shinyTest", input, 
-                  traitData, traitSignal, traitStats)
+  # MODULES
+  foundr::shinyTimePanel("shinyTimePanel", input,
+                         traitData, traitSignal, traitStats)
 }
 
 shiny::shinyApp(ui = ui, server = server)

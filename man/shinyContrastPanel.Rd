@@ -4,7 +4,7 @@
 \alias{shinyContrastPanelInput}
 \alias{shinyContrastPanelOutput}
 \alias{shinyContrastPanel}
-\title{Shiny Module Input for Trait Panel}
+\title{Shiny Module Input for Contrast Panel}
 \usage{
 shinyContrastPanelInput(id)
 
@@ -35,7 +35,7 @@ nothing returned
 reactive object
 }
 \description{
-Shiny Module Input for Trait Panel
+Shiny Module Input for Contrast Panel
 
 Shiny Module Output for Contrast Panel
 

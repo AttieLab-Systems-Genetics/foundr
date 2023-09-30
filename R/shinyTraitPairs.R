@@ -30,7 +30,7 @@ shinyTraitPairsUI <- function(id) {
 #' @export
 #'
 shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS

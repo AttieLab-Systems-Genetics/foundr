@@ -33,7 +33,7 @@ shinyVolcanoOutput <- function(id) {
 #'
 shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
                          facet = FALSE) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
@@ -108,9 +108,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
                            2, step = 0.5))),
         
         # Data table.
-        DT::dataTableOutput(ns("tablesum"),
-                            escape = FALSE,
-                            options = list(scrollX = TRUE, pageLength = 10)))
+        DT::dataTableOutput(ns("tablesum")))
     })
     
     term_stats <- shiny::reactive({

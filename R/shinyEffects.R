@@ -56,10 +56,7 @@ shinyEffects <- function(input, output, session,
       shiny::plotOutput(ns("effects"),
                         height = paste0(main_par$height,"in")),
       # Data table.
-      DT::dataTableOutput(ns("tablesum"),
-                          escape = FALSE,
-                          options = list(scrollX = TRUE, pageLength = 10)))
-
+      DT::dataTableOutput(ns("tablesum")))
 })
 
 

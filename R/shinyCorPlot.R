@@ -36,12 +36,12 @@ shinyCorPlotOutput <- function(id) {
 #' @param stats_par,module_par reactive inputs from calling modules
 #'
 #' @return reactive object
-#' @importFrom shiny callModule isTruthy moduleServer 
-#'             plotOutput reactive renderUI renderPlot req  
+#' @importFrom shiny isTruthy moduleServer plotOutput reactive renderUI
+#'             renderPlot req  
 #' @export
 #'
 shinyCorPlot <- function(id, stats_par, module_par, CorTable) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # Temporary kludge

@@ -29,9 +29,7 @@ shinyCorTableOutput <- function(id) {
 
   shiny::tagList( 
     shiny::h3("Correlations"),
-    DT::dataTableOutput(ns("cortable"),
-                        escape = FALSE,
-                        options = list(scrollX = TRUE, pageLength = 10)))
+    DT::dataTableOutput(ns("cortable")))
 }
 
 #' Shiny Module Server for Trait Stats
@@ -53,7 +51,7 @@ shinyCorTableOutput <- function(id) {
 shinyCorTable <- function(id, main_par, traits_par,
                           keyTrait, traitSignal,
                           customSettings = NULL) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS

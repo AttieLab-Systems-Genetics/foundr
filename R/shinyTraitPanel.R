@@ -65,12 +65,13 @@ shinyTraitPanelOutput <- function(id) {
 #'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
+#' @importFrom stringr str_remove str_replace
 #' @export
 #'
 shinyTraitPanel <- function(id, main_par,
                             traitData, traitSignal, traitStats,
                             customSettings = NULL) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
@@ -132,9 +133,6 @@ shinyTraitPanel <- function(id, main_par,
     # Output
     output$traitOutput <- shiny::renderUI({
       shiny::tagList(
-#      shiny::fluidRow(
-#        shiny::column(3, shiny::downloadButton(ns("downloadPlots"), "Plots")),
-#        shiny::column(3, shiny::downloadButton(ns("downloadTables"), "Data"))),
       switch(shiny::req(input$butshow),
              Plots = {
                shiny::tagList(
@@ -147,7 +145,7 @@ shinyTraitPanel <- function(id, main_par,
     # Tables
     output$tables <- shiny::renderUI({
       shiny::tagList(
-        shiny::radioButtons(ns("buttable"), "", c("Cell Means","Correlations","Stats"), "Cell Means",
+        shiny::radioButtons(ns("buttable"), "Download:", c("Cell Means","Correlations","Stats"), "Cell Means",
                             inline = TRUE),
         shinyTraitTableOutput(ns("shinyTable")),
         shinyCorTableOutput(ns("shinyCorTable")),
@@ -181,10 +179,12 @@ shinyTraitPanel <- function(id, main_par,
     output$filename <- renderUI({
       shiny::req(trait_names())
       
-      filename <- "Traits_"
+      filename <- "Trait_"
       if(shiny::req(input$butshow) == "Tables")
-        filename <- paste0(input$buttable, "_")
-      filename <- paste0(filename, trait_names()[1])
+        filename <- paste0(filename,
+                           stringr::str_remove(input$buttable, " "), "_")
+      filename <- paste0(filename, 
+                         stringr::str_replace(trait_names()[1], ": ", "_"))
       
       shiny::textAreaInput(ns("filename"), "File Prefix:", filename)
     })
@@ -217,14 +217,10 @@ shinyTraitPanel <- function(id, main_par,
           switch(shiny::req(input$buttable),
                  "Cell Means" = summary(tableOutput()),
                  Correlations = summary_bestcor(
-                   mutate_datasets(
-                     corTableOutput(),
-                     customSettings$dataset),
+                   mutate_datasets(corTableOutput(), customSettings$dataset),
                    0.0),
-                 Stats = summary_strainstats(
-                   orderOutput(),
-                   threshold = c(deviance = 0, p = 1)))
-          ,
+                 Stats = summary_strainstats(orderOutput(),
+                   threshold = c(deviance = 0, p = 1))),
           file, row.names = FALSE)
       })
     

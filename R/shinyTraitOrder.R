@@ -51,7 +51,7 @@ shinyTraitOrderUI <- function(id) {
 #'
 shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
                             customSettings = NULL, allDatasets = FALSE) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS

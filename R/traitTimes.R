@@ -12,23 +12,23 @@
 #' @importFrom dplyr rename select
 #' @importFrom rlang .data
 #'
-traitTimes <- function(object, ...) {
+traitTimes <- function(traitData, traitSignal, traitStats, ...) {
   
-  if(is.null(object))
+  if(is.null(traitData) || is.null(traitSignal) || is.null(traitStats))
     return(NULL)
   
-  if(inherits(object, "strainstats"))
-    stats_time(object, ...)
-  else
-    strain_time(object, ...)
+  list(
+    traits = strain_time(traitData, traitSignal, ...),
+    stats  = stats_time(traitStats, response = "p.value", models = "terms",
+                        ...))
 }
 #' Strains over Time
 #' 
 #' @param traitData data frame with trait data
 #' @param traitSignal data from with trait signals
 #' @param traitnames names of `dataset: trait` without `timecol` information
-#' @param response character string for type of response
 #' @param timecol column to use for time
+#' @param response character string for type of response
 #' @param strains names of strains to subset
 #' @param ... additional parameters ignored
 #'
@@ -39,8 +39,8 @@ traitTimes <- function(object, ...) {
 strain_time <- function(traitData,
                         traitSignal,
                         traitnames = timetraits(traitSignal, timecol)[1],
-                        response = c("value","cellmean","signal"),
                         timecol = c("week", "minute","minute_summary","week_summary"),
+                        response = c("value","cellmean","signal"),
                         strains = names(foundr::CCcolors),
                         ...) {
   response <- match.arg(response)
