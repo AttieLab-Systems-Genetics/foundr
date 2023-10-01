@@ -52,9 +52,9 @@ shinyTimePanel <- function(id, main_par,
     #   main_par$strains
 
     # MODULES
-    timeOutput <- shinyTimeTable("shinyTimeTable", main_par, 
+    timeOutput <- shinyTimeTable("shinyTimeTable", input, main_par, 
                                  traitData, traitSignal, traitStats)
     
-    shinyTimePlot("shinyTimePlot", main_par, traitData, traitSignal, timeOutput)
+    shinyTimePlot("shinyTimePlot", main_par, traitSignal, timeOutput)
   })
 }

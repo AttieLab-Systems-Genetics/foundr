@@ -10,12 +10,12 @@ shinyCorPlotUI(id)
 
 shinyCorPlotOutput(id)
 
-shinyCorPlot(id, stats_par, module_par, CorTable)
+shinyCorPlot(id, panel_par, main_par, CorTable)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{stats_par, module_par}{reactive inputs from calling modules}
+\item{panel_par, main_par}{reactive inputs from calling modules}
 
 \item{CorTable}{reactive data frames}
 

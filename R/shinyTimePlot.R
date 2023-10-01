@@ -33,7 +33,8 @@ shinyTimePlotOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param main_par reactive arguments 
-#' @param traitData,traitSignal,traitTimesData static objects
+#' @param traitSignal static object
+#' @param traitTimesData reactive object
 #' @param responses possible types of responses
 #'
 #' @return nothing returned
@@ -45,7 +46,7 @@ shinyTimePlotOutput <- function(id) {
 #' @export
 #'
 shinyTimePlot <- function(id, main_par,
-                            traitData, traitSignal, traitTimesData) {
+                          traitSignal, traitTimesData) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -66,10 +67,6 @@ shinyTimePlot <- function(id, main_par,
       timetraits_filter(traitSignal, traitTimesData())
     })
     relTraits <- shiny::reactiveVal(NULL)
-    
-    # Trait Table.
-    tableOutput <- shinyTraitTable("shinyTable", main_par, main_par,
-                                   keyTrait, relTraits, traitData, traitSignal)
     
     # Outputs
     output$shinyOutput <- shiny::renderUI({
@@ -98,14 +95,23 @@ shinyTimePlot <- function(id, main_par,
       
       stats_time_table(traitTimesData()$stats)
     }, label = "statstable")
+    traitstable <- shiny::reactive({
+      shiny::req(traitTimesData())
+      
+      # Summary is a bit klugey for now.
+      summary_traitTime(traitTimesData())
+    }, label = "statstable")
     output$tables <- shiny::renderUI({
       shiny::req(statstable())
       
       shiny::tagList(
-        shiny::radioButtons(ns("buttable"), "Download:", c("Cell Means","Stats"), "Cell Means",
-                            inline = TRUE),
-        shinyTraitTableOutput(ns("shinyTable")),
+        shiny::radioButtons(ns("buttable"), "Download:",
+          c("Cell Means","Stats"), "Cell Means", inline = TRUE),
         
+        shiny::h3("Cell Means"),
+        DT::renderDataTable(traitstable(), escape = FALSE,
+                            options = list(scrollX = TRUE, pageLength = 10)),
+      
         shiny::h3("Stats: p.value"),
         DT::renderDataTable(statstable(), escape = FALSE,
                             options = list(scrollX = TRUE, pageLength = 10)))
@@ -179,11 +185,11 @@ shinyTimePlot <- function(id, main_par,
         paste0(shiny::req(input$filename), ".csv")
       },
       content = function(file) {
-        shiny::req(tableOutput())
+        shiny::req(traitTimesData())
         utils::write.csv(
           switch(shiny::req(input$buttable),
-                 "Cell Means" = summary(tableOutput()),
-                 Stats = statstable()),
+                 "Cell Means" = traitstable(),
+                 Stats        = statstable()),
           file, row.names = FALSE)
       })
   })

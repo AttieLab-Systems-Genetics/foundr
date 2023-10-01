@@ -39,7 +39,7 @@ shinyTraitTableOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
-#' @param trait_par,main_par reactive arguments
+#' @param panel_par,main_par reactive arguments
 #' @param keyTrait,relTraits reactives with trait names
 #' @param traitData,traitSignal static objects 
 #'
@@ -50,7 +50,7 @@ shinyTraitTableOutput <- function(id) {
 #' @export
 #'
 
-shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
+shinyTraitTable <- function(id, panel_par, main_par, keyTrait, relTraits,
                             traitData, traitSignal,
                             customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -59,7 +59,7 @@ shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
     # INPUTS
     # Main inputs:
     #   main_par$strains
-    #   trait_par$reldataset
+    #   panel_par$reldataset
     # traitObject inputs: (see traitObjectUI)
     #   input$butresp
     
@@ -78,14 +78,14 @@ shinyTraitTable <- function(id, trait_par, main_par, keyTrait, relTraits,
       subset_trait_names(traitData, keyTrait())
     })
     relData <- shiny::reactive({
-      shiny::req(trait_par$reldataset)
+      shiny::req(panel_par$reldataset)
       
       subset_trait_names(traitData, relTraits())
     })
     traitDataInput <- shiny::reactive({
       out <- shiny::req(keyData())
       
-      if(shiny::isTruthy(trait_par$reldataset)) {
+      if(shiny::isTruthy(panel_par$reldataset)) {
         out <- dplyr::bind_rows(out, relData())
       }
       out

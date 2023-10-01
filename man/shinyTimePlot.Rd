@@ -10,14 +10,16 @@ shinyTimePlotInput(id)
 
 shinyTimePlotOutput(id)
 
-shinyTimePlot(id, main_par, traitData, traitSignal, traitTimesData)
+shinyTimePlot(id, main_par, traitSignal, traitTimesData)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
 \item{main_par}{reactive arguments}
 
-\item{traitData, traitSignal, traitTimesData}{static objects}
+\item{traitSignal}{static object}
+
+\item{traitTimesData}{reactive object}
 
 \item{responses}{possible types of responses}
 }

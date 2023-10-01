@@ -3,36 +3,20 @@
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyContrastTime
-#' @importFrom shiny NS uiOutput
+#' @rdname shinyTimeTraits
 #' @export
+#' @importFrom shiny NS
 #'
 shinyContrastTimeInput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::uiOutput(ns("shinyInput"))
-}
-
-#' Shiny Module Output for Contrasts over Time
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyContrastTime
-#' @importFrom shiny NS tagList uiOutput
-#' @export
-#'
-shinyContrastTimeOutput <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shiny::tagList(
-    shiny::uiOutput(ns("text")),
-    shiny::uiOutput(ns("shinyOutput")))
+  shinyTimeTraitsInput(ns("shinyTimeTraits"))
 }
 
 #' Shiny Module Server for Contrasts over Time
 #'
-#' @param input,output,session standard shiny arguments
+#' @param id identifier for shiny reactive
+#' @param panel_par,main_par reactive arguments 
 #' @param traitSignal,traitStats static data frames
 #' @param customSettings list of custom settings
 #'
@@ -42,9 +26,9 @@ shinyContrastTimeOutput <- function(id) {
 #' @importFrom stringr str_to_title
 #' @export
 #'
-shinyContrastTime <- function(id, main_par,
-                            traitSignal, traitStats,
-                            customSettings = NULL) {
+shinyContrastTime <- function(id, panel_par, main_par,
+                              traitSignal, traitStats, contrastTable,
+                              customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -53,57 +37,22 @@ shinyContrastTime <- function(id, main_par,
     #   contrastOutput
     
     # MODULES
-    contrastOutput <- shinyContrasts("shinyContrasts", main_par,
-                                      traitSignal, traitStats,
-                                      customSettings)
+    # Identify Time Traits.
+    timeTraitsOutput <- shinyTimeTraits("shinyTimeTraits", panel_par, main_par,
+                                        traitSignal, contrastTable)
     
-    contrastTimeData <- shiny::reactive({
-      timetrait_selection <- timetraits(contrastOutput(), "minute")
-      out <- traitTimes(contrastOutput(), contrastOutput(),
-        timetrait_selection[1], "cellmean", "minute")
-      browser()
-      out
-    })
-    
-    
-    shinyTimePlot("shinyTime", main_par, traitData, traitSignal,
-                  contrastTimeData) 
-
-    output$text <- shiny::renderUI({
-      condition <- customSettings$condition
-      if(shiny::isTruthy(condition))
-        condition <- stringr::str_to_title(condition)
-      else
-        condition <- "Condition"
-      
-      shiny::tagList(
-        shiny::h3(paste(condition, "Contrasts")),
-        shiny::renderText({
-          paste0("This panel examines contrasts (differences or ratios) of ",
-                 condition, " means by strain and sex.",
-                 "These may be viewed by sex or averaged over sex",
-                 " (Both Sexes) or by contrast of Female - Male",
-                 " (Sex Contrast).")}),
-        shiny::column(4, shiny::radioButtons(ns("buttype"),
-          "", c("Traits","Times"), "Traits", inline = TRUE)),
-      )
-    })
-    
-    output$shinyInput <- shiny::renderUI({
-      switch(
-        shiny::req(input$buttype),
-        Traits = shinyContrastsInput(ns("shinyContrasts")),
-        Times  = shinyTimePlotInput(ns("shinyTime")))
-    })
-    
-    output$shinyOutput <- shiny::renderUI({
-      switch(
-        shiny::req(input$buttype),
-        Traits = shinyContrastsOutput(ns("shinyContrasts")),
-        Times  = shinyTimePlotOutput(ns("shinyTime")))
-    })
-
     ###############################################################
-    contrastOutput
+    # Contrast Time Signal
+    shiny::reactive({
+      shiny::req(contrastTable(), timeTraitsOutput$traits,
+                 timeTraitsOutput$response, timeTraitsOutput$time)
+      
+      # Convert `contrastTable()` to a `Signal` style data frame.
+      contrastSignal <- contrast2signal(contrastTable())
+      
+      traitTimes(contrastSignal, contrastSignal, traitStats,
+                 timeTraitsOutput$traits, timeTraitsOutput$time,
+                 timeTraitsOutput$response, strains = main_par$strains)
+    }, label = "contrastTime")
   })
 }

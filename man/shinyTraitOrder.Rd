@@ -12,6 +12,7 @@ shinyTraitOrderUI(id)
 
 shinyTraitOrder(
   id,
+  panel_par,
   main_par,
   traitStats,
   traitSignal = NULL,
@@ -22,7 +23,7 @@ shinyTraitOrder(
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{input reactive list}
+\item{panel_par, main_par}{input reactive list}
 
 \item{traitStats, traitSignal}{static data frame}
 

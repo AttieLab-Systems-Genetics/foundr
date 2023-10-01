@@ -115,9 +115,7 @@ server <- function(input, output, session,
         if(shiny::req(input$tabpanel) != "Volcano") {
           shiny::tagList(
             shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-            if(shiny::req(input$tabpanel) != "Contrasts") {
-              shiny::checkboxInput("facet", "Facet by strain?", TRUE)
-          })
+            shiny::checkboxInput("facet", "Facet by strain?", TRUE))
         },
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6,
                            step = 1))

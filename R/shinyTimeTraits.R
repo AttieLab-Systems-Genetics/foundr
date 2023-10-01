@@ -16,19 +16,19 @@ shinyTimeTraitsInput <- function(id) {
 #' Shiny Module Server for Times Plots
 #'
 #' @param id identifier for shiny reactive
-#' @param main_par reactive arguments 
-#' @param traitStats static object
+#' @param panel_par,main_par reactive arguments 
+#' @param traitSignal static object
 #' @param traitOrder reactive object
 #' @param responses possible types of responses
 #'
 #' @return nothing returned
 #' @importFrom shiny column fluidRow h3 observeEvent moduleServer plotOutput
-#'             reactive reactiveVal renderPlot renderUI req selectInput
+#'             reactive reactiveValues renderPlot renderUI req selectInput
 #'             selectizeInput tagList uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyTimeTraits <- function(id, main_par,
+shinyTimeTraits <- function(id, panel_par, main_par,
                        traitSignal, traitOrder,
                        responses = c("value", "cellmean")) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -37,8 +37,8 @@ shinyTimeTraits <- function(id, main_par,
     # INPUTS
     # local inputs:
     #   time
-    #   time_trait
-    #   time_response
+    #   traits
+    #   response
     
     # OUTPUTS
     #   list with inputs
@@ -60,10 +60,8 @@ shinyTimeTraits <- function(id, main_par,
                               multiple = TRUE)
       )
     })
-    selections <- shiny::reactiveValues(
-      time = input$time, # NULL
-      response = input$response, # "cellmean"
-      traits = input$traits) # NULL
+    selections <- shiny::reactiveValues(time = NULL, response = "cellmean",
+                                        traits = NULL)
     shiny::observeEvent(input$time, selections$time <- input$time)
     shiny::observeEvent(input$response, selections$response <- input$response)
     shiny::observeEvent(input$traits, selections$traits <- input$traits)
@@ -84,7 +82,7 @@ shinyTimeTraits <- function(id, main_par,
     # Update Trait choices and selected.
     shiny::observeEvent(
       shiny::tagList(selections$response, selections$time, traitOrder(),
-                     main_par$tabpanel),
+                     trait_names(), main_par$tabpanel, panel_par$contrast),
       {
         # Use current selection of trait_selection().
         # But make sure they are still in the traitOrder() object.
@@ -93,8 +91,9 @@ shinyTimeTraits <- function(id, main_par,
         selected <- selected[selected %in% choices]
         if(!length(selected))
           selected <- choices[1]
-        shiny::updateSelectizeInput(session, "time_trait", choices = choices,
+        shiny::updateSelectizeInput(session, "traits", choices = choices,
                                     server = TRUE, selected = selected)
+        selections$traits <- selected
       })
 
     # Trait Order Criterion.
@@ -118,7 +117,7 @@ shinyTimeTraits <- function(id, main_par,
       if(shiny::isTruthy(main_par$tabpanel)) {
         shiny::req(main_par$tabpanel)
       }
-      
+
       # Make sure timeunit aligns with trait names.
       object <- shiny::req(timetrait_order())
       timeunit <- selections$time

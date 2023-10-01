@@ -27,8 +27,8 @@ ui <- function() {
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
         
         shiny::uiOutput("strains"),
-        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)
-      ),
+        shiny::checkboxInput("facet", "Facet by strain?", TRUE),
+        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
 
       shiny::mainPanel(
         foundr::shinyContrastPanelOutput("shinyPanel")

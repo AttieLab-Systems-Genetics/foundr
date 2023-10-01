@@ -21,11 +21,11 @@ shinyContrastPanel(
 \arguments{
 \item{id}{identifier for shiny reactive}
 
+\item{main_par}{reactive arguments}
+
 \item{traitSignal, traitStats}{static data frames}
 
 \item{customSettings}{list of custom settings}
-
-\item{input, output, session}{standard shiny arguments}
 }
 \value{
 nothing returned

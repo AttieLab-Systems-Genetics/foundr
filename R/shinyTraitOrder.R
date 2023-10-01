@@ -37,7 +37,7 @@ shinyTraitOrderUI <- function(id) {
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
-#' @param main_par input reactive list
+#' @param panel_par,main_par input reactive list
 #' @param traitStats,traitSignal static data frame
 #' @param customSettings custom settings list
 #' @param allDatasets initially select all datasets if `TRUE`
@@ -49,7 +49,8 @@ shinyTraitOrderUI <- function(id) {
 #' @importFrom plotly plotlyOutput renderPlotly
 #' @export
 #'
-shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
+shinyTraitOrder <- function(id, panel_par, main_par,
+                            traitStats, traitSignal = NULL,
                             customSettings = NULL, allDatasets = FALSE) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -74,7 +75,8 @@ shinyTraitOrder <- function(id, main_par, traitStats, traitSignal = NULL,
     key_selection <- shiny::reactiveVal(NULL, label = "key_selection")
     shiny::observeEvent(input$keydataset, key_selection(input$keydataset))
     shiny::observeEvent(
-      shiny::tagList(shiny::req(key_selection()), main_par$tabpanel),
+      shiny::tagList(shiny::req(key_selection()), main_par$tabpanel,
+                     panel_par$contrast),
       {
         selected <- key_selection()
         shiny::updateSelectInput(session, "keydataset", selected = selected)
