@@ -79,22 +79,20 @@ shinyTraitPanel <- function(id, main_par,
     #   main_par$facet: Facet by strain?
     #   main_par$strains: Strains to select
     #   main_par$height: Plot Height
-    #   main_par$plot_choice: plot choice
+    #   input$butshow: show Plots or Tables
+    #   input$mincor: minimum correlation
+    #   input$reldataset: relative datasets
     #
     # RETURNS
-    #   output$solos 
-    #   output$pairs
-    #   output$object
+    #   trait_names()
     
     # MODULES
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", input, main_par,
                                    traitStats, traitSignal,
                                    customSettings)
-    
     # Key Trait.
     keyTraitOutput <- shinyTraitNames("shinyKeyTrait", main_par, orderOutput)
-    
     # Key Trait and Correlation Table.
     corTableOutput <- shinyCorTable("shinyCorTable", main_par, input,
                                     keyTraitOutput, traitSignal,

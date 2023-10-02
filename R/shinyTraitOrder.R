@@ -62,7 +62,7 @@ shinyTraitOrder <- function(id, panel_par, main_par,
     #   input$order
     #
     # RETURNS
-    # orderstats()
+    #   orderstats()
     
     # Key Datasets.
     output$keydataset <- renderUI({

@@ -55,29 +55,24 @@ shinyContrastPanel <- function(id, main_par,
     # RETURNS
     #   contrastOutput
     
+    # Identify all Time Traits.
+    timetrait_all <- timetraitsall(traitSignal)
+    # Subset Stats to time traits.
+    traitStatsTime <- time_trait_subset(traitStats, timetrait_all)
+    
     # MODULES
     # Contrast Trait Table
     contrastOutput <- shinyContrastTable("shinyContrastTable",
       input, main_par, traitSignal, traitStats, customSettings)
-    
     # Contrast Trait Plots
     shinyContrastPlot("shinyContrastPlot",
       main_par, contrastOutput, customSettings)
-    
-    # Identify all Time Traits.
-    timetrait_all <- timetraitsall(traitSignal)
-    
-    # Subset Stats to time traits.
-    traitStatsInput <- time_trait_subset(traitStats, timetrait_all)
-    
     # Contrast Trait Table
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
-      input, main_par, traitSignal, traitStatsInput, customSettings, TRUE)
-    
+      input, main_par, traitSignal, traitStatsTime, customSettings, TRUE)
     # Contrast Time Traits
     timeOutput <- shinyContrastTime("shinyContrastTime", input, main_par,
-      traitSignal, traitStatsInput, contrastTimeOutput, customSettings)
-    
+      traitSignal, traitStatsTime, contrastTimeOutput, customSettings)
     # Contrast Time Plots and Tables
     shinyTimePlot("shinyTimePlot", main_par, traitSignal, timeOutput)
     
