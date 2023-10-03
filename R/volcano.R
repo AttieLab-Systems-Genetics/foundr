@@ -54,6 +54,19 @@ volcano <- function(object,
     threshold <- c(threshold, threshold_default[is.na(nth)])
   }
   
+  if(ordername == "kME") {
+    thresholder <- function(x) {
+      x >= threshold[ordername]
+    }
+  } else {
+    thresholder <- function(x) {
+      x <= threshold[ordername]
+    }
+  }
+  yname <- ordername
+  if(ordername == "module")
+    yname <- "trait"
+  
   if(!("term" %in% names(object))) {
     object <- strainstats(object)
   }
@@ -71,15 +84,18 @@ volcano <- function(object,
       foldchange = "NO",
       foldchange = ifelse(
         .data$SD >= threshold["SD"] &
-          .data[[ordername]] <= threshold[ordername],
+          thresholder(.data[[ordername]]),
+#          .data[[ordername]] <= threshold[ordername],
         "UP", foldchange),
       foldchange = ifelse(
         -.data$SD >= threshold["SD"] &
-          .data[[ordername]] <= threshold[ordername],
+          thresholder(.data[[ordername]]),
+        #          .data[[ordername]] <= threshold[ordername],
         "DOWN", foldchange),
       label = ifelse(
         abs(.data$SD) >= threshold["SD"] &
-          .data[[ordername]] <= threshold[ordername],
+          thresholder(.data[[ordername]]),
+        # .data[[ordername]] <= threshold[ordername],
         paste(.data$dataset, .data$trait, sep = ": "), NA))
   
   if(any(object$SD < 0))
@@ -110,7 +126,7 @@ volcano <- function(object,
   # Convert directly in the aes()
   CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
   p <- ggplot2::ggplot(object) +
-    ggplot2::aes(.data$SD, .data[[ordername]],
+    ggplot2::aes(.data$SD, .data[[yname]],
                  col = .data$foldchange, label = .data$label) +
     ggplot2::geom_point() +
     # Add more simple "theme"
@@ -122,6 +138,9 @@ volcano <- function(object,
     ggplot2::geom_hline(yintercept = yinterceptor, col = CB_colors[2]) +
     # The significantly differentially expressed traits are in the upper quadrats.
     ggplot2::scale_color_manual(values=c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2]))
+  
+  if(ordername == "module")
+    p <- p + ggplot2::scale_y_discrete(limits = rev)
   
   p <- theme_template(p, "none")
   
