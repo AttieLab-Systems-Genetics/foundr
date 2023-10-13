@@ -69,63 +69,44 @@ strain_time <- function(traitData,
                         response = c("value","cellmean","signal"),
                         strains = names(foundr::CCcolors),
                         ...) {
-  response <- match.arg(response)
-  
   if(is.null(traitData) | is.null(traitSignal))
     return(NULL)
-
-  # Select object based on `response`.
-  object <- switch(
-    response,
-    value = {
-      traitData
-    },
-    cellmean = {
-      dplyr::select(
-        dplyr::rename(
-          traitSignal,
-          value = "cellmean"),
-        -signal)
-    },
-    signal = {
-      dplyr::select(
-        dplyr::rename(
-          traitSignal,
-          value = "signal"),
-        -.data$cellmean)
-    })
+  
+  response <- match.arg(response)
   
   # Rename timecol to `time`. 
   timecol <- match.arg(timecol)
   
-  # Filter object based on traitnames and strains.
-  object <- 
-    dplyr::filter(
-      separate_time(object, traitnames, timecol),
-      .data$strain %in% strains)
+  # Select object based on `response`.
+  if(response != "value") {
+    traitData <- switch(
+      response,
+      cellmean = dplyr::select(
+        dplyr::rename(traitSignal, value = "cellmean"),
+        -signal),
+      signal = dplyr::select(
+        dplyr::rename(traitSignal, value = "signal"),
+        -.data$cellmean))
+  }
+
+  # Filter traitData based on traitnames and strains.
+  # Create column labeled `timecol`.
+  traitData <- dplyr::filter(
+    separate_time(traitData, traitnames, timecol),
+    .data$strain %in% strains)
   
-  if(!nrow(object))
+  if(!nrow(traitData))
     return(NULL)
   
-  # Object has column labeled `timecol`.
-  
   # Unite `dataset: trait` as datatraits ordered by `traitnames`
-  object <- 
-    dplyr::mutate(
-      tidyr::unite(
-        object,
-        datatraits,
-        dataset, trait,
-        sep = ": "),
-      datatraits = factor(datatraits, traitnames))
+  traitData <- dplyr::mutate(
+    tidyr::unite(traitData, datatraits, dataset, trait, sep = ": "),
+    datatraits = factor(datatraits, traitnames))
   
-  # Split object based on `traitnames`.
-  object <-
-    split(
-      object,
-      object$datatraits)
+  out <- template_time(
+    split(traitData, traitData$datatraits),
+    traitnames, timecol, response)
   
-  out <- template_time(object, traitnames, timecol, response)
   attr(out, "timetype") <- "strain"
   out
 }

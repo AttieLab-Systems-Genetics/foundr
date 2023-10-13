@@ -27,6 +27,12 @@ traitSolos <- function(traitData,
                        abbrev = FALSE,
                        sep = ": ") {
   
+  if(is.null(traitData) || is.null(traitSignal))
+    return(NULL)
+  
+  if(!all(strains %in% unique(traitSignal$strain)))
+    strains <- names(foundr::CCcolors)
+  
   if("condition" %in% names(traitData)) {
     bys <- c("dataset","strain","sex","condition","trait")
   } else {
@@ -34,21 +40,19 @@ traitSolos <- function(traitData,
   }
   
   response <- match.arg(response)
+  
   if(response == "value") {
     # Include columns for cellmean and value
     traitData <-
       dplyr::select(
         dplyr::left_join(
-          traitData,
+          # Filter to `traitnames` and `strains`.
+          dplyr::filter(
+            unite_datatraits(traitData, traitnames, TRUE),
+            .data$strain %in% strains),
           traitSignal,
           by = bys),
         -.data$signal)
-    
-    traitData <- 
-      dplyr::filter(
-        unite_datatraits(traitData, traitnames, TRUE),
-        .data$strain %in% strains)
-
   } else {
     traitData <- selectSignal(traitSignal, traitnames, response, strains)
   }
@@ -75,7 +79,6 @@ traitSolos <- function(traitData,
     traitData,
     trait = factor(.data$trait, unique(.data$trait[m])),
     dataset = factor(.data$dataset, unique(.data$dataset[m])))
-  
 
   class(traitData) <- c("traitSolos", class(traitData))
   attr(traitData, "response") <- response
@@ -84,10 +87,10 @@ traitSolos <- function(traitData,
   
   traitData
 }
-selectSignal <- function(object, traitnames, response,
+selectSignal <- function(object, traitnames, response = c("cellmean", "signal"),
                          strains = names(foundr::CCcolors)) {
-  # The response must be either "cellmean" or "signal".
-  
+  response <- match.arg(response)
+
   if("condition" %in% names(object)) {
     bys <- c("dataset","strain","sex","condition","trait")
   } else {

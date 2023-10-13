@@ -67,6 +67,10 @@ ggplot_listof_wgcnaModules <- function(object,
                                 response = names(object),
                                 main = paste("Dendrogram for", response, "with module colors"),
                                 ...) {
+  
+  if(is.null(object))
+    return(plot_null())
+  
   response <- match.arg(response)
   
   p <- list()

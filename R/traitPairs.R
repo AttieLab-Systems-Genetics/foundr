@@ -45,10 +45,10 @@ traitPairs <- function(object,
     return(NULL)
   }
   
-  
   out <- purrr::map(
     purrr::set_names(pair),
     pairsetup, object, response, sep, ...)
+  
   class(out) <- c("traitPairs", class(out))
   attr(out, "sep") <- sep
   attr(out, "response") <- response

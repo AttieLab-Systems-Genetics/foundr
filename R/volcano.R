@@ -39,7 +39,7 @@ volcano <- function(object,
     return(NULL)
   
   # Allow some flexibility in threshold setting.
-  threshold_default <- c(SD = 1, p.value = 0.01, kME = 0.5, module = 10)
+  threshold_default <- c(SD = 1, p.value = 0.01, kME = 0.8, module = 10)
   nth <- names(threshold)
   if(is.null(nth)) {
     if(length(threshold) > length(threshold_default)) {
@@ -56,7 +56,7 @@ volcano <- function(object,
   
   if(ordername == "kME") {
     thresholder <- function(x) {
-      x >= threshold[ordername]
+      abs(x) >= threshold[ordername]
     }
   } else {
     thresholder <- function(x) {
@@ -85,17 +85,14 @@ volcano <- function(object,
       foldchange = ifelse(
         .data$SD >= threshold["SD"] &
           thresholder(.data[[ordername]]),
-#          .data[[ordername]] <= threshold[ordername],
         "UP", foldchange),
       foldchange = ifelse(
         -.data$SD >= threshold["SD"] &
           thresholder(.data[[ordername]]),
-        #          .data[[ordername]] <= threshold[ordername],
         "DOWN", foldchange),
       label = ifelse(
         abs(.data$SD) >= threshold["SD"] &
           thresholder(.data[[ordername]]),
-        # .data[[ordername]] <= threshold[ordername],
         paste(.data$dataset, .data$trait, sep = ": "), NA))
   
   if(any(object$SD < 0))
@@ -116,6 +113,9 @@ volcano <- function(object,
   } else {
     yinterceptor <- threshold[ordername]
     ylab_default = ordername
+    # Ignore sign on kME for plot.
+    if(ordername == "kME")
+      object <- dplyr::mutate(object, kME = abs(kME))
   }
   
   # Prettify x label

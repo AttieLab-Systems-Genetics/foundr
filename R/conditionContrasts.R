@@ -154,13 +154,18 @@ ggplot_conditionContrasts <- function(object, bysex = sexes,
       "signal", facet = TRUE, traitnames = FALSE, ordername = ordername, ...)
   } else { # Plot contrasts of strains by trait.
     # Pick top traits to plot
+    
+    sord <- -1
+    if(ordername == "kME")
+      sord <- 1
+    
     object <- 
       dplyr::filter(
         dplyr::mutate(
           object,
           trait = abbreviate(
             paste(.data$dataset, .data$trait, sep = ": "), 40),
-          trait = reorder(trait, -p.value)),
+          trait = reorder(.data$trait, sord * abs(.data[[ordername]]))),
         .data$trait %in% rev(levels(.data$trait))[seq_len(ntraits)])
     
     textsize <- 12
