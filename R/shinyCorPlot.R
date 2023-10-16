@@ -34,18 +34,17 @@ shinyCorPlotOutput <- function(id) {
 #' @param input,output,session standard shiny arguments
 #' @param CorTable reactive data frames
 #' @param panel_par,main_par reactive inputs from calling modules
+#' @param customSettings static list of settings
 #'
 #' @return reactive object
 #' @importFrom shiny isTruthy moduleServer plotOutput reactive renderUI
 #'             renderPlot req  
 #' @export
 #'
-shinyCorPlot <- function(id, panel_par, main_par, CorTable) {
+shinyCorPlot <- function(id, panel_par, main_par, CorTable,
+                         customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    # Temporary kludge
-    customSettings <- shiny::reactiveValues(dataset = NULL)
     
     # INPUTS
     # calling module inputs

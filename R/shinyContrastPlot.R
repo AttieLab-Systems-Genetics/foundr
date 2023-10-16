@@ -19,7 +19,7 @@ shinyContrastPlotInput <- function(id) {
 #'
 #' @return nothing returned
 #' @rdname shinyContrastPlot
-#' @importFrom shiny column fluidRow NS uiOutput
+#' @importFrom shiny column fluidRow NS radioButtons uiOutput
 #' @export
 #'
 shinyContrastPlotOutput <- function(id) {
@@ -28,12 +28,10 @@ shinyContrastPlotOutput <- function(id) {
   shiny::tagList(
     shiny::fluidRow(
       shiny::column(4, shiny::radioButtons(ns("butshow"),
-        "", c("Plots","Tables"), "Plots", inline = TRUE)),
-      shiny::column(2, shiny::uiOutput(ns("downloads"))),
-      shiny::column(6, shiny::uiOutput(ns("filename")))),
+                         "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
     
-    shiny::uiOutput(ns("traitOutput"))
-  )
+    shiny::uiOutput(ns("traitOutput")))
 }
 
 #' Shiny Module Server for Contrast Plots
@@ -43,7 +41,7 @@ shinyContrastPlotOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column downloadHandler moduleServer observeEvent
+#' @importFrom shiny column moduleServer observeEvent
 #'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
@@ -60,12 +58,16 @@ shinyContrastPlot <- function(id, main_par,
     #   main_par$height
     #   main_par$strains
     # RETURNS
+    
+    # MODULES
+    shinyDownloads("downloads", "Contrast", input, postfix,
+                   plotObject, tableObject)
 
     # Output
     output$traitOutput <- shiny::renderUI({
       switch(shiny::req(input$butshow),
              Plots  = shiny::uiOutput(ns("plot")),
-             Tables = DT::renderDataTable(contable(), escape = FALSE,
+             Tables = DT::renderDataTable(tableObject(), escape = FALSE,
                         options = list(scrollX = TRUE, pageLength = 10)))
     })
     
@@ -135,44 +137,17 @@ shinyContrastPlot <- function(id, main_par,
     })
     
     # Table
-    contable <- shiny::reactive({
+    tableObject <- shiny::reactive({
       summary(shiny::req(contrastTable()), shiny::req(input$ntrait))
     })
     
     # DOWNLOADS
-    output$downloads <- shiny::renderUI({
-      shiny::req(input$butshow)
-      
-      shiny::downloadButton(ns(paste0("download", input$butshow)),
-                            input$butshow)
+    postfix <- shiny::reactive({
+      paste(unique(shiny::req(contrastTable())$dataset), collapse = ",")
     })
-    # Download File Prefix
-    output$filename <- renderUI({
-      datasets <- paste(unique(contrastTable()$dataset), collapse = ",")
-      filename <- paste0("Contrast_", datasets)
-      
-      shiny::textAreaInput(ns("filename"), "File Prefix:", filename)
+    plotObject <- shiny::reactive({
+      print(shiny::req(contrastPlot()))
+      print(shiny::req(contrastVolcano()))
     })
-    
-    # Download Plot
-    output$downloadPlots <- shiny::downloadHandler(
-      filename = function() paste0(shiny::req(input$filename), ".pdf"),
-      content = function(file) {
-        shiny::req(contrastPlot(), contrastVolcano())
-        
-        grDevices::pdf(file, width = 9, height = main_par$height)
-        print(contrastPlot())
-        print(contrastVolcano())
-        grDevices::dev.off()
-      })
-    
-    # Download DataTable
-    output$downloadTables <- shiny::downloadHandler(
-      filename = function() paste0(shiny::req(input$filename), ".csv"),
-      content = function(file) {
-        shiny::req(contable())
-        
-        utils::write.csv(contable(), file, row.names = FALSE)
-      })
   })
 }

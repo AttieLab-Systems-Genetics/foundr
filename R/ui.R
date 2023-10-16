@@ -14,10 +14,10 @@ ui <- function(title) {
   #   input$strains: Strains to select
   #   input$height: Plot Height
   #
-  # OUTPUTS (see shinyTraitPairs)
+  # OUTPUTS
   #   output$filename: 
-  #   output$downloadPlot
-  #   output$downloadTable
+  #   output$downloadPlots
+  #   output$downloadTables
   
   shiny::fluidPage(
     shiny::titlePanel(title),

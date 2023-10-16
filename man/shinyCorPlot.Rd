@@ -10,7 +10,7 @@ shinyCorPlotUI(id)
 
 shinyCorPlotOutput(id)
 
-shinyCorPlot(id, panel_par, main_par, CorTable)
+shinyCorPlot(id, panel_par, main_par, CorTable, customSettings = NULL)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -18,6 +18,8 @@ shinyCorPlot(id, panel_par, main_par, CorTable)
 \item{panel_par, main_par}{reactive inputs from calling modules}
 
 \item{CorTable}{reactive data frames}
+
+\item{customSettings}{static list of settings}
 
 \item{input, output, session}{standard shiny arguments}
 }

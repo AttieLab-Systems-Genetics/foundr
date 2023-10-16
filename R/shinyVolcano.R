@@ -10,12 +10,19 @@
 shinyVolcanoOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::uiOutput(ns("shiny_output"))
+  shiny::tagList(
+    shiny::fluidRow(
+      shiny::column(4, shiny::radioButtons(ns("butshow"),
+                                           "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
+    
+    shiny::uiOutput(ns("shiny_output"))
+  )
 }
 
 #' Shiny Module Server for Volcano Plots
 #'
-#' @param input,output,session standard shiny arguments
+#' @param id identifier for shiny reactive
 #' @param main_par reactive arguments from `server()`
 #' @param traitStats static data frame
 #' @param customSettings list of custom settings
@@ -46,6 +53,10 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     #   input$interact
     #   input$volsd
     #   input$volpval
+    
+    # MODULES
+    shinyDownloads("downloads", "Volcano", input, postfix,
+                   plotObject, tableObject)
     
     # Server-side UIs
     output$shiny_input <- shiny::renderUI({
@@ -151,7 +162,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
       print(volcano_plot())
     })
     
-    volcano_table <- shiny::reactive({
+    tableObject <- shiny::reactive({
       shiny::req(traitStatsSelected(), term_selection(),
                  input$volsd, input$volpval)
       
@@ -161,54 +172,18 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
         threshold = c(SD = input$volsd, p = 10 ^ (-input$volpval)))
     })
     output$tablesum <- DT::renderDataTable(
-      volcano_table(),
+      tableObject(),
       escape = FALSE,
       options = list(scrollX = TRUE, pageLength = 10))
     
     # DOWNLOADS
-    output$downloads <- renderUI({
-      shiny::fluidRow(
-        shiny::column(3, shiny::downloadButton(ns("downloadPlots"), "Plots")),
-        shiny::column(3, shiny::downloadButton(ns("downloadTables"), "Tables")),
-        shiny::column(6, shiny::uiOutput(ns("filename"))))
+    postfix <- shiny::reactive({
+      paste0(shiny::req(term_selection()), "_",
+             paste(shiny::req(data_selection()), collapse = "."))
     })
-    # Download File Prefix
-    output$filename <- renderUI({
-      shiny::req(term_selection(), volcano_plot(), volcano_table())
-      
-      filename <- paste0(
-        "Volcano_", term_selection(), "_",
-        paste(data_selection(), collapse = "."))
-      shiny::textAreaInput(ns("filename"), "File Prefix", filename)
+    plotObject <- shiny::reactive({
+      print(shiny::req(volcano_plot()))
     })
-    
-    # Download Plots
-    output$downloadPlots <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".pdf")
-      },
-      content = function(file) {
-        shiny::req(volcano_plot(), main_par$height)
-        grDevices::pdf(file, width = 9, height = main_par$height)
-        print(volcano_plot())
-        grDevices::dev.off()
-      })
-    
-    # Download Tables
-    output$downloadTables <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".csv")
-      },
-      content = function(file) {
-        shiny::req(volcano_table())
-        utils::write.csv(
-          volcano_table(),
-          file, row.names = FALSE)
-      })
-  
-    #################################################
-    
-    input
   })
 }
 

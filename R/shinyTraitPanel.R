@@ -40,18 +40,11 @@ shinyTraitPanelOutput <- function(id) {
   
   shiny::tagList(
     shiny::fluidRow(
-      shiny::column(
-        4,
-        shiny::radioButtons(ns("butshow"), "", c("Plots","Tables"), "Plots",
-                            inline = TRUE)),
-      shiny::column(
-        2,
-        shiny::uiOutput(ns("downloads"))),
-      shiny::column(
-        6,
-        shiny::uiOutput(ns("filename")))),
-    shiny::uiOutput(ns("traitOutput"))
-  )
+      shiny::column(4, shiny::radioButtons(ns("butshow"),
+                         "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
+    
+    shiny::uiOutput(ns("traitOutput")))
 }
 
 #' Shiny Module Server for Trait Panel
@@ -61,9 +54,8 @@ shinyTraitPanelOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column downloadHandler h3 moduleServer observeEvent
-#'             reactive renderUI req selectInput tagList uiOutput
-#'             updateSelectInput
+#' @importFrom shiny column h3 moduleServer observeEvent reactive renderUI req
+#'             selectInput tagList uiOutput updateSelectInput
 #' @importFrom DT renderDataTable
 #' @importFrom stringr str_remove str_replace
 #' @export
@@ -102,7 +94,7 @@ shinyTraitPanel <- function(id, main_par,
                                         corTableOutput, TRUE)
     # Correlation Plot
     corPlotOutput <- shinyCorPlot("shinyCorPlot", input, main_par,
-                                  corTableOutput)
+                                  corTableOutput, customSettings)
     # Trait Table.
     tableOutput <- shinyTraitTable("shinyTable", input, main_par,
                                    keyTraitOutput, relTraitsOutput,
@@ -112,6 +104,9 @@ shinyTraitPanel <- function(id, main_par,
     solosOutput <- shinyTraitSolos("shinySolos", main_par, tableOutput)
     pairsOutput <- shinyTraitPairs("shinyPairs", main_par, trait_names,
                                    tableOutput)
+    # Downloads
+    shinyDownloads("downloads", "Trait", input, postfix,
+                   plotObject, tableObject)
     
     # Trait Names.
     trait_names <- shiny::reactive({
@@ -167,61 +162,33 @@ shinyTraitPanel <- function(id, main_par,
     })
     
     # DOWNLOADS
-    output$downloads <- shiny::renderUI({
-      shiny::req(input$butshow)
-      
-      shiny::downloadButton(ns(paste0("download", input$butshow)),
-                            input$butshow)
-    })
-    # Download File Prefix
-    output$filename <- renderUI({
-      shiny::req(trait_names())
-      
-      filename <- "Trait_"
+    postfix <- shiny::reactive({
+      filename <- stringr::str_replace(trait_names()[1], ": ", "_")
       if(shiny::req(input$butshow) == "Tables")
-        filename <- paste0(filename,
-                           stringr::str_remove(input$buttable, " "), "_")
-      filename <- paste0(filename, 
-                         stringr::str_replace(trait_names()[1], ": ", "_"))
-      
-      shiny::textAreaInput(ns("filename"), "File Prefix:", filename)
+        filename <- paste0(stringr::str_remove(input$buttable, " "), "_",
+                           filename)
+      filename
     })
-    
-    # Download Plot
-    output$downloadPlots <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".pdf")
-      },
-      content = function(file) {
-        shiny::req(solosOutput(), main_par$height)
-        grDevices::pdf(file, width = 9, height = main_par$height)
-        print(solosOutput())
-        if(length(shiny::req(trait_names())) > 1)
-          print(pairsOutput())
-        if(is_bestcor(corTableOutput()) & shiny::isTruthy(corPlotOutput()))
-          print(corPlotOutput())
-        invisible()
-        grDevices::dev.off()
-      })
-    
-    # Download DataTable
-    output$downloadTables <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".csv")
-      },
-      content = function(file) {
-        shiny::req(tableOutput())
-        utils::write.csv(
-          switch(shiny::req(input$buttable),
-                 "Cell Means" = summary(tableOutput()),
-                 Correlations = summary_bestcor(
-                   mutate_datasets(corTableOutput(), customSettings$dataset),
-                   0.0),
-                 Stats = summary_strainstats(orderOutput(),
-                   threshold = c(deviance = 0, p = 1))),
-          file, row.names = FALSE)
-      })
-    
+    plotObject <- shiny::reactive({
+      shiny::req(solosOutput(), main_par$height)
+      
+      print(solosOutput())
+      if(length(shiny::req(trait_names())) > 1)
+        print(pairsOutput())
+      if(is_bestcor(corTableOutput()) & shiny::isTruthy(corPlotOutput()))
+        print(corPlotOutput())
+    })
+    tableObject <- shiny::reactive({
+      shiny::req(tableOutput())
+      switch(shiny::req(input$buttable),
+             "Cell Means" = summary(tableOutput()),
+             Correlations = summary_bestcor(
+               mutate_datasets(corTableOutput(), customSettings$dataset),
+               0.0),
+             Stats = summary_strainstats(orderOutput(),
+                                         threshold = c(deviance = 0, p = 1)))
+    })
+
     ###############################################################
     trait_names
   })

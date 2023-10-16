@@ -19,8 +19,6 @@ shinyVolcano(id, main_par, traitStats, customSettings = NULL, facet = FALSE)
 \item{customSettings}{list of custom settings}
 
 \item{facet}{facet on `strain` if `TRUE`}
-
-\item{input, output, session}{standard shiny arguments}
 }
 \value{
 nothing returned

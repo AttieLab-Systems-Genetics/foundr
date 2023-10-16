@@ -22,7 +22,7 @@ shinyContrastTableInput <- function(id) {
 #' @param allDatasets initially select all datasets if `TRUE`
 #'
 #' @return reactive object 
-#' @importFrom shiny column downloadHandler moduleServer observeEvent
+#' @importFrom shiny column moduleServer observeEvent
 #'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable

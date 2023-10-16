@@ -26,7 +26,14 @@ shinyTimePlotInput <- function(id) {
 shinyTimePlotOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::uiOutput(ns("shinyOutput"))
+  shiny::tagList(
+    shiny::fluidRow(
+      shiny::column(4, shiny::radioButtons(ns("butshow"),
+                         "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
+    
+    # Plots and Tables.
+    shiny::uiOutput(ns("plotstables")))
 }
 
 #' Shiny Module Server for Time Plots
@@ -56,6 +63,10 @@ shinyTimePlot <- function(id, main_par,
     #   main_par$facet
     #   main_par$strains
     
+    # MODULES
+    shinyDownloads("downloads", "Time", input, postfix,
+                   plotObject, tableObject)
+    
     # OUTPUTS
 
     # Identify all Time Traits.
@@ -68,23 +79,8 @@ shinyTimePlot <- function(id, main_par,
     })
     relTraits <- shiny::reactiveVal(NULL)
     
-    # Outputs
-    output$shinyOutput <- shiny::renderUI({
-      shiny::req(main_par$height, statstable(), timeplots(), timestats())
-      
-      shiny::tagList(
-        # Traits or Stats and Downloads.
-        shiny::fluidRow(
-          shiny::column(4, shiny::radioButtons(ns("buttime"), "",
-            c("Plots","Tables"), inline = TRUE)),
-          shiny::column(8, shiny::uiOutput(ns("downloads")))),
-        
-        # Plots and Tables.
-        shiny::uiOutput(ns("plotstables")))
-    })
-    
     output$plotstables <- shiny::renderUI({
-      switch(shiny::req(input$buttime),
+      switch(shiny::req(input$butshow),
              Plots  = shiny::uiOutput(ns("plots")),
              Tables = shiny::uiOutput(ns("tables")))
     })
@@ -141,56 +137,24 @@ shinyTimePlot <- function(id, main_par,
       
       ggplot_traitTimes(traitTimesData()$stats)
     }, label = "timestats")
-
+    
     # DOWNLOADS
-    output$downloads <- shiny::renderUI({
-      shiny::req(input$buttime)
-      shiny::fluidRow(
-        shiny::column(3, shiny::downloadButton(
-          ns(paste0("download", input$buttime)), input$buttime)),
-        shiny::column(9, shiny::uiOutput(ns("filename"))))
+    postfix <- shiny::reactive({
+      filename <- paste(names(traitTimesData()$traits), collapse = ",")
+      if(shiny::req(input$butshow) == "Tables")
+        filename <- paste0(stringr::str_remove(input$buttable, " "), "_",
+                           filename)
+      stringr::str_replace_all(filename, ": ", "_")
     })
-    # Download File Prefix
-    output$filename <- renderUI({
+    plotObject <- shiny::reactive({
+      print(shiny::req(timeplots()))
+      print(shiny::req(timestats()))
+    })
+    tableObject <- shiny::reactive({
       shiny::req(traitTimesData())
-      
-      filename <- "Time_"
-      if(shiny::req(input$buttime) == "Tables")
-        filename <- paste0(filename, 
-                           stringr::str_remove(input$buttable, " "), "_")
-      filename <- paste0(filename,
-                         paste(names(traitTimesData()$traits), collapse = ","))
-      filename <- stringr::str_replace_all(filename, ": ", "_")
-      
-      shiny::textAreaInput(ns("filename"), "File Prefix", filename)
+      switch(shiny::req(input$buttable),
+             "Cell Means" = traitstable(),
+             Stats        = statstable())
     })
-    
-    # Download Plot
-    output$downloadPlots <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".pdf")
-      },
-      content = function(file) {
-        shiny::req(timeplots(), timestats(), main_par$height)
-        grDevices::pdf(file, width = 9, height = main_par$height)
-        print(timeplots())
-        print(timestats())
-        invisible()
-        grDevices::dev.off()
-      })
-    
-    # Download DataTable
-    output$downloadTables <- shiny::downloadHandler(
-      filename = function() {
-        paste0(shiny::req(input$filename), ".csv")
-      },
-      content = function(file) {
-        shiny::req(traitTimesData())
-        utils::write.csv(
-          switch(shiny::req(input$buttable),
-                 "Cell Means" = traitstable(),
-                 Stats        = statstable()),
-          file, row.names = FALSE)
-      })
-  })
+ })
 }

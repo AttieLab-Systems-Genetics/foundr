@@ -1,0 +1,66 @@
+#' Compare Eigen Traits with Original Traits
+#'
+#' @param object module list object
+#' @param sexname name of sex combination
+#' @param modulename name of module to examine
+#' @param contr_object contrast object from `conditionContrasts()`
+#'
+#' @return data frame
+#' @export
+#' @importFrom dplyr bind_rows filter left_join mutate rename select
+#' @importFrom stats reorder
+#'
+eigen_traits <- function(object,
+                          sexname = sexnames,
+                          modulename,
+                          contr_object,
+                          eigen_object = eigen_contrast(object, contr_object)) {
+  
+  sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
+  sexes <- names(sexes)[match(sexname, sexes)]
+  
+  # Get `modules` from `object` and filter to `modulename`. 
+  module_object <- 
+    dplyr::select(
+      dplyr::filter(
+        object[[sexname]]$modules,
+        paste(sexes, .data$module, sep = "_") == modulename),
+      -module)
+  
+  # Join contrast object with module object.
+  # Replacing `p.value` by module `kME`.
+  object <- dplyr::left_join(
+    # Filter contrast object to include module traits.
+    dplyr::filter(
+      # De-select `p.value` from contrast objects.
+      dplyr::select(contr_object, -p.value),
+      .data$sex == sexname,
+      .data$trait %in% module_object$trait),
+    module_object,
+    by = c("trait"))
+  
+  # Bind eigen object information.
+  object <- 
+    # Reorder traits to be in increasing `kME` order.
+    dplyr::mutate(
+      dplyr::bind_rows(
+      object,
+      # Filter eigen object to get only `sex` and `module`.
+      # Set `kME` to 1 for eigentrait.
+      dplyr::select(
+        dplyr::mutate(
+          # Filter `eigen` object by `sex` and `module`.
+          dplyr::filter(
+            eigen_object,
+            .data$sex == sexname,
+            .data$trait == modulename),
+          kME = 1),
+        -module)),
+      trait = stats::reorder(as.character(.data$trait), -.data$kME))
+  
+  class(object) <- c("conditionContrasts", class(object))
+  attr(object, "conditions") <- attr(contr_object, "conditions")
+  attr(object, "termname") <- attr(contr_object, "termname")
+  attr(object, "ordername") <- "kME"
+  object
+}
