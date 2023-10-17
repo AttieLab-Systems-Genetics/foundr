@@ -241,7 +241,7 @@ summary_conditionContrasts <- function(object, ntrait = 20, ...) {
   out
 }
 
-#' Summary method for Contrasts of Condtions
+#' Summary method for Contrasts of Conditions
 #'
 #' @param object object of class `conditionContrasts`
 #' @param ntraits number of traits to plot
@@ -254,3 +254,69 @@ summary_conditionContrasts <- function(object, ntrait = 20, ...) {
 #'
 summary.conditionContrasts <- function(object, ...) 
   summary_conditionContrasts(object, ...)
+
+#' Combine method for Contrasts of Conditions
+#'
+#' @param ... objects of class `conditionContrasts`
+#'
+#' @return object of class `conditionContrasts`
+#' @export
+#' @rdname conditionContrasts
+#' @method c conditionContrasts
+#'
+c.conditionContrasts <- function(...) {
+  
+  out <- as.list(...)
+  if(!inherits(out[[1]], "conditionContrasts"))
+    return(NULL)
+  if(length(out) == 1) {
+    return(out[[1]])
+  } else {
+    for(i in seq(2, length(out)))
+      if(!inherits(out[[i]], "conditionContrasts"))
+        return(NULL)
+  }
+  
+  classout <- class(out[[1]])
+  attrout <- list(
+    conditions = attr(out[[1]], "conditions"),
+    termname = attr(out[[1]], "termname"),
+    ordername = attr(out[[1]], "ordername"))
+  
+  out <- dplyr::bind_rows(out)
+  class(out) <- classout
+
+  attr(out, "conditions") <- attrout$conditions
+  attr(out, "termname") <- attrout$termname
+  attr(out, "ordername") <- attrout$ordername
+  out
+}
+
+#' Split method for Contrasts of Conditions
+#'
+#' @param x objects of class `conditionContrasts`
+#' @param ... additional parameters for generic `split`
+#'
+#' @return object of class `conditionContrasts`
+#' @export
+#' @rdname conditionContrasts
+#' @method split conditionContrasts
+#'
+split.conditionContrasts <- function(x, ...) {
+  
+  classout <- class(x)
+  attrout <- list(
+    conditions = attr(x, "conditions"),
+    termname = attr(x, "termname"),
+    ordername = attr(x, "ordername"))
+  
+  out <- NextMethod(x, ...)
+  for(i in names(out)) {
+    class(out[[i]]) <- classout
+    
+    attr(out[[i]], "conditions") <- attrout$conditions
+    attr(out[[i]], "termname") <- attrout$termname
+    attr(out[[i]], "ordername") <- attrout$ordername
+  }
+  out
+}

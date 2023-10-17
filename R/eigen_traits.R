@@ -9,6 +9,7 @@
 #' @export
 #' @importFrom dplyr bind_rows filter left_join mutate rename select
 #' @importFrom stats reorder
+#' @importFrom stringr str_remove
 #'
 eigen_traits <- function(object,
                           sexname = sexnames,
@@ -63,4 +64,24 @@ eigen_traits <- function(object,
   attr(object, "termname") <- attr(contr_object, "termname")
   attr(object, "ordername") <- "kME"
   object
+}
+eigen_traits_dataset <- function(object = NULL,
+                                 sexname = NULL,
+                                 modulename = NULL,
+                                 contr_object = NULL,
+                                 eigen_object = eigen_contrast(object, contr_object)) {
+  if(is.null(object) || is.null(contr_object) || is.null(eigen_object) ||
+     is.null(modulename))
+    return(NULL)
+  
+  datasetname <- stringr::str_remove(modulename, ": .*")
+  modulename <- stringr::str_remove(modulename, ".*: ")
+  if(!(datasetname %in% names(object)))
+    return(NULL)
+  
+  eigen_traits(object[[datasetname]],
+               sexname,
+               modulename,
+               dplyr::filter(contr_object, .data$dataset == datasetname),
+               dplyr::filter(eigen_object, .data$dataset == datasetname))
 }

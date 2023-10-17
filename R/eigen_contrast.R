@@ -25,6 +25,18 @@ eigen_contrast <- function(object, contr_object) {
   attr(object, "ordername") <- "module"
   object
 }
+# Apply eigen_contrast over list of `traitModule`s and `contr_object`.
+eigen_contrast_dataset <- function(object, contr_object) {
+  datasets <- names(object)
+  if(!all(datasets %in% contr_object$dataset))
+    return(NULL)
+  contr_object <- split(contr_object, contr_object$dataset)[datasets]
+  out <- purrr::map(datasets, function(x) {
+    eigen_contrast(object[[x]], contr_object[[x]])
+    })
+  class(out) <- c("conditionContrasts", class(out))
+  c(out)
+}
 eigen_df <- function(object) {
   # Pivot `eigen` matrix into long data frame.
   # Separate `dataset`, `strain` and `sex` into their own columns.

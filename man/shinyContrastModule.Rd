@@ -18,7 +18,9 @@ shinyContrastModule(
 
 \item{panel_par, main_par}{reactive arguments}
 
-\item{traitContrast, contrastModule}{static data frames}
+\item{traitContrast}{reactive data frames}
+
+\item{contrastModule}{static data frames}
 
 \item{customSettings}{list of custom settings}
 }

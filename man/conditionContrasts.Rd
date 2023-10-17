@@ -6,6 +6,8 @@
 \alias{plot.conditionContrasts}
 \alias{summary_conditionContrasts}
 \alias{summary.conditionContrasts}
+\alias{c.conditionContrasts}
+\alias{split.conditionContrasts}
 \title{Contrasts of Conditions}
 \usage{
 conditionContrasts(
@@ -28,6 +30,10 @@ ggplot_conditionContrasts(
 summary_conditionContrasts(object, ntrait = 20, ...)
 
 \method{summary}{conditionContrasts}(object, ...)
+
+\method{c}{conditionContrasts}(...)
+
+\method{split}{conditionContrasts}(x, ...)
 }
 \arguments{
 \item{traitSignal}{data frame of signals}
@@ -46,9 +52,9 @@ summary_conditionContrasts(object, ntrait = 20, ...)
 
 \item{volcano}{volcano plot if `TRUE`}
 
-\item{...}{parameters passed to `ggplot_conditionContrasts`}
+\item{...}{additional parameters for generic `split`}
 
-\item{x}{object of class `conditionContrasts`}
+\item{x}{objects of class `conditionContrasts`}
 
 \item{ntrait}{number of traits to plot}
 }
@@ -62,6 +68,10 @@ ggplot object
 data frame
 
 data frame
+
+object of class `conditionContrasts`
+
+object of class `conditionContrasts`
 }
 \description{
 Contrasts of Conditions
@@ -72,5 +82,9 @@ Plot method for Contrasts of Condtions
 
 Summary method for Contrasts of Condtions
 
-Summary method for Contrasts of Condtions
+Summary method for Contrasts of Conditions
+
+Combine method for Contrasts of Conditions
+
+Split method for Contrasts of Conditions
 }

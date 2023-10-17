@@ -5,16 +5,13 @@
 #' @return nothing returned
 #' @rdname shinyTimeTraits
 #' @export
-#' @importFrom shiny column fluidRow NS selectInput uiOutput
+#' @importFrom shiny NS selectInput
 #'
 shinyContrastModuleInput <- function(id) {
   ns <- shiny::NS(id)
   
-  # Datasets and Sex.
-  shiny::fluidRow(
-    shiny::column(6, shiny::uiOutput(ns("dataset"))),
-    shiny::column(6, shiny::selectInput(ns("sex"), "Sex:",
-                       c("Both Sexes", "Female", "Male", "Sex Contrast"))))
+  shiny::selectInput(ns("sex"), "Sex:",
+                     c("Both Sexes", "Female", "Male", "Sex Contrast"))
 }
 
 #' Shiny Module Output for Modules of Contrasts
@@ -35,8 +32,7 @@ shinyContrastModuleOutput <- function(id) {
                          "", c("Plots","Tables"), "Plots", inline = TRUE)),
       shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
     
-    shiny::checkboxInput(ns("members"), "Module Members?"),
-    shiny::uiOutput(ns("eigens"))
+    shiny::uiOutput(ns("plots"))
   )
 }
 
@@ -44,12 +40,13 @@ shinyContrastModuleOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param panel_par,main_par reactive arguments 
-#' @param traitContrast,contrastModule static data frames
+#' @param traitContrast reactive data frames
+#' @param contrastModule static data frames
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
 #' @importFrom shiny h3 moduleServer reactive renderPlot renderUI req
-#'             selectInput tagList
+#'             selectizeInput tagList updateSelectizeInput
 #' @importFrom stringr str_to_title
 #' @export
 #'
@@ -67,34 +64,26 @@ shinyContrastModule <- function(id, panel_par, main_par,
     # RETURNS
     #   contrastOutput
     
-    # Datasets.
-    output$dataset <- renderUI({
+    datasets <- shiny::reactive({
+      shiny::req(traitContrast())
+      
       datasets <- unique(traitContrast()$dataset)
-      shiny::selectInput(ns("dataset"), "Datasets:", datasets, "LivMet",
-                         multiple = TRUE)
+      datasets[datasets %in% names(contrastModule)]
+    })
+    # Restrict `contrastModule` to datasets in `traitContrast()`
+    datamodule <- shiny::reactive({
+      contrastModule[shiny::req(datasets())]
     })
     
-    # Show Eigen Contrasts.
-    eigens <- shiny::reactive({
-      shiny::req(contrastModule(), traitContrast())
-      
-      eigen_contrast(contrastModule(), traitContrast())
-    })
-    output$eigens <- shiny::renderUI({
-      shiny::req(eigens(), input$sex)
+    output$plots <- shiny::renderUI({
+      shiny::req(input$butshow)
       
       switch(
         input$butshow,
         Plots = {
-          if(shiny::isTruthy(input$members)) {
-            shiny::uiOutput(ns("module"))
-          } else {
-            shiny::tagList(
-              shiny::h3("Eigentrait Contrasts"),
-              shiny::renderPlot(print(plot(eigens(), bysex = input$sex))),
-              shiny::renderPlot(print(plot(eigens(), bysex = input$sex,
-                                           volcano = TRUE))))
-          }
+          shiny::tagList(
+            shiny::uiOutput(ns("module")),
+            shiny::uiOutput(ns("plotchoice")))
         },
         Tables = {
           shiny::tagList(
@@ -102,33 +91,60 @@ shinyContrastModule <- function(id, panel_par, main_par,
             DT::renderDataTable(summary(eigens())))
         })
     })
-    
-    # Select module for eigen trait comparison.
-    output$module <- shiny::renderUI({
-      shiny::req(eigens())
+    output$plotchoice <- shiny::renderUI({
+      if(shiny::isTruthy(input$module)) {
+        # Select module for eigen trait comparison.
+        shiny::uiOutput(ns("traits"))
+      } else {
+        shiny::uiOutput(ns("eigens"))
+      }
+    })
+    # Show Eigen Contrasts.
+    eigens <- shiny::reactive({
+      shiny::req(datamodule(), traitContrast())
+      
+      eigen_contrast_dataset(datamodule(), traitContrast())
+    })
+    output$eigens <- shiny::renderUI({
+      shiny::req(eigens(), input$sex)
       
       shiny::tagList(
-        shiny::h3("Eigentrait Members"),
-        shiny::selectInput(ns("module"), "Module:", eigens()$trait),
-        shiny::uiOutput(ns("traits"))
-      )
+        shiny::h3("Eigentrait Contrasts"),
+        shiny::renderPlot(print(
+          ggplot_conditionContrasts(eigens(), bysex = input$sex))),
+        shiny::renderPlot(print(
+          ggplot_conditionContrasts(eigens(), bysex = input$sex,
+                                    volcano = TRUE))))
+    })
+    
+    output$module <- shiny::renderUI({
+      shiny::selectizeInput(ns("module"), "Module:", 
+        tidyr::unite(eigens(), datatraits, dataset, trait,
+                     sep = ": ")$datatraits)
+    })
+    observeEvent(datasets(), {
+      shiny::updateSelectizeInput(session, "module", selected = NULL,
+                                  server = TRUE)
     })
     
     # Compare Eigens to Traits
     traits <- shiny::reactive({
-      shiny::req(contrastModule(), input$sex, input$module,
+      shiny::req(datamodule(), input$sex, input$module,
                  traitContrast(), eigens())
       
-      eigen_traits(contrastModule(), input$sex, input$module,
-                   traitContrast(), eigens())
+      eigen_traits_dataset(datamodule(), input$sex, input$module,
+                           traitContrast(), eigens())
     })
     output$traits <- shiny::renderUI({
-      shiny::req(traits(), input$sex)
+      shiny::req(traits(), input$sex, input$module)
       
       shiny::tagList(
-        shiny::renderPlot(print(plot(traits(), bysex = input$sex))),
-        shiny::renderPlot(print(plot(traits(), bysex = input$sex,
-                                     volcano = TRUE)))
+        shiny::h3("Eigentrait Members"),
+        shiny::renderPlot(print(
+          ggplot_conditionContrasts(traits(), bysex = input$sex))),
+        shiny::renderPlot(print(
+          ggplot_conditionContrasts(traits(), bysex = input$sex,
+                                    volcano = TRUE)))
       )
     })
     
@@ -136,11 +152,11 @@ shinyContrastModule <- function(id, panel_par, main_par,
     
     # DOWNLOADS
     postfix <- shiny::reactive({
-      shiny::req(input$sex)
+      shiny::req(input$sex, datasets())
       
-      filename <- paste(input$dataset, collapse = ",")
+      filename <- paste(datasets(), collapse = ",")
             
-      if(shiny::isTruthy(input$members) && shiny::isTruthy(input$module) &&
+      if(shiny::isTruthy(input$module) &&
          input$butshow == "Plots") {
         filename <- paste(filename, input$module, sep = "_")
       } else {
@@ -150,8 +166,8 @@ shinyContrastModule <- function(id, panel_par, main_par,
       filename
     })
     plotObject <- shiny::reactive({
-      shiny::req(traits(), input$sex)
-      if(shiny::isTruthy(input$members)) {
+      shiny::req(input$sex)
+      if(shiny::isTruthy(input$module)) {
         shiny::req(traits())
         
         print(plot(traits(), bysex = input$sex))
@@ -168,5 +184,8 @@ shinyContrastModule <- function(id, panel_par, main_par,
       
       summary(eigens())
     })
+    
+    ##############################################################
+    eigens
   })
 }
