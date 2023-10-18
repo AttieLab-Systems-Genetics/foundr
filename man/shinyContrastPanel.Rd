@@ -15,6 +15,7 @@ shinyContrastPanel(
   main_par,
   traitSignal,
   traitStats,
+  traitModule,
   customSettings = NULL
 )
 }
@@ -23,7 +24,7 @@ shinyContrastPanel(
 
 \item{main_par}{reactive arguments}
 
-\item{traitSignal, traitStats}{static data frames}
+\item{traitSignal, traitStats, traitModule}{static objects}
 
 \item{customSettings}{list of custom settings}
 }

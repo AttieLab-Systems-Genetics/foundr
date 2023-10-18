@@ -1,0 +1,59 @@
+---
+title: "data input"
+output: html_document
+date: "2023-10-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A big challenge is that the `traitData` static object is very large and needs
+to be subsetted. Add to that are the opportunities to add new kinds of data:
+
+- contrasts via `conditionContrast()`
+- derived traits via `derived()` (under development)
+- uploaded data via `newTraitData()` (unused; from `shinyapp.r`)
+
+Data are subsetted to traits (smaller object) through a few main mechanisms
+
+- subset to selected traits via `subset_trait_names()`
+- subset to larger set of traits that have time via `time_trait_subset()`
+- subset to selected traits in `traitTimes()`
+
+Typically there is a decision point about using full data (`value`) and using
+cell means (`cellmean`). **This is done currently in the following routines,
+but could be organized into its own routine:**
+
+- subset to selected traits in `traitTimes()`
+- `traitSolos.R`
+
+Right now `shinyTraitTable.R` uses `subset_trait_names()` on `traitData`, but
+that could be done instead on `traitSignal`.
+
+After subsetting, we want to combine new traits (derived or newTraitData) with
+other traits. The challenge is that original traitData is static, whereas new
+data is reactive. Don't want to add lots of extra machinery. Also need to think
+about how best to create Signal and Stats object contributions for new data.
+
+# Conditions
+
+The other aspect is conditions. The three situations we have:
+
+- no conditions (RNA data for islet calcium study)
+- 2 conditions (diet study)
+- 3 or more conditions (calcium islet study)
+
+This has led to complications in code to allow for all possibilities. For instance,
+
+- conditionContrasts only works for 2 conditions
+- code modifications for condition in
+  + traitSolos.R
+  + bestcor.R
+  + conditionContrasts.R
+  + join_signal.R (used in package modulr)
+- comes up as well in the following settings
+  + ggplot_template.R
+  + newTraitData.R
+  + strainstats.R
+  + traitPairs.R

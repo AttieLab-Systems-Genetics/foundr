@@ -11,13 +11,14 @@ server(
   traitData = NULL,
   traitSignal = NULL,
   traitStats = NULL,
-  customSettings = NULL
+  customSettings = NULL,
+  traitModule = NULL
 )
 }
 \arguments{
 \item{input, output, session}{shiny server parameters}
 
-\item{traitData, traitSignal, traitStats}{trait data frame}
+\item{traitData, traitSignal, traitStats, traitModule}{static objects}
 
 \item{customSettings}{list of custom settings}
 }

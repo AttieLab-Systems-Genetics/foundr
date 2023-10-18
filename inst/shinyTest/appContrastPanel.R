@@ -2,6 +2,8 @@ dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData")
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
+
 customSettings <- list(condition = "diet")
 
 ################################################################
@@ -41,7 +43,7 @@ server <- function(input, output, session) {
   
   # CALL MODULES
   foundr::shinyContrastPanel("shinyPanel", input,
-                          traitSignal, traitStats,
+                          traitSignal, traitStats, traitModule,
                           customSettings)
   
   # SERVER-SIDE INPUTS

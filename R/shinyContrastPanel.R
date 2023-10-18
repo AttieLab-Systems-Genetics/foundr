@@ -11,8 +11,8 @@ shinyContrastPanelInput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
-    shiny::radioButtons(ns("contrast"), "",
-                        c("Contrast by Sex", "Contrast over Time"),
+    shiny::radioButtons(ns("contrast"), "Contrast by ...",
+                        c("Sex", "Time", "Module"),
                         inline = TRUE),
     shiny::uiOutput(ns("shinyInput")))
 }
@@ -36,7 +36,7 @@ shinyContrastPanelOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param main_par reactive arguments 
-#' @param traitSignal,traitStats static data frames
+#' @param traitSignal,traitStats,traitModule static objects
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
@@ -46,7 +46,7 @@ shinyContrastPanelOutput <- function(id) {
 #' @export
 #'
 shinyContrastPanel <- function(id, main_par,
-                            traitSignal, traitStats,
+                            traitSignal, traitStats, traitModule,
                             customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -75,20 +75,40 @@ shinyContrastPanel <- function(id, main_par,
       traitSignal, traitStatsTime, contrastTimeOutput, customSettings)
     # Contrast Time Plots and Tables
     shinyTimePlot("shinyTimePlot", main_par, traitSignal, timeOutput)
+    # Contrast Modules.
+    moduleOutput <- foundr::shinyContrastModule("shinyContrastModule",
+      input, main_par, traitContrPval, traitModule)
+    
+    traitContrPval <- reactive({
+      shiny::req(contrastOutput())
+      
+      if(is.null(traitModule))
+        return(NULL)
+      pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
+      
+      dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
+    })
+    
     
     # Input
     output$shinyInput <- shiny::renderUI({
       switch(shiny::req(input$contrast),
-        "Contrast by Sex" = {
+        Sex = {
           shiny::fluidRow(
             shiny::column(9, shinyContrastTableInput(ns("shinyContrastTable"))),
             shiny::column(3, shinyContrastPlotInput(ns("shinyContrastPlot"))))
         },
-        "Contrast over Time" = {
+        Time = {
           shiny::tagList(
             shinyContrastTableInput(ns("shinyContrastTimeTable")),
             shinyContrastTimeInput(ns("shinyContrastTime")),
             shinyTimePlotInput(ns("shinyTimePlot")))
+        },
+        Module = {
+          shiny::fluidRow(
+            shiny::column(9, shinyContrastTableInput(ns("shinyContrastTable"))),
+            shiny::column(3, 
+                          shinyContrastModuleInput(ns("shinyContrastModule"))))
         })
     })
     
@@ -98,12 +118,13 @@ shinyContrastPanel <- function(id, main_par,
         shiny::uiOutput(ns("text")),
         
         switch(shiny::req(input$contrast),
-          "Contrast by Sex" = shinyContrastPlotOutput(ns("shinyContrastPlot")),
-          "Contrast over Time" = {
+          Sex = shinyContrastPlotOutput(ns("shinyContrastPlot")),
+          Time = {
             shiny::req(timeOutput())
             
             shinyTimePlotOutput(ns("shinyTimePlot"))
-          }))
+          },
+          Module = shinyContrastModuleOutput(ns("shinyContrastModule"))))
     })
     
     output$text <- shiny::renderUI({
@@ -122,8 +143,11 @@ shinyContrastPanel <- function(id, main_par,
             "These may be viewed by sex or averaged over sex",
             " (Both Sexes) or by contrast of Female - Male",
             " (Sex Contrast).")
-          if(shiny::req(input$contrast) == "Contrast over Time")
+          if(shiny::req(input$contrast) == "Time")
             out <- paste(out, "Contrasts over time are by trait.")
+          if(shiny::req(input$contrast) == "Module")
+            out <- paste(out, "WGCNA modules by dataset and sex have",
+                         "power=6, minSize=4.")
           out
         }))
     })

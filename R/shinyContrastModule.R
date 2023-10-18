@@ -122,7 +122,8 @@ shinyContrastModule <- function(id, panel_par, main_par,
         tidyr::unite(eigens(), datatraits, dataset, trait,
                      sep = ": ")$datatraits)
     })
-    observeEvent(datasets(), {
+    shiny::observeEvent(
+      shiny::req(datasets(), input$sex), {
       shiny::updateSelectizeInput(session, "module", selected = NULL,
                                   server = TRUE)
     })

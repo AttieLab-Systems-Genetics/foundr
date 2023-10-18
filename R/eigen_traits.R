@@ -28,6 +28,10 @@ eigen_traits <- function(object,
         paste(sexes, .data$module, sep = "_") == modulename),
       -module)
   
+  # No rows if sexname changed.
+  if(!nrow(module_object))
+    return(NULL)
+  
   # Join contrast object with module object.
   # Replacing `p.value` by module `kME`.
   object <- dplyr::left_join(

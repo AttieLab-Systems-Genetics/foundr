@@ -1,7 +1,7 @@
 #' Shiny Server for foundr Package
 #'
 #' @param input,output,session shiny server parameters
-#' @param traitData,traitSignal,traitStats trait data frame
+#' @param traitData,traitSignal,traitStats,traitModule static objects
 #' @param customSettings list of custom settings
 #'
 #' @return reactive server
@@ -15,7 +15,7 @@
 #'
 server <- function(input, output, session,
                    traitData = NULL, traitSignal = NULL, traitStats = NULL,
-                   customSettings = NULL) {
+                   customSettings = NULL, traitModule = NULL) {
   # INPUTS
   #    input$strains
   #    input$height
@@ -27,8 +27,8 @@ server <- function(input, output, session,
                   customSettings)
   shinyTimePanel("tabTimes", input, traitData, traitSignal, traitStats)
   shinyVolcano("tabVolcano", input, traitStats, customSettings)
-  shinyContrastPanel("tabContrasts", input, traitSignal, traitStats,
-                     customSettings)
+  shinyContrastPanel("tabContrasts", input,
+                     traitSignal, traitStats, traitModule, customSettings)
   
   output$intro <- foundrIntro(customSettings$help)
   
