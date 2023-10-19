@@ -93,12 +93,35 @@ shinyContrastModule <- function(id, panel_par, main_par,
     })
     output$plotchoice <- shiny::renderUI({
       if(shiny::isTruthy(input$module)) {
+        vollabel <- "kME line:"
+        volmin <- 0
+        volmax <- 1
+        volvalue = 0.8
+        volstep = 0.1
+        
         # Select module for eigen trait comparison.
         shiny::uiOutput(ns("traits"))
       } else {
+        vollabel <- "Module line:"
+        volmin<- 0
+        volmax = 10
+        volstep <- 1
+        
         shiny::uiOutput(ns("eigens"))
       }
+      
+        # *** This gets complicated as need to update when things change
+        # *** input$module, datasets(), datatraits()
+        # *** Also watch out for limits on modules as this is factor.
+        
+        # Sliders from Volcano plot display.
+#        shiny::fluidRow(
+#          shiny::column(6, shiny::sliderInput(ns("volsd"),
+#                                              "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
+#          shiny::column(6, shiny::sliderInput(ns("volpval"),
+#                                              "-log10(p.value) line:", min = 0, max = 10, value = 2, step = 0.5))))
     })
+
     # Show Eigen Contrasts.
     eigens <- shiny::reactive({
       shiny::req(datamodule(), traitContrast())
@@ -117,15 +140,17 @@ shinyContrastModule <- function(id, panel_par, main_par,
                                     volcano = TRUE))))
     })
     
+    datatraits <- shiny::reactive({
+      tidyr::unite(shiny::req(eigens()), datatraits, dataset, trait,
+                   sep = ": ")$datatraits
+    }, label = "datatraits") 
     output$module <- shiny::renderUI({
-      shiny::selectizeInput(ns("module"), "Module:", 
-        tidyr::unite(eigens(), datatraits, dataset, trait,
-                     sep = ": ")$datatraits)
+      shiny::selectizeInput(ns("module"), "Module:", shiny::req(datatraits()))
     })
     shiny::observeEvent(
-      shiny::req(datasets(), input$sex), {
-      shiny::updateSelectizeInput(session, "module", selected = NULL,
-                                  server = TRUE)
+      shiny::req(datasets(), input$sex, eigens()), {
+      shiny::updateSelectizeInput(session, "module", choices = datatraits(),
+                                  selected = "", server = TRUE)
     })
     
     # Compare Eigens to Traits
@@ -183,6 +208,7 @@ shinyContrastModule <- function(id, panel_par, main_par,
     tableObject <- shiny::reactive({
       shiny::req(eigens())
       
+      # *** need to customize table, and have separate table for input$module
       summary(eigens())
     })
     
