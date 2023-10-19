@@ -18,7 +18,9 @@ ui <- function() {
           shiny::column(8,
             foundr::shinyContrastTableInput("shinyContrastTable")),
           shiny::column(4,
-            foundr::shinyContrastModuleInput("shinyContrastModule")))
+            foundr::shinyContrastModuleInput("shinyContrastModule"))),
+        shiny::numericInput("ntrait", "Traits:",
+                                             20, 5, 100, 5),
         ),
       
       shiny::mainPanel(

@@ -12,8 +12,7 @@ shinyContrastPanelInput <- function(id) {
   
   shiny::tagList(
     shiny::radioButtons(ns("contrast"), "Contrast by ...",
-                        c("Sex", "Time", "Module"),
-                        inline = TRUE),
+                        c("Sex", "Time", "Module"), inline = TRUE),
     shiny::uiOutput(ns("shinyInput")))
 }
 
@@ -66,7 +65,7 @@ shinyContrastPanel <- function(id, main_par,
       input, main_par, traitSignal, traitStats, customSettings)
     # Contrast Trait Plots
     shinyContrastPlot("shinyContrastPlot",
-      main_par, contrastOutput, customSettings)
+      input, main_par, contrastOutput, customSettings)
     # Contrast Trait Table
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
       input, main_par, traitSignal, traitStatsTime, customSettings, TRUE)
@@ -92,23 +91,20 @@ shinyContrastPanel <- function(id, main_par,
     
     # Input
     output$shinyInput <- shiny::renderUI({
-      switch(shiny::req(input$contrast),
-        Sex = {
+      shiny::req(input$contrast)
+      switch(
+        input$contrast,
+        Sex =, Module = {
           shiny::fluidRow(
             shiny::column(9, shinyContrastTableInput(ns("shinyContrastTable"))),
-            shiny::column(3, shinyContrastPlotInput(ns("shinyContrastPlot"))))
+            shiny::column(3, shiny::numericInput(ns("ntrait"), "Traits:",
+                                                 20, 5, 100, 5)))
         },
         Time = {
           shiny::tagList(
             shinyContrastTableInput(ns("shinyContrastTimeTable")),
             shinyContrastTimeInput(ns("shinyContrastTime")),
             shinyTimePlotInput(ns("shinyTimePlot")))
-        },
-        Module = {
-          shiny::fluidRow(
-            shiny::column(9, shinyContrastTableInput(ns("shinyContrastTable"))),
-            shiny::column(3, 
-                          shinyContrastModuleInput(ns("shinyContrastModule"))))
         })
     })
     
@@ -147,7 +143,8 @@ shinyContrastPanel <- function(id, main_par,
             out <- paste(out, "Contrasts over time are by trait.")
           if(shiny::req(input$contrast) == "Module")
             out <- paste(out, "WGCNA modules by dataset and sex have",
-                         "power=6, minSize=4.")
+                         "power=6, minSize=4.",
+                         "Select a Module to see module members.")
           out
         }))
     })

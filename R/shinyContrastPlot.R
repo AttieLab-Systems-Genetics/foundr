@@ -1,18 +1,3 @@
-#' Shiny Module Input for Contrast Plots
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyContrastPlot
-#' @importFrom shiny NS numericInput
-#' @export
-#'
-shinyContrastPlotInput <- function(id) {
-  ns <- shiny::NS(id)
-
-  shiny::numericInput(ns("ntrait"), "Traits:", 20, 5, 100, 5)
-}
-
 #' Shiny Module Output for Contrast Plots
 #'
 #' @param id identifier for shiny reactive
@@ -36,7 +21,8 @@ shinyContrastPlotOutput <- function(id) {
 
 #' Shiny Module Server for Contrast Plots
 #'
-#' @param input,output,session standard shiny arguments
+#' @param id identifier
+#' @param panel_par,main_par input parameters
 #' @param contrastTable reactive data frame
 #' @param customSettings list of custom settings
 #'
@@ -47,7 +33,7 @@ shinyContrastPlotOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyContrastPlot <- function(id, main_par,
+shinyContrastPlot <- function(id, panel_par, main_par,
                             contrastTable, customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -78,9 +64,9 @@ shinyContrastPlot <- function(id, main_par,
       dplyr::filter(contrastTable(), .data$strain %in% main_par$strains)
     })
     contrastPlot <- shiny::reactive({
-      shiny::req(contrasts_strains(), input$ntrait, input$sex)
+      shiny::req(contrasts_strains(), panel_par$ntrait, input$sex)
       
-      plot(contrasts_strains(), bysex = input$sex, ntrait = input$ntrait)
+      plot(contrasts_strains(), bysex = input$sex, ntrait = panel_par$ntrait)
     }, label = "contrastPlot")
     contrastVolcano <- shiny::reactive({
       shiny::req(contrasts_strains(), input$sex,
@@ -138,7 +124,7 @@ shinyContrastPlot <- function(id, main_par,
     
     # Table
     tableObject <- shiny::reactive({
-      summary(shiny::req(contrastTable()), shiny::req(input$ntrait))
+      summary(shiny::req(contrastTable()), shiny::req(panel_par$ntrait))
     })
     
     # DOWNLOADS

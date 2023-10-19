@@ -1,25 +1,9 @@
-#' Shiny Module Input for Modules of Contrasts
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyTimeTraits
-#' @export
-#' @importFrom shiny NS selectInput
-#'
-shinyContrastModuleInput <- function(id) {
-  ns <- shiny::NS(id)
-  
-  shiny::selectInput(ns("sex"), "Sex:",
-                     c("Both Sexes", "Female", "Male", "Sex Contrast"))
-}
-
 #' Shiny Module Output for Modules of Contrasts
 #'
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyTimeTraits
+#' @rdname shinyContrastModule
 #' @export
 #' @importFrom shiny NS tagList uiOutput
 #'
@@ -82,7 +66,10 @@ shinyContrastModule <- function(id, panel_par, main_par,
         input$butshow,
         Plots = {
           shiny::tagList(
-            shiny::uiOutput(ns("module")),
+            shiny::fluidRow(
+              shiny::column(6, shiny::selectInput(ns("sex"), "Sex:",
+                c("Both Sexes", "Female", "Male", "Sex Contrast"))),
+              shiny::column(6, shiny::uiOutput(ns("module")))),
             shiny::uiOutput(ns("plotchoice")))
         },
         Tables = {
@@ -129,12 +116,13 @@ shinyContrastModule <- function(id, panel_par, main_par,
       eigen_contrast_dataset(datamodule(), traitContrast())
     })
     output$eigens <- shiny::renderUI({
-      shiny::req(eigens(), input$sex)
+      shiny::req(eigens(), input$sex, panel_par$ntrait)
       
       shiny::tagList(
         shiny::h3("Eigentrait Contrasts"),
         shiny::renderPlot(print(
-          ggplot_conditionContrasts(eigens(), bysex = input$sex))),
+          ggplot_conditionContrasts(eigens(), bysex = input$sex,
+                                    ntrait = panel_par$ntrait))),
         shiny::renderPlot(print(
           ggplot_conditionContrasts(eigens(), bysex = input$sex,
                                     volcano = TRUE))))
@@ -162,12 +150,13 @@ shinyContrastModule <- function(id, panel_par, main_par,
                            traitContrast(), eigens())
     })
     output$traits <- shiny::renderUI({
-      shiny::req(traits(), input$sex, input$module)
+      shiny::req(traits(), input$sex, input$module, panel_par$ntrait)
       
       shiny::tagList(
         shiny::h3("Eigentrait Members"),
         shiny::renderPlot(print(
-          ggplot_conditionContrasts(traits(), bysex = input$sex))),
+          ggplot_conditionContrasts(traits(), bysex = input$sex,
+                                    ntrait = panel_par$ntrait))),
         shiny::renderPlot(print(
           ggplot_conditionContrasts(traits(), bysex = input$sex,
                                     volcano = TRUE)))
