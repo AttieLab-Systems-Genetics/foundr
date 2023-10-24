@@ -119,6 +119,7 @@ contrast2signal <- function(contrasts) {
 #' @param bysex type of sex from c("F","M","F-M","F+M")
 #' @param ntraits number of traits (if not volcano)
 #' @param volcano volcano plot if `TRUE`
+#' @param ordername order of plot vertical axis
 #' @param ... additional parameters for `volcano()`
 #'
 #' @return ggplot object
@@ -130,10 +131,10 @@ contrast2signal <- function(contrasts) {
 #'
 ggplot_conditionContrasts <- function(object, bysex = sexes,
                                       ntraits = 20, volcano = FALSE,
+                                      ordername = attr(object, "ordername"),
                                       ...) {
   conditions <- attr(object, "conditions")
   termname <- attr(object, "termname")
-  ordername <- attr(object, "ordername")
   if(is.null(ordername))
     ordername <- "p.value"
   
@@ -207,15 +208,26 @@ plot.conditionContrasts <- function(x, ...) {
 #'
 #' @param object object of class `conditionContrasts`
 #' @param ntrait number of traits to plot
+#' @param sortby sort summary by this variable
+#' @param ordername column name to order entries
 #' @param ... parameters passed to `ggplot_conditionContrasts`
 #'
 #' @return data frame
 #' @export
+#' @importFrom dplyr arrange dense_rank everything filter mutate select
+#' @importFrom tidyr pivot_wider
 #' @rdname conditionContrasts
 #'
-summary_conditionContrasts <- function(object, ntrait = 20, ...) {
-  ordername <- attr(object, "ordername")
-
+summary_conditionContrasts <- function(object, ntrait = 20,
+                                       sortby = ordername,
+                                       ordername = attr(object, "ordername"),
+                                       ...) {
+  
+  if(ordername == "kME") {
+    ford <- function(x) -abs(x)
+  } else {
+    ford <- function(x) x
+  }
   out <- tidyr::pivot_wider(
       dplyr::arrange(
         dplyr::mutate(
@@ -223,7 +235,7 @@ summary_conditionContrasts <- function(object, ntrait = 20, ...) {
             dplyr::arrange(
               object,
               .data[[ordername]], .data$sex),
-            dplyr::dense_rank(.data[[ordername]]) <= ntrait),
+            dplyr::dense_rank(ford(.data[[ordername]])) <= ntrait),
           value = signif(.data$value, 4),
           strain = factor(strain, names(foundr::CCcolors))),
         .data$strain),
@@ -232,13 +244,9 @@ summary_conditionContrasts <- function(object, ntrait = 20, ...) {
   if(ordername %in% c("p.value", "kME"))
     out[[ordername]] <- signif(out[[ordername]], 4)
   
-  if(ordername %in% c("p.value", "module")) {
-    out <- dplyr::arrange(out, .data[[ordername]])
-  } else {
-    out <- dplyr::arrange(out, -abs(.data[[ordername]]))
-  }
-
-  out
+  dplyr::select(
+    dplyr::arrange(out, ford(.data[[sortby]])),
+    dataset, sex, trait, dplyr::matches(sortby), dplyr::everything())
 }
 
 #' Summary method for Contrasts of Conditions

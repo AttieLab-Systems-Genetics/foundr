@@ -22,12 +22,19 @@ ggplot_conditionContrasts(
   bysex = sexes,
   ntraits = 20,
   volcano = FALSE,
+  ordername = attr(object, "ordername"),
   ...
 )
 
 \method{plot}{conditionContrasts}(x, ...)
 
-summary_conditionContrasts(object, ntrait = 20, ...)
+summary_conditionContrasts(
+  object,
+  ntrait = 20,
+  sortby = ordername,
+  ordername = attr(object, "ordername"),
+  ...
+)
 
 \method{summary}{conditionContrasts}(object, ...)
 
@@ -52,11 +59,15 @@ summary_conditionContrasts(object, ntrait = 20, ...)
 
 \item{volcano}{volcano plot if `TRUE`}
 
+\item{ordername}{column name to order entries}
+
 \item{...}{additional parameters for generic `split`}
 
 \item{x}{objects of class `conditionContrasts`}
 
 \item{ntrait}{number of traits to plot}
+
+\item{sortby}{sort summary by this variable}
 }
 \value{
 object of class `conditionContrasts`

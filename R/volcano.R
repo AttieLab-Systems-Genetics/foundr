@@ -27,7 +27,7 @@ volcano <- function(object,
                     interact = FALSE,
                     traitnames = TRUE,
                     facet = FALSE,
-                    ordername = c("p.value", "kME", "module"),
+                    ordername = c("p.value", "kME", "module", "size"),
                     xlab = xlab_default, ylab = ylab_default, ...) {
   # See https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
   
@@ -39,7 +39,8 @@ volcano <- function(object,
     return(NULL)
   
   # Allow some flexibility in threshold setting.
-  threshold_default <- c(SD = 1, p.value = 0.01, kME = 0.8, module = 10)
+  threshold_default <-
+    c(SD = 1, p.value = 0.01, kME = 0.8, module = 10, size = 15)
   nth <- names(threshold)
   if(is.null(nth)) {
     if(length(threshold) > length(threshold_default)) {
@@ -111,7 +112,12 @@ volcano <- function(object,
     ylab_default = "-log10(p.value)"
     object <- dplyr::mutate(object, p.value = -log10(p.value))
   } else {
-    yinterceptor <- threshold[ordername]
+    if(ordername == "module") {
+      # Modules in reverse order
+      yinterceptor <- max(object$module) - threshold["module"] + 0.5
+    } else {
+      yinterceptor <- threshold[ordername]
+    }
     ylab_default = ordername
     # Ignore sign on kME for plot.
     if(ordername == "kME")
@@ -157,4 +163,33 @@ volcano <- function(object,
   } else {
     p
   }
+}
+vol_default <- function(ordername) {
+  vol <- list(min = 0, max = 10, step = 1, value = 2)
+  switch(
+    shiny::req(ordername),
+    module = {
+    },
+    kME = {
+      vol$min <- 0.8
+      vol$max <- 1
+      vol$step <- 0.05
+      vol$value <- 0.8
+    },
+    p.value = {
+      vol$min <- 0
+      vol$max <- 10
+      vol$step <- 1
+      vol$value <- 2
+    },
+    size = {
+      vol$min <- 0
+      vol$max <- 30
+      vol$step <- 5
+      vol$value <- 15
+    })
+  vol$label <- ordername
+  if(ordername == "p.value")
+    vol$lable <- "-log10(p.value)"
+  vol
 }

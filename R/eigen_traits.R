@@ -32,13 +32,16 @@ eigen_traits <- function(object,
   if(!nrow(module_object))
     return(NULL)
   
+  # Drop unneeded columns from `eigen_object`
+  if("size" %in% names(eigen_object))
+    eigen_object <- dplyr::select(eigen_object, -size)
+
   # Join contrast object with module object.
-  # Replacing `p.value` by module `kME`.
   object <- dplyr::left_join(
     # Filter contrast object to include module traits.
     dplyr::filter(
       # De-select `p.value` from contrast objects.
-      dplyr::select(contr_object, -p.value),
+      contr_object,
       .data$sex == sexname,
       .data$trait %in% module_object$trait),
     module_object,
@@ -61,6 +64,7 @@ eigen_traits <- function(object,
             .data$trait == modulename),
           kME = 1),
         -module)),
+      p.value = signif(.data$p.value, 4),
       trait = stats::reorder(as.character(.data$trait), -.data$kME))
   
   class(object) <- c("conditionContrasts", class(object))

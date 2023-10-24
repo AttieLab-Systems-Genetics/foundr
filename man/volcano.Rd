@@ -11,7 +11,7 @@ volcano(
   interact = FALSE,
   traitnames = TRUE,
   facet = FALSE,
-  ordername = c("p.value", "kME", "module"),
+  ordername = c("p.value", "kME", "module", "size"),
   xlab = xlab_default,
   ylab = ylab_default,
   ...

@@ -16,6 +16,12 @@ shinyContrastModuleOutput <- function(id) {
                          "", c("Plots","Tables"), "Plots", inline = TRUE)),
       shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
     
+    shiny::fluidRow(
+      shiny::column(3, shiny::selectInput(ns("sex"), "Sex:",
+                          c("Both Sexes", "Female", "Male", "Sex Contrast"))),
+      shiny::column(3, shiny::uiOutput(ns("ordername"))),
+      shiny::column(6, shiny::uiOutput(ns("module")))),
+    
     shiny::uiOutput(ns("plots"))
   )
 }
@@ -59,54 +65,71 @@ shinyContrastModule <- function(id, panel_par, main_par,
       contrastModule[shiny::req(datasets())]
     })
     
+    output$ordername <- shiny::renderUI({
+      orders <- if(shiny::isTruthy(input$module)) {
+        c("kME","p.value")
+      } else {
+        c("module","kME","p.value","size")
+      }
+      
+      shiny::selectInput(ns("ordername"), "Order by:", orders)
+    })
+    
     output$plots <- shiny::renderUI({
       shiny::req(input$butshow)
       
       switch(
         input$butshow,
         Plots = {
-          shiny::tagList(
-            shiny::fluidRow(
-              shiny::column(6, shiny::selectInput(ns("sex"), "Sex:",
-                c("Both Sexes", "Female", "Male", "Sex Contrast"))),
-              shiny::column(6, shiny::uiOutput(ns("module")))),
-            shiny::uiOutput(ns("plotchoice")))
+          shiny::uiOutput(ns("plotchoice"))
         },
         Tables = {
           shiny::tagList(
             shiny::h3("Eigentrait Table"),
-            DT::renderDataTable(summary(eigens())))
+            DT::renderDataTable(tableObject(), escape = FALSE,
+              options = list(scrollX = TRUE, pageLength = 10)))
         })
     })
     output$plotchoice <- shiny::renderUI({
-      if(shiny::isTruthy(input$module)) {
-        vollabel <- "kME line:"
-        volmin <- 0
-        volmax <- 1
-        volvalue = 0.8
-        volstep = 0.1
+      shiny::tagList(
+        if(shiny::isTruthy(input$module)) {
+          vollabel <- "kME line:"
+          volmin <- 0
+          volmax <- 1
+          volvalue = 0.8
+          volstep = 0.1
+          
+          # Select module for eigen trait comparison.
+          shiny::uiOutput(ns("traits"))
+        } else {
+          vollabel <- "Module line:"
+          volmin<- 0
+          volmax = 10
+          volstep <- 1
+          
+          shiny::uiOutput(ns("eigens"))
+        },
         
-        # Select module for eigen trait comparison.
-        shiny::uiOutput(ns("traits"))
-      } else {
-        vollabel <- "Module line:"
-        volmin<- 0
-        volmax = 10
-        volstep <- 1
-        
-        shiny::uiOutput(ns("eigens"))
-      }
-      
         # *** This gets complicated as need to update when things change
         # *** input$module, datasets(), datatraits()
         # *** Also watch out for limits on modules as this is factor.
-        
-        # Sliders from Volcano plot display.
-#        shiny::fluidRow(
-#          shiny::column(6, shiny::sliderInput(ns("volsd"),
-#                                              "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
-#          shiny::column(6, shiny::sliderInput(ns("volpval"),
-#                                              "-log10(p.value) line:", min = 0, max = 10, value = 2, step = 0.5))))
+        {
+          vol <- vol_default(shiny::req(input$ordername))
+          shiny::fluidRow(
+            shiny::column(6, shiny::sliderInput(ns("volsd"),
+              "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
+            shiny::column(6, shiny::sliderInput(ns("volvert"),
+              paste(vol$label, "line:"), min = vol$min, max = vol$max,
+              value = vol$value, step = vol$step)))
+        })
+    })
+    threshold <- shiny::reactive({
+      shiny::req(input$volvert, input$volsd)
+      
+      out <- c(SD = input$volsd,
+               p.value = 0.01, kME = 0.8, module = 10, size = 15)
+      out[input$ordername] <- input$volvert
+      out
     })
 
     # Show Eigen Contrasts.
@@ -116,16 +139,19 @@ shinyContrastModule <- function(id, panel_par, main_par,
       eigen_contrast_dataset(datamodule(), traitContrast())
     })
     output$eigens <- shiny::renderUI({
-      shiny::req(eigens(), input$sex, panel_par$ntrait)
+      shiny::req(eigens(), input$sex, panel_par$ntrait,
+                 ordername = input$ordername, threshold())
       
       shiny::tagList(
         shiny::h3("Eigentrait Contrasts"),
         shiny::renderPlot(print(
           ggplot_conditionContrasts(eigens(), bysex = input$sex,
-                                    ntrait = panel_par$ntrait))),
+                                    ntrait = panel_par$ntrait,
+                                    ordername = input$ordername))),
         shiny::renderPlot(print(
           ggplot_conditionContrasts(eigens(), bysex = input$sex,
-                                    volcano = TRUE))))
+                                    ordername = input$ordername,
+                                    volcano = TRUE, threshold = threshold()))))
     })
     
     datatraits <- shiny::reactive({
@@ -150,20 +176,25 @@ shinyContrastModule <- function(id, panel_par, main_par,
                            traitContrast(), eigens())
     })
     output$traits <- shiny::renderUI({
-      shiny::req(traits(), input$sex, input$module, panel_par$ntrait)
+      shiny::req(traits(), input$sex, input$module, panel_par$ntrait,
+                 ordername = input$ordername, threshold())
       
       shiny::tagList(
         shiny::h3("Eigentrait Members"),
         shiny::renderPlot(print(
           ggplot_conditionContrasts(traits(), bysex = input$sex,
-                                    ntrait = panel_par$ntrait))),
+                                    ntrait = panel_par$ntrait,
+                                    ordername = input$ordername))),
         shiny::renderPlot(print(
           ggplot_conditionContrasts(traits(), bysex = input$sex,
-                                    volcano = TRUE)))
+                                    ordername = input$ordername,
+                                    volcano = TRUE, threshold = threshold())))
       )
     })
     
     sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
+    
+    # *** broken appContrastModule
     
     # DOWNLOADS
     postfix <- shiny::reactive({
@@ -171,9 +202,8 @@ shinyContrastModule <- function(id, panel_par, main_par,
       
       filename <- paste(datasets(), collapse = ",")
             
-      if(shiny::isTruthy(input$module) &&
-         input$butshow == "Plots") {
-        filename <- paste(filename, input$module, sep = "_")
+      if(shiny::isTruthy(input$module)) {
+        filename <- input$module
       } else {
         filename <- paste(filename, names(sexes)[match(input$sex, sexes)], 
                           sep = "_")
@@ -195,10 +225,14 @@ shinyContrastModule <- function(id, panel_par, main_par,
       }
     })
     tableObject <- shiny::reactive({
-      shiny::req(eigens())
+      shiny::req(eigens(), input$ordername)
       
-      # *** need to customize table, and have separate table for input$module
-      summary(eigens())
+      summary({
+        if(shiny::isTruthy(input$module))
+          traits()
+        else
+          eigens()},
+        ntrait = Inf, ordername = input$ordername)
     })
     
     ##############################################################
