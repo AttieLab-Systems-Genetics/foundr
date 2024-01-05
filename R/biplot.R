@@ -69,6 +69,9 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size")) {
   bip <- bip[,-match(factors, colnames(bip))]
   bip <- t(bip)
   
+  # The `princomp` routine cannot handle wide tables.
+  if(ncol(bip) > nrow(bip)) return(NULL)
+  
   ordr::mutate_cols(
     ordr::mutate_rows(
       # Redistribute inertia between rows and columns in ordination.
@@ -94,9 +97,12 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size")) {
 #' @export
 #'
 biggplot <- function(bip_pca, scale.factor = 2) {
+  if(is.null(bip_pca))
+    return(plot_null("Fewer traits than strains"))
+  
   ordr::ggbiplot(bip_pca, sec.axes = "cols", scale.factor = scale.factor) +
     ordr::geom_rows_point(ggplot2::aes(size = .data$size), col = "blue", shape = 1) +
-    ordr::geom_cols_vector(ggplot2::aes(color = .data$strain)) +
+    ordr::geom_cols_vector(ggplot2::aes(color = .data$strain), size = 2) +
     ordr::geom_cols_text_radiate(
       ggplot2::aes(label = .data$strain), col = "black") +
     ggplot2::scale_color_manual(values = foundr::CCcolors)

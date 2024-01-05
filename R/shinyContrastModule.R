@@ -67,9 +67,9 @@ shinyContrastModule <- function(id, panel_par, main_par,
     
     output$ordername <- shiny::renderUI({
       orders <- if(shiny::isTruthy(input$module)) {
-        c("kME","p.value")
+        c("p.value","kME")
       } else {
-        c("module","kME","p.value","size")
+        c("p.value","kME","size","module")
       }
       
       shiny::selectInput(ns("ordername"), "Order by:", orders)
@@ -132,6 +132,15 @@ shinyContrastModule <- function(id, panel_par, main_par,
       out
     })
 
+    # Generic plot function for `traits` and `eigens`.``
+    plotfn <- function(data, plottype) {
+      print(ggplot_conditionContrasts(
+        data, bysex = input$sex,
+        ntrait = panel_par$ntrait,
+        ordername = input$ordername,
+        plottype = plottype, threshold = threshold()))
+    }
+    
     # Show Eigen Contrasts.
     eigens <- shiny::reactive({
       shiny::req(datamodule(), traitContrast())
@@ -145,23 +154,16 @@ shinyContrastModule <- function(id, panel_par, main_par,
       shiny::tagList(
         shiny::h3("Eigentrait Contrasts"),
         shiny::h4("Biplot"),
-        shiny::renderPlot(print(
-          plot(eigens(), bysex = input$sex,
-               ordername = input$ordername,
-               plottype = "biplot", threshold = threshold()))),
+        shiny::renderPlot(plotfn(eigens(), "biplot")),
         shiny::h4("Dotplot"),
-        shiny::renderPlot(print(
-          plot(eigens(), bysex = input$sex,
-               ntrait = panel_par$ntrait,
-               ordername = input$ordername))),
+        shiny::renderPlot(plotfn(eigens(), "dotplot")),
         shiny::h4("Volcano Plot"),
-        shiny::renderPlot(print(
-          plot(eigens(), bysex = input$sex,
-               ordername = input$ordername,
-               plottype = "volcano", threshold = threshold()))))
+        shiny::renderPlot(plotfn(eigens(), "volcano")))
     })
     
     datatraits <- shiny::reactive({
+      shiny::req(input$sex)
+      
       tidyr::unite(shiny::req(eigens()), datatraits, dataset, trait,
                    sep = ": ")$datatraits
     }, label = "datatraits") 
@@ -170,7 +172,11 @@ shinyContrastModule <- function(id, panel_par, main_par,
     })
     shiny::observeEvent(
       shiny::req(datasets(), input$sex, eigens()), {
-      shiny::updateSelectizeInput(session, "module", choices = datatraits(),
+      sextraits <- datatraits()[
+        grep(paste0(": ", names(sexes)[match(input$sex, sexes)], "_"),
+             datatraits())]
+        
+      shiny::updateSelectizeInput(session, "module", choices = sextraits,
                                   selected = "", server = TRUE)
     })
     
@@ -189,21 +195,11 @@ shinyContrastModule <- function(id, panel_par, main_par,
       shiny::tagList(
         shiny::h3("Eigentrait Members"),
         shiny::h4("Biplot"),
-        shiny::renderPlot(print(
-          plot(traits(), bysex = input$sex,
-               ordername = input$ordername,
-               plottype = "biplot", threshold = threshold()))),
+        shiny::renderPlot(plotfn(traits(), "biplot")),
         shiny::h4("Dotplot"),
-        shiny::renderPlot(print(
-          plot(traits(), bysex = input$sex,
-               ntrait = panel_par$ntrait,
-               ordername = input$ordername))),
+        shiny::renderPlot(plotfn(traits(), "dotplot")),
         shiny::h4("Volcano Plot"),
-        shiny::renderPlot(print(
-          plot(traits(), bysex = input$sex,
-               ordername = input$ordername,
-               plottype = "volcano", threshold = threshold())))
-      )
+        shiny::renderPlot(plotfn(traits(), "volcano")))
     })
     
     sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
@@ -227,15 +223,15 @@ shinyContrastModule <- function(id, panel_par, main_par,
       if(shiny::isTruthy(input$module)) {
         shiny::req(traits())
         
-        print(plot(traits(), bysex = input$sex, plottype = "biplot"))
-        print(plot(traits(), bysex = input$sex))
-        print(plot(traits(), bysex = input$sex, plottype = "volcano"))
+        plotfn(traits(), "biplot")
+        plotfn(traits(), "dotplot")
+        plotfn(traits(), "volcano")
       } else {
         shiny::req(eigens())
         
-        print(plot(eigens(), bysex = input$sex, plottype = "biplot"))
-        print(plot(eigens(), bysex = input$sex))
-        print(plot(eigens(), bysex = input$sex, plottype = "volcano"))
+        plotfn(eigens(), "biplot")
+        plotfn(eigens(), "dotplot")
+        plotfn(eigens(), "volcano")
       }
     })
     tableObject <- shiny::reactive({

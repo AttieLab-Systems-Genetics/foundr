@@ -59,7 +59,7 @@ eigen_df <- function(object) {
     module = paste(names(sexes)[match(.data$sex, sexes)], module, sep = "_"))
 }
 module_info <- function(traitModule, traitContrast) {
-  sexes <- c("B","F","M","S")
+  sexes <- c("B","F","M","C")
   names(sexes) <- c("Both Sexes", "Female", "Male", "Sex Contrast")
   
   dplyr::mutate(
