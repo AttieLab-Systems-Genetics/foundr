@@ -4,14 +4,19 @@
 \alias{biplot_data}
 \title{Prepare biplot data}
 \usage{
-biplot_data(dat, traits, factors = c("strain", "animal", "sex", "condition"))
+biplot_data(
+  dat,
+  traits = unique(dat$trait),
+  factors = c("strain", "animal", "sex", "condition"),
+  orders = c("module", "kME", "p.value", "size")
+)
 }
 \arguments{
-\item{dat}{}
+\item{dat}{data frame with appropriate columns}
 
-\item{traits}{}
+\item{traits}{trait names to include}
 
-\item{factors}{}
+\item{factors}{design column names}
 }
 \value{
 data frame

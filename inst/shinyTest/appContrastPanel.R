@@ -8,7 +8,7 @@ customSettings <- list(condition = "diet")
 
 ################################################################
 
-title <- "Test Shiny Trait Panel"
+title <- "Test Shiny Contrast Trait Panel"
 
 ui <- function() {
   # INPUTS

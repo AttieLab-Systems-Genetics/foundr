@@ -25,8 +25,6 @@ shinyTraitPanel(
 \item{traitData, traitSignal, traitStats}{static data frames}
 
 \item{customSettings}{list of custom settings}
-
-\item{input, output, session}{standard shiny arguments}
 }
 \value{
 nothing returned

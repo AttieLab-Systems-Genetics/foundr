@@ -66,7 +66,7 @@ shinyContrastPanel <- function(id, main_par,
     # Contrast Trait Plots
     shinyContrastPlot("shinyContrastPlot",
       input, main_par, contrastOutput, customSettings)
-    # Contrast Trait Table
+    # Contrast Time Trait Table
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
       input, main_par, traitSignal, traitStatsTime, customSettings, TRUE)
     # Contrast Time Traits

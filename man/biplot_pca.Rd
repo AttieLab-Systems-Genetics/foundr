@@ -4,18 +4,12 @@
 \alias{biplot_pca}
 \title{Get PCA components from biplot data}
 \usage{
-biplot_pca(
-  bip,
-  factors = c("strain", "animal", "sex", "condition"),
-  strain = "strain"
-)
+biplot_pca(bip, size = c("module", "kME", "p.value", "size"))
 }
 \arguments{
-\item{bip}{}
+\item{bip}{object from `biplot_data`}
 
-\item{factors}{}
-
-\item{strain}{}
+\item{transpose}{transpose for `princomp` if `TRUE`}
 }
 \value{
 data frame of PCA components

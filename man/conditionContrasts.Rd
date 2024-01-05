@@ -21,7 +21,7 @@ ggplot_conditionContrasts(
   object,
   bysex = sexes,
   ntraits = 20,
-  volcano = FALSE,
+  plottype = c("dotplot", "volcano", "biplot"),
   ordername = attr(object, "ordername"),
   ...
 )
@@ -57,7 +57,7 @@ summary_conditionContrasts(
 
 \item{ntraits}{number of traits to plot}
 
-\item{volcano}{volcano plot if `TRUE`}
+\item{plottype}{one of "dotplot", "volcano" or "biplot"}
 
 \item{ordername}{column name to order entries}
 

@@ -144,14 +144,21 @@ shinyContrastModule <- function(id, panel_par, main_par,
       
       shiny::tagList(
         shiny::h3("Eigentrait Contrasts"),
+        shiny::h4("Biplot"),
         shiny::renderPlot(print(
-          ggplot_conditionContrasts(eigens(), bysex = input$sex,
-                                    ntrait = panel_par$ntrait,
-                                    ordername = input$ordername))),
+          plot(eigens(), bysex = input$sex,
+               ordername = input$ordername,
+               plottype = "biplot", threshold = threshold()))),
+        shiny::h4("Dotplot"),
         shiny::renderPlot(print(
-          ggplot_conditionContrasts(eigens(), bysex = input$sex,
-                                    ordername = input$ordername,
-                                    volcano = TRUE, threshold = threshold()))))
+          plot(eigens(), bysex = input$sex,
+               ntrait = panel_par$ntrait,
+               ordername = input$ordername))),
+        shiny::h4("Volcano Plot"),
+        shiny::renderPlot(print(
+          plot(eigens(), bysex = input$sex,
+               ordername = input$ordername,
+               plottype = "volcano", threshold = threshold()))))
     })
     
     datatraits <- shiny::reactive({
@@ -181,20 +188,25 @@ shinyContrastModule <- function(id, panel_par, main_par,
       
       shiny::tagList(
         shiny::h3("Eigentrait Members"),
+        shiny::h4("Biplot"),
         shiny::renderPlot(print(
-          ggplot_conditionContrasts(traits(), bysex = input$sex,
-                                    ntrait = panel_par$ntrait,
-                                    ordername = input$ordername))),
+          plot(traits(), bysex = input$sex,
+               ordername = input$ordername,
+               plottype = "biplot", threshold = threshold()))),
+        shiny::h4("Dotplot"),
         shiny::renderPlot(print(
-          ggplot_conditionContrasts(traits(), bysex = input$sex,
-                                    ordername = input$ordername,
-                                    volcano = TRUE, threshold = threshold())))
+          plot(traits(), bysex = input$sex,
+               ntrait = panel_par$ntrait,
+               ordername = input$ordername))),
+        shiny::h4("Volcano Plot"),
+        shiny::renderPlot(print(
+          plot(traits(), bysex = input$sex,
+               ordername = input$ordername,
+               plottype = "volcano", threshold = threshold())))
       )
     })
     
     sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
-    
-    # *** broken appContrastModule
     
     # DOWNLOADS
     postfix <- shiny::reactive({
@@ -215,13 +227,15 @@ shinyContrastModule <- function(id, panel_par, main_par,
       if(shiny::isTruthy(input$module)) {
         shiny::req(traits())
         
+        print(plot(traits(), bysex = input$sex, plottype = "biplot"))
         print(plot(traits(), bysex = input$sex))
-        print(plot(traits(), bysex = input$sex, volcano = TRUE))
+        print(plot(traits(), bysex = input$sex, plottype = "volcano"))
       } else {
         shiny::req(eigens())
         
+        print(plot(eigens(), bysex = input$sex, plottype = "biplot"))
         print(plot(eigens(), bysex = input$sex))
-        print(plot(eigens(), bysex = input$sex, volcano = TRUE))
+        print(plot(eigens(), bysex = input$sex, plottype = "volcano"))
       }
     })
     tableObject <- shiny::reactive({

@@ -49,7 +49,7 @@ shinyTraitPanelOutput <- function(id) {
 
 #' Shiny Module Server for Trait Panel
 #'
-#' @param input,output,session standard shiny arguments
+#' @param id identifier for shiny reactive
 #' @param traitData,traitSignal,traitStats static data frames
 #' @param customSettings list of custom settings
 #'

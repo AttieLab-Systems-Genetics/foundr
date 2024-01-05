@@ -72,7 +72,7 @@ shinyContrastPlot <- function(id, panel_par, main_par,
       shiny::req(contrasts_strains(), input$sex,
                  input$volsd, input$volpval)
       
-      plot(contrasts_strains(), bysex = input$sex, volcano = TRUE,
+      plot(contrasts_strains(), bysex = input$sex, plottype = "volcano",
            threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
            interact = shiny::isTruthy(input$interact))
     }, label = "contrastVolcano")
