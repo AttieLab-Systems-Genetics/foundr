@@ -70,6 +70,7 @@ eigen_traits <- function(object,
   class(object) <- c("conditionContrasts", class(object))
   attr(object, "conditions") <- attr(contr_object, "conditions")
   attr(object, "termname") <- attr(contr_object, "termname")
+  attr(object, "modulename") <- modulename
   attr(object, "ordername") <- "kME"
   object
 }

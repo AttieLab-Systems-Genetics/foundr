@@ -89,7 +89,7 @@ Contrasts of Conditions
 
 GGplot of Contrasts of Conditions
 
-Plot method for Contrasts of Condtions
+Plot method for Contrasts of Conditions
 
 Summary method for Contrasts of Condtions
 

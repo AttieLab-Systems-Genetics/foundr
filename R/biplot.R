@@ -16,6 +16,7 @@ biplot_data <- function(dat,
                         orders = c("module","kME","p.value","size")) {
   factors <- factors[factors %in% names(dat)]
   orders <- orders[orders %in% names(dat)]
+  modulename <- attr(dat, "modulename")
   
   ordout <- dplyr::distinct(
     dplyr::select(
@@ -43,7 +44,7 @@ biplot_data <- function(dat,
       x
     }))
   
-  list(data = out, factors = factors, orders = ordout)
+  list(data = out, factors = factors, orders = ordout, modulename = modulename)
 }
 
 #' Get PCA components from biplot data
@@ -64,6 +65,7 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size"),
   size <- match.arg(size)
   factors <- bip$factors
   orders <- bip$orders
+  modulename <- bip$modulename
   bip <- as.data.frame(bip$data)
   
   rownames(bip) <- bip$strain
@@ -79,6 +81,8 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size"),
     strain_color[bip[,strain] <= -threshold["SD"]] <- "DOWN"
   } else
     strain_color <- "NO"
+  if(!is.null(modulename))
+    strain_color[modulename == rownames(bip)] <- "EIGEN"
   
   ordr::mutate_cols(
     ordr::mutate_rows(
@@ -119,5 +123,6 @@ biggplot <- function(bip_pca, scale.factor = 2) {
       ggplot2::aes(label = .data$strain), col = "black") +
     ggplot2::scale_color_manual(
       values = c(foundr::CCcolors, 
-                 c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2])))
+                 c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2],
+                   EIGEN = "red")))
 }

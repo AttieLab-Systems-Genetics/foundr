@@ -4,7 +4,12 @@
 \alias{biplot_pca}
 \title{Get PCA components from biplot data}
 \usage{
-biplot_pca(bip, size = c("module", "kME", "p.value", "size"))
+biplot_pca(
+  bip,
+  size = c("module", "kME", "p.value", "size"),
+  strain = "NONE",
+  threshold
+)
 }
 \arguments{
 \item{bip}{object from `biplot_data`}
