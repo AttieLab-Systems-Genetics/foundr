@@ -59,7 +59,8 @@ biplot_data <- function(dat,
 #' @importFrom rlang .data
 #' @export
 #'
-biplot_pca <- function(bip, size = c("module","kME","p.value","size")) {
+biplot_pca <- function(bip, size = c("module","kME","p.value","size"),
+                       strain = "NONE", threshold) {
   size <- match.arg(size)
   factors <- bip$factors
   orders <- bip$orders
@@ -72,6 +73,13 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size")) {
   # The `princomp` routine cannot handle wide tables.
   if(ncol(bip) > nrow(bip)) return(NULL)
   
+  if(strain != "NONE") {
+    strain_color <- "NO"
+    strain_color[bip[,strain] >= threshold["SD"]] <- "UP"
+    strain_color[bip[,strain] <= -threshold["SD"]] <- "DOWN"
+  } else
+    strain_color <- "NO"
+  
   ordr::mutate_cols(
     ordr::mutate_rows(
       # Redistribute inertia between rows and columns in ordination.
@@ -81,7 +89,8 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size")) {
           stats::princomp(bip, cor = TRUE)),
         1),
       trait = rownames(bip),
-      size = orders[[size]]),
+      size = orders[[size]],
+      color = strain_color),
     strain = colnames(bip))
 }
 
@@ -100,10 +109,15 @@ biggplot <- function(bip_pca, scale.factor = 2) {
   if(is.null(bip_pca))
     return(plot_null("Fewer traits than strains"))
   
+  CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
+  
   ordr::ggbiplot(bip_pca, sec.axes = "cols", scale.factor = scale.factor) +
-    ordr::geom_rows_point(ggplot2::aes(size = .data$size), col = "blue", shape = 1) +
+    ordr::geom_rows_point(ggplot2::aes(size = .data$size, color = .data$color),
+                          shape = 1, stroke = 1) +
     ordr::geom_cols_vector(ggplot2::aes(color = .data$strain), size = 2) +
     ordr::geom_cols_text_radiate(
       ggplot2::aes(label = .data$strain), col = "black") +
-    ggplot2::scale_color_manual(values = foundr::CCcolors)
+    ggplot2::scale_color_manual(
+      values = c(foundr::CCcolors, 
+                 c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2])))
 }

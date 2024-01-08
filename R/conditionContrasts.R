@@ -149,12 +149,17 @@ ggplot_conditionContrasts <- function(object, bysex = sexes,
   
   # Filter by sex, sex contrast, or sex mean.
   object <- dplyr::filter(object, .data$sex == bysex)
+  
+  xlab <- bysex
+  if(!is.null(conditions)) {
+    xlab <- paste(conditions[2], "-",
+                  xlab,
+                  "+", conditions[1])
+  }
 
   switch(plottype,
     biplot = { # Biplot
-      bip_pca <- biplot_pca(biplot_data(object), size = ordername)
-      p <- biggplot(bip_pca, scale.factor = 4)
-      p <- theme_template(p, legend_position = "none")
+      p <- condition_biplot(object, ordername, xlab, ...)
     },
     volcano = { # Volcano Plot
       p <- volcano(
@@ -191,21 +196,30 @@ ggplot_conditionContrasts <- function(object, bysex = sexes,
       p <- theme_template(p)
     })
     
-  xlab <- bysex
-  if(!is.null(conditions)) {
-    xlab <- paste(conditions[2], "-",
-                  xlab,
-                  "+", conditions[1])
-  }
   if(plottype != "biplot") {
     # Modify X label to be sex and conditions
     p <- p + ggplot2::xlab(xlab)
-  } else {
-    p <- p + ggplot2::ggtitle(xlab)
   }
   p
 }
-#' Plot method for Contrasts of Condtions
+condition_biplot <- function(object, ordername, xlab,
+                             threshold, strain = "NONE", ...) {
+  # Filter on vertical threshold
+  if(ordername %in% c("p.value", "module")) {
+    object <- dplyr::filter(object, .data[[ordername]] <= threshold[ordername])
+  } else {
+    object <- dplyr::filter(object, .data[[ordername]] >= threshold[ordername])
+  }
+
+  bip_pca <- biplot_pca(biplot_data(object), size = ordername,
+                        strain = strain, threshold)
+  p <- biggplot(bip_pca, scale.factor = 4)
+  p <- theme_template(p, legend_position = "none")
+  if(strain != "NONE")
+    xlab <- paste(xlab, "colored by", strain)
+  p + ggplot2::ggtitle(xlab)
+}
+#' Plot method for Contrasts of Conditions
 #'
 #' @param x object of class `conditionContrasts`
 #' @param ... parameters passed to `ggplot_conditionContrasts`

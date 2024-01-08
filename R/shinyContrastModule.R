@@ -20,7 +20,9 @@ shinyContrastModuleOutput <- function(id) {
       shiny::column(3, shiny::selectInput(ns("sex"), "Sex:",
                           c("Both Sexes", "Female", "Male", "Sex Contrast"))),
       shiny::column(3, shiny::uiOutput(ns("ordername"))),
-      shiny::column(6, shiny::uiOutput(ns("module")))),
+      shiny::column(3, shiny::uiOutput(ns("module"))),
+      shiny::column(3, shiny::checkboxInput(ns("interact"),
+                                            "Interactive?"))),
     
     shiny::uiOutput(ns("plots"))
   )
@@ -91,54 +93,43 @@ shinyContrastModule <- function(id, panel_par, main_par,
         })
     })
     output$plotchoice <- shiny::renderUI({
+      vol <- vol_default(shiny::req(input$ordername))
       shiny::tagList(
-        if(shiny::isTruthy(input$module)) {
-          vollabel <- "kME line:"
-          volmin <- 0
-          volmax <- 1
-          volvalue = 0.8
-          volstep = 0.1
-          
-          # Select module for eigen trait comparison.
-          shiny::uiOutput(ns("traits"))
-        } else {
-          vollabel <- "Module line:"
-          volmin<- 0
-          volmax = 10
-          volstep <- 1
-          
-          shiny::uiOutput(ns("eigens"))
-        },
-        
-        # *** This gets complicated as need to update when things change
-        # *** input$module, datasets(), datatraits()
-        # *** Also watch out for limits on modules as this is factor.
         {
-          vol <- vol_default(shiny::req(input$ordername))
           shiny::fluidRow(
             shiny::column(6, shiny::sliderInput(ns("volsd"),
-              "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
+                                                "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
             shiny::column(6, shiny::sliderInput(ns("volvert"),
-              paste(vol$label, "line:"), min = vol$min, max = vol$max,
-              value = vol$value, step = vol$step)))
+                                                paste(vol$label, "line:"), min = vol$min, max = vol$max,
+                                                value = vol$value, step = vol$step)))
+        },
+        shiny::selectInput(ns("strain"), "Strain SD", c("NONE",names(qtl2::CCcolors))),
+        if(shiny::isTruthy(input$module)) {
+          shiny::uiOutput(ns("traits"))
+        } else {
+          shiny::uiOutput(ns("eigens"))
         })
     })
     threshold <- shiny::reactive({
-      shiny::req(input$volvert, input$volsd)
+      shiny::req(input$volvert, input$volsd, input$ordername)
       
       out <- c(SD = input$volsd,
                p.value = 0.01, kME = 0.8, module = 10, size = 15)
-      out[input$ordername] <- input$volvert
+      if(input$ordername == "p.value")
+        out[input$ordername] <- 10 ^ -input$volvert
+      else
+        out[input$ordername] <- input$volvert
       out
     })
 
     # Generic plot function for `traits` and `eigens`.``
     plotfn <- function(data, plottype) {
-      print(ggplot_conditionContrasts(
+      ggplot_conditionContrasts(
         data, bysex = input$sex,
         ntrait = panel_par$ntrait,
         ordername = input$ordername,
-        plottype = plottype, threshold = threshold()))
+        plottype = plottype, threshold = threshold(),
+        strain = input$strain)
     }
     
     # Show Eigen Contrasts.
@@ -147,18 +138,49 @@ shinyContrastModule <- function(id, panel_par, main_par,
       
       eigen_contrast_dataset(datamodule(), traitContrast())
     })
+    eigen_volcano <- shiny::reactive({
+      shiny::req(eigens())
+      
+      plotfn(eigens(), "volcano")
+    })
+    eigen_biplot <- shiny::reactive({
+      shiny::req(eigens())
+      
+      plotfn(eigens(), "biplot")
+    })
+    eigen_dotplot <- shiny::reactive({
+      shiny::req(eigens())
+      
+      plotfn(eigens(), "dotplot")
+    })
     output$eigens <- shiny::renderUI({
       shiny::req(eigens(), input$sex, panel_par$ntrait,
-                 ordername = input$ordername, threshold())
+                 ordername = input$ordername, threshold(),
+                 input$strain)
       
       shiny::tagList(
         shiny::h3("Eigentrait Contrasts"),
-        shiny::h4("Biplot"),
-        shiny::renderPlot(plotfn(eigens(), "biplot")),
-        shiny::h4("Dotplot"),
-        shiny::renderPlot(plotfn(eigens(), "dotplot")),
         shiny::h4("Volcano Plot"),
-        shiny::renderPlot(plotfn(eigens(), "volcano")))
+        if(shiny::isTruthy(input$interact)) {
+          plotly::renderPlotly(shiny::req(eigen_volcano()))
+        } else {
+          shiny::renderPlot(print(shiny::req(eigen_volcano())))
+        },
+        shiny::h4("Biplot"),
+        if(shiny::isTruthy(input$interact)) {
+          shiny::tagList(
+            shiny::renderText("Rays disappear if interactive."),
+            shiny::renderPlot(print(shiny::req(eigen_biplot()))),
+            plotly::renderPlotly(shiny::req(eigen_biplot())))
+        } else {
+          shiny::renderPlot(print(shiny::req(eigen_biplot())))
+        },
+        shiny::h4("Dotplot"),
+        if(shiny::isTruthy(input$interact)) {
+          plotly::renderPlotly(shiny::req(eigen_dotplot()))
+        } else {
+          shiny::renderPlot(print(shiny::req(eigen_dotplot())))
+        })
     })
     
     datatraits <- shiny::reactive({
@@ -188,18 +210,48 @@ shinyContrastModule <- function(id, panel_par, main_par,
       eigen_traits_dataset(datamodule(), input$sex, input$module,
                            traitContrast(), eigens())
     })
+    trait_volcano <- shiny::reactive({
+      shiny::req(traits())
+      
+      plotfn(traits(), "volcano")
+    })
+    trait_biplot <- shiny::reactive({
+      shiny::req(traits())
+      
+      plotfn(traits(), "biplot")
+    })
+    trait_dotplot <- shiny::reactive({
+      shiny::req(traits())
+      
+      plotfn(traits(), "dotplot")
+    })
     output$traits <- shiny::renderUI({
       shiny::req(traits(), input$sex, input$module, panel_par$ntrait,
                  ordername = input$ordername, threshold())
       
       shiny::tagList(
         shiny::h3("Eigentrait Members"),
-        shiny::h4("Biplot"),
-        shiny::renderPlot(plotfn(traits(), "biplot")),
-        shiny::h4("Dotplot"),
-        shiny::renderPlot(plotfn(traits(), "dotplot")),
         shiny::h4("Volcano Plot"),
-        shiny::renderPlot(plotfn(traits(), "volcano")))
+        if(shiny::isTruthy(input$interact)) {
+          plotly::renderPlotly(shiny::req(trait_volcano()))
+        } else {
+          shiny::renderPlot(print(shiny::req(trait_volcano())))
+        },
+        shiny::h4("Biplot"),
+        if(shiny::isTruthy(input$interact)) {
+          shiny::tagList(
+            shiny::renderText("Rays disappear if interactive."),
+            shiny::renderPlot(print(shiny::req(trait_biplot()))),
+            plotly::renderPlotly(shiny::req(trait_biplot())))
+        } else {
+          shiny::renderPlot(print(shiny::req(trait_biplot())))
+        },
+        shiny::h4("Dotplot"),
+        if(shiny::isTruthy(input$interact)) {
+          plotly::renderPlotly(shiny::req(trait_dotplot()))
+        } else {
+          shiny::renderPlot(print(shiny::req(trait_dotplot())))
+        })
     })
     
     sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
@@ -223,15 +275,15 @@ shinyContrastModule <- function(id, panel_par, main_par,
       if(shiny::isTruthy(input$module)) {
         shiny::req(traits())
         
-        plotfn(traits(), "biplot")
-        plotfn(traits(), "dotplot")
-        plotfn(traits(), "volcano")
+        print(trait_volcano())
+        print(trait_biplot())
+        print(trait_dotplot())
       } else {
         shiny::req(eigens())
         
-        plotfn(eigens(), "biplot")
-        plotfn(eigens(), "dotplot")
-        plotfn(eigens(), "volcano")
+        print(eigen_volcano())
+        plotfn(eigen_biplot())
+        plotfn(eigen_dotplot())
       }
     })
     tableObject <- shiny::reactive({

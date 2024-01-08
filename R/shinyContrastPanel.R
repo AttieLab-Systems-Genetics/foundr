@@ -75,7 +75,7 @@ shinyContrastPanel <- function(id, main_par,
     # Contrast Time Plots and Tables
     shinyTimePlot("shinyTimePlot", main_par, traitSignal, timeOutput)
     # Contrast Modules.
-    moduleOutput <- foundr::shinyContrastModule("shinyContrastModule",
+    moduleOutput <- shinyContrastModule("shinyContrastModule",
       input, main_par, traitContrPval, traitModule)
     
     traitContrPval <- reactive({

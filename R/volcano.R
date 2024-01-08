@@ -191,5 +191,6 @@ vol_default <- function(ordername) {
   vol$label <- ordername
   if(ordername == "p.value")
     vol$lable <- "-log10(p.value)"
+
   vol
 }
