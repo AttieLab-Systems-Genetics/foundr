@@ -126,3 +126,37 @@ biggplot <- function(bip_pca, scale.factor = 2) {
                  c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2],
                    EIGEN = "red")))
 }
+
+#' BiPlot for Condition Contrasts
+#'
+#' @param object data frame
+#' @param ordername name of order column
+#' @param xlab x label
+#' @param threshold vector of threshold values
+#' @param strain strain name to highlight in biplot
+#' @param ... additional paramaters ignored
+#'
+#' @return gg plot object
+#' @export
+#' @importFrom dplyr filter
+#' @importFrom ggplot2 ggtitle
+#' @importFrom rlang .data
+#'
+condition_biplot <- function(object, ordername, xlab,
+                             threshold, strain = "NONE", ...) {
+  # Filter on vertical threshold
+  if(ordername %in% c("p.value", "module")) {
+    object <- dplyr::filter(object, .data[[ordername]] <= threshold[ordername])
+  } else {
+    object <- dplyr::filter(object, .data[[ordername]] >= threshold[ordername])
+  }
+  
+  bip_pca <- biplot_pca(biplot_data(object), size = ordername,
+                        strain = strain, threshold)
+  p <- biggplot(bip_pca, scale.factor = 4)
+  p <- theme_template(p, legend_position = "none")
+  if(strain != "NONE")
+    xlab <- paste(xlab, "colored by", strain)
+  p + ggplot2::ggtitle(xlab)
+}
+

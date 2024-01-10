@@ -63,8 +63,8 @@ shinyContrastPanel <- function(id, main_par,
     # Contrast Trait Table
     contrastOutput <- shinyContrastTable("shinyContrastTable",
       input, main_par, traitSignal, traitStats, customSettings)
-    # Contrast Trait Plots
-    shinyContrastPlot("shinyContrastPlot",
+    # Contrast Trait Plots by Sex
+    shinyContrastSex("shinyContrastSex",
       input, main_par, contrastOutput, customSettings)
     # Contrast Time Trait Table
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
@@ -114,7 +114,7 @@ shinyContrastPanel <- function(id, main_par,
         shiny::uiOutput(ns("text")),
         
         switch(shiny::req(input$contrast),
-          Sex = shinyContrastPlotOutput(ns("shinyContrastPlot")),
+          Sex = shinyContrastSexOutput(ns("shinyContrastSex")),
           Time = {
             shiny::req(timeOutput())
             

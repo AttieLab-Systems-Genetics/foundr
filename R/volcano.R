@@ -167,7 +167,7 @@ volcano <- function(object,
 vol_default <- function(ordername) {
   vol <- list(min = 0, max = 10, step = 1, value = 2)
   switch(
-    shiny::req(ordername),
+    ordername,
     module = {
     },
     kME = {
@@ -190,7 +190,7 @@ vol_default <- function(ordername) {
     })
   vol$label <- ordername
   if(ordername == "p.value")
-    vol$lable <- "-log10(p.value)"
+    vol$label <- "-log10(p.value)"
 
   vol
 }

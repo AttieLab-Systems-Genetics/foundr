@@ -17,11 +17,11 @@ ui <- function() {
         foundr::shinyContrastTableInput("shinyContrastTable"),
         shiny::numericInput("ntrait", "Traits:", 20, 5, 100, 5),
         shiny::uiOutput("strains")
-      ),
+        ),
       
       shiny::mainPanel(
 #        shiny::uiOutput("intro"),
-        foundr::shinyContrastModuleOutput("shinyContrastModule")
+        foundr::shinyContrastSexOutput("shinyContrastSex")
       )
     ))
 }
@@ -39,8 +39,15 @@ server <- function(input, output, session) {
   contrastOutput <- foundr::shinyContrastTable("shinyContrastTable",
     input, input, traitSignal, traitStats, customSettings)
   # Contrast Modules.
-  moduleOutput <- foundr::shinyContrastModule("shinyContrastModule",
+  moduleOutput <- foundr::shinyContrastSex("shinyContrastSex",
     input, input, traitContrPval, traitModule)
+  
+  traitContrPval <- reactive({
+    shiny::req(contrastOutput())
+    pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
+    
+    dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
+  })
   
   # SERVER-SIDE INPUTS
   output$strains <- shiny::renderUI({
@@ -48,13 +55,6 @@ server <- function(input, output, session) {
     shiny::checkboxGroupInput(
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
-  })
-  
-  traitContrPval <- reactive({
-    shiny::req(contrastOutput())
-    pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
-    
-    dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
   })
   
   output$intro <- renderUI({

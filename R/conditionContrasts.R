@@ -202,23 +202,6 @@ ggplot_conditionContrasts <- function(object, bysex = sexes,
   }
   p
 }
-condition_biplot <- function(object, ordername, xlab,
-                             threshold, strain = "NONE", ...) {
-  # Filter on vertical threshold
-  if(ordername %in% c("p.value", "module")) {
-    object <- dplyr::filter(object, .data[[ordername]] <= threshold[ordername])
-  } else {
-    object <- dplyr::filter(object, .data[[ordername]] >= threshold[ordername])
-  }
-
-  bip_pca <- biplot_pca(biplot_data(object), size = ordername,
-                        strain = strain, threshold)
-  p <- biggplot(bip_pca, scale.factor = 4)
-  p <- theme_template(p, legend_position = "none")
-  if(strain != "NONE")
-    xlab <- paste(xlab, "colored by", strain)
-  p + ggplot2::ggtitle(xlab)
-}
 #' Plot method for Contrasts of Conditions
 #'
 #' @param x object of class `conditionContrasts`
