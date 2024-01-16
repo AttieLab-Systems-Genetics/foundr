@@ -148,7 +148,7 @@ ggplot_conditionContrasts <- function(object,
   
   attr(object, "axes") <- "strain"
   
-  ggplot_spread_evidence(object, xlab, ...)
+  ggplot_evidence_spread(object, xlab, ...)
 }
 #' Plot method for Contrasts of Conditions
 #'

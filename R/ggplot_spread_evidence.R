@@ -1,4 +1,4 @@
-#' GGplot of spread vs evidence
+#' GGplot of evidence vs spread
 #'
 #' This includes volcano plot and other plots that compare data spread to
 #' strength of evidence. The strength of evidence is often a `p.value`
@@ -18,7 +18,7 @@
 #' @importFrom dplyr filter mutate rename
 #' @importFrom ggplot2 aes geom_jitter geom_vline ggplot scale_fill_manual xlab ylab
 #'             
-ggplot_spread_evidence <- function(object,
+ggplot_evidence_spread <- function(object,
                                    xlab = NULL,
                                    plottype = c("dotplot", "volcano", "biplot"),
                                    ordername = attr(object, "ordername"),
