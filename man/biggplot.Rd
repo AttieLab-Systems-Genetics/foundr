@@ -4,12 +4,14 @@
 \alias{biggplot}
 \title{Biplot using ggplot2 via ordr package}
 \usage{
-biggplot(bip_pca, scale.factor = 2)
+biggplot(bip_pca, axes = 1:2, scale.factor = 2)
 }
 \arguments{
-\item{bip_pca}{}
+\item{bip_pca}{object of class bip_pca}
 
-\item{scale.factor}{}
+\item{axes}{axes to plot}
+
+\item{scale.factor}{scale factor for arrows vs points}
 }
 \value{
 object of class ggplot2

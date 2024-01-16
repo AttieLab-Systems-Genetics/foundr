@@ -95,7 +95,8 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
         shiny::fluidRow(
           shiny::column(
             4,
-            shiny::selectInput(ns("term"), "Volcano term:", term_stats())),
+            shiny::selectInput(ns("term"), "Volcano term:", term_stats(),
+                               multiple = TRUE)),
           shiny::column(
             4,
             shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
@@ -123,7 +124,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     })
     
     term_stats <- shiny::reactive({
-      termStats(traitStats, FALSE)
+      termStats(traitStats, FALSE, customSettings$condition_name)
     })
     term_selection <- shiny::reactiveVal(NULL, label = "term_selection")
     shiny::observeEvent(input$term, term_selection(input$term))
@@ -133,14 +134,20 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     shiny::observeEvent(input$interact, inter_selection(input$interact))
     
     output$volcano_inter <- shiny::renderUI({
-      # Condition for plot based on `interact` parameter.
-      if(shiny::isTruthy(inter_selection())) {
-        plotly::plotlyOutput(ns("volcanoly"),
-                             height = paste0(shiny::req(main_par$height), "in"))
-      } else {
-        shiny::plotOutput(ns("volcanopr"),
-                          height = paste0(shiny::req(main_par$height), "in"))
-      }
+      shiny::tagList(
+        # Condition for plot based on `interact` parameter.
+        if(shiny::isTruthy(inter_selection())) {
+          plotly::plotlyOutput(ns("volcanoly"),
+                               height = paste0(shiny::req(main_par$height), "in"))
+        } else {
+          shiny::plotOutput(ns("volcanopr"),
+                            height = paste0(shiny::req(main_par$height), "in"))
+        },
+        # *** Add terms selectInput about here.
+        shiny::renderPlot({
+          variation_biplot(traitStatsSelected(), "p.value", "blah")
+        })
+      )
     })
     volcano_plot <- shiny::reactive({
       shiny::req(traitStatsSelected(), term_selection(),
@@ -150,7 +157,8 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
               threshold = c(SD = input$volsd, p = 10 ^ -input$volpval),
               interact = inter_selection(),
               traitnames = trait_selection(),
-              facet = facet)
+              facet = facet,
+              condition_name = customSettings$condition_name)
     })
     output$volcanoly <- plotly::renderPlotly({
       plotly::ggplotly(
@@ -178,8 +186,10 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     
     # DOWNLOADS
     postfix <- shiny::reactive({
-      paste0(shiny::req(term_selection()), "_",
-             paste(shiny::req(data_selection()), collapse = "."))
+      shiny::req(term_selection(), data_selection())
+      
+      paste0(paste(term_selection(), collapse = "."), "_",
+             paste(data_selection(), collapse = "."))
     })
     plotObject <- shiny::reactive({
       print(shiny::req(volcano_plot()))

@@ -19,10 +19,7 @@ conditionContrasts(
 
 ggplot_conditionContrasts(
   object,
-  bysex = sexes,
-  ntraits = 20,
-  plottype = c("dotplot", "volcano", "biplot"),
-  ordername = attr(object, "ordername"),
+  bysex = c("Both Sexes", "Female", "Male", "Sex Contrast"),
   ...
 )
 
@@ -55,12 +52,6 @@ summary_conditionContrasts(
 
 \item{bysex}{type of sex from c("F","M","F-M","F+M")}
 
-\item{ntraits}{number of traits to plot}
-
-\item{plottype}{one of "dotplot", "volcano" or "biplot"}
-
-\item{ordername}{column name to order entries}
-
 \item{...}{additional parameters for generic `split`}
 
 \item{x}{objects of class `conditionContrasts`}
@@ -68,6 +59,10 @@ summary_conditionContrasts(
 \item{ntrait}{number of traits to plot}
 
 \item{sortby}{sort summary by this variable}
+
+\item{ordername}{column name to order entries}
+
+\item{ntraits}{number of traits to plot}
 }
 \value{
 object of class `conditionContrasts`

@@ -6,7 +6,7 @@ traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
 
 ################################################################
 
-title <- "Test Shiny Module"
+title <- "Shiny Module Contrast Module"
 
 ui <- function() {
   

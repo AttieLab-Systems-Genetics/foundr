@@ -117,10 +117,7 @@ contrast2signal <- function(contrasts) {
 #'
 #' @param object object of class `conditionContrasts`
 #' @param bysex type of sex from c("F","M","F-M","F+M")
-#' @param ntraits number of traits (if not volcano)
-#' @param plottype one of "dotplot", "volcano" or "biplot"
-#' @param ordername order of plot vertical axis
-#' @param ... additional parameters for `volcano()`
+#' @param ... additional parameters for `ggplot_spread_evidence()`
 #'
 #' @return ggplot object
 #' @export
@@ -129,78 +126,29 @@ contrast2signal <- function(contrasts) {
 #' @importFrom ggplot2 aes element_text facet_wrap geom_jitter geom_point
 #'             geom_vline ggplot scale_fill_manual theme xlab ylab
 #'
-ggplot_conditionContrasts <- function(object, bysex = sexes,
-                                      ntraits = 20,
-                                      plottype = c("dotplot", "volcano", "biplot"),
-                                      ordername = attr(object, "ordername"),
+ggplot_conditionContrasts <- function(object,
+                                      bysex = c("Both Sexes", "Female", "Male", "Sex Contrast"),
                                       ...) {
   conditions <- attr(object, "conditions")
-  termname <- attr(object, "termname")
-  if(is.null(ordername))
-    ordername <- "p.value"
   
   if(is.null(object) || is.null(conditions))
     return(plot_null("no contrast data"))
   
-  plottype <- match.arg(plottype)
-  
-  sexes <- c("Both Sexes", "Female", "Male", "Sex Contrast")
-  bysex <- match.arg(bysex)
-  
   # Filter by sex, sex contrast, or sex mean.
-  object <- dplyr::filter(object, .data$sex == bysex)
+  bysex <- match.arg(bysex)
+  object <- dplyr::select(dplyr::filter(object, .data$sex == bysex), -sex)
   
+  # Modify X label to be sex and conditions
   xlab <- bysex
   if(!is.null(conditions)) {
     xlab <- paste(conditions[2], "-",
                   xlab,
                   "+", conditions[1])
   }
-
-  switch(plottype,
-    biplot = { # Biplot
-      p <- condition_biplot(object, ordername, xlab, ...)
-    },
-    volcano = { # Volcano Plot
-      p <- volcano(
-        dplyr::mutate(
-          dplyr::rename(object, SD = "value"),
-          term = termname),
-        "signal", facet = TRUE, traitnames = FALSE, ordername = ordername, ...)
-    },
-    dotplot = { # Plot contrasts of strains by trait.
-      # Pick top traits to plot
-      
-      sord <- -1
-      if(ordername == "kME")
-        sord <- 1
-      
-      object <- 
-        dplyr::filter(
-          dplyr::mutate(
-            object,
-            trait = abbreviate(
-              paste(.data$dataset, .data$trait, sep = ": "), 40),
-            trait = reorder(.data$trait, sord * abs(.data[[ordername]]))),
-          .data$trait %in% rev(levels(.data$trait))[seq_len(ntraits)])
-      
-      textsize <- 12
-      p <- ggplot2::ggplot(object) +
-        ggplot2::aes(.data$value, .data$trait, fill = .data$strain) +
-        ggplot2::geom_vline(xintercept = 0, col = "darkgrey") +
-        ggplot2::geom_jitter(height = 0.2, width = 0, color = "black",
-                             size = 3, shape = 21, alpha = 0.9) +
-        ggplot2::scale_fill_manual(values = foundr::CCcolors) +
-        ggplot2::ylab("")
-      
-      p <- theme_template(p)
-    })
-    
-  if(plottype != "biplot") {
-    # Modify X label to be sex and conditions
-    p <- p + ggplot2::xlab(xlab)
-  }
-  p
+  
+  attr(object, "axes") <- "strain"
+  
+  ggplot_spread_evidence(object, xlab, ...)
 }
 #' Plot method for Contrasts of Conditions
 #'

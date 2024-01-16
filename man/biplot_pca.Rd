@@ -12,7 +12,7 @@ biplot_pca(
 )
 }
 \arguments{
-\item{bip}{object from `biplot_data`}
+\item{bip}{object from `biplot_signal`}
 
 \item{transpose}{transpose for `princomp` if `TRUE`}
 }

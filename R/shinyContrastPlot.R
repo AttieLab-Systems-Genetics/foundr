@@ -160,14 +160,14 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
     }, label = "contrastDotPlot")
     
     output$plot <- shiny::renderUI({
-      shiny::req(contrasts_strains())
+      shiny::req(contrasts_strains(), main_par$strains)
       
       shiny::tagList(
         shiny::h3(modTitle()),
         shiny::h4({"Volcano Plot"}),
         shiny::uiOutput(ns("convolcano")),
         shiny::h4("BiPlot"),
-        shiny::selectInput(ns("strain"), "Strain Highlight", c("NONE",names(qtl2::CCcolors))),
+        shiny::selectInput(ns("strain"), "Strain Highlight", c("NONE", main_par$strains)),
         shiny::uiOutput(ns("conbiplot")),
         shiny::h4("DotPlot"),
         shiny::uiOutput(ns("condotplot"))

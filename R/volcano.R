@@ -72,16 +72,18 @@ volcano <- function(object,
     object <- strainstats(object)
   }
   # Prefer one of terms, but could be any p-value term
-  terms <- termStats(object)
+  terms <- termStats(object, signal = FALSE, ...)
   uterm <- unique(object$term)
-  if(!(termname %in% uterm))
+  if(!(all(termname %in% uterm)))
     termname <- uterm[1]
+  if(facet)
+    termname <- termname[1]
   
   object <-
     dplyr::mutate(
       dplyr::filter(
         object,
-        term == termname),
+        term %in% termname),
       foldchange = "NO",
       foldchange = ifelse(
         .data$SD >= threshold["SD"] &
@@ -125,8 +127,9 @@ volcano <- function(object,
   }
   
   # Prettify x label
-  xlab_default <- paste("deviations for", termname)
-  if(termname == "sex")
+  xlab_default <- paste("deviations for",
+                        paste(termname, collapse = ", "))
+  if("sex" %in% termname)
     xlab_default <- "Female - deviations + Male"
     
   # Convert directly in the aes()
@@ -152,6 +155,10 @@ volcano <- function(object,
   
   if(facet && "strain" %in% names(object)) {
     p <- p + ggplot2::facet_wrap(~ .data$strain)
+  } else {
+    if(length(termname) > 1) {
+      p <- p + ggplot2::facet_wrap(~ .data$term)
+    }
   }
   
   if(traitnames) {
