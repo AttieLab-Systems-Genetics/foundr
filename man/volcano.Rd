@@ -2,7 +2,7 @@
 % Please edit documentation in R/volcano.R
 \name{volcano}
 \alias{volcano}
-\title{One-sided Volcano Plot}
+\title{Volcano Plot}
 \usage{
 volcano(
   object,
@@ -40,7 +40,7 @@ volcano(
 ggplot object
 }
 \description{
-One-sided Volcano Plot
+Volcano Plot
 }
 \examples{
 sampleStats <- strainstats(sampleData)

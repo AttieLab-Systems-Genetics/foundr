@@ -23,7 +23,7 @@ shinyVolcano(id, main_par, traitStats, customSettings = NULL, facet = FALSE)
 \value{
 nothing returned
 
-reactive object for `shinyVolcanoUI`
+reactive object for `shinyVolcanoOutput`
 }
 \description{
 Shiny Module Output for Volcano Plot

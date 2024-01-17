@@ -27,6 +27,7 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("dataset"),
+        shiny::numericInput("ntrait", "Traits:", 20, 5, 100, 5),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
         
       shiny::mainPanel(

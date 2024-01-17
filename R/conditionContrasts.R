@@ -131,22 +131,28 @@ ggplot_conditionContrasts <- function(object,
                                       ...) {
   conditions <- attr(object, "conditions")
   
-  if(is.null(object) || is.null(conditions))
+  if(is.null(object))
     return(plot_null("no contrast data"))
   
-  # Filter by sex, sex contrast, or sex mean.
-  bysex <- match.arg(bysex)
-  object <- dplyr::select(dplyr::filter(object, .data$sex == bysex), -sex)
-  
-  # Modify X label to be sex and conditions
-  xlab <- bysex
-  if(!is.null(conditions)) {
-    xlab <- paste(conditions[2], "-",
-                  xlab,
-                  "+", conditions[1])
+  # Kludge for now to handle stats.
+  if(is.null(conditions)) { # stats
+    xlab <- NULL
+    attr(object, "axes") <- "term"
+  } else { # contrasts
+    # Filter by sex, sex contrast, or sex mean.
+    bysex <- match.arg(bysex)
+    object <- dplyr::select(dplyr::filter(object, .data$sex == bysex), -sex)
+    
+    # Modify X label to be sex and conditions
+    xlab <- bysex
+    if(!is.null(conditions)) {
+      xlab <- paste(conditions[2], "-",
+                    xlab,
+                    "+", conditions[1])
+    }
+    
+    attr(object, "axes") <- "strain"
   }
-  
-  attr(object, "axes") <- "strain"
   
   ggplot_evidence_spread(object, xlab, ...)
 }
@@ -212,7 +218,6 @@ summary_conditionContrasts <- function(object, ntrait = 20,
 #' Summary method for Contrasts of Conditions
 #'
 #' @param object object of class `conditionContrasts`
-#' @param ntraits number of traits to plot
 #' @param ... parameters passed to `ggplot_conditionContrasts`
 #'
 #' @return data frame

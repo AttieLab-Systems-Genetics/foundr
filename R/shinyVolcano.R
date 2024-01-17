@@ -16,6 +16,12 @@ shinyVolcanoOutput <- function(id) {
                                            "", c("Plots","Tables"), "Plots", inline = TRUE)),
       shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
     
+    shinyContrastPlotInput(ns("shinyContrastPlot")),
+    shiny::fluidRow(
+      shiny::column(3, shiny::numericInput(ns("ntrait"), "Traits:",
+                                           20, 5, 100, 5)),
+      shiny::column(9, shinyContrastPlotUI(ns("shinyContrastPlot")))),
+    
     shiny::uiOutput(ns("shiny_output"))
   )
 }
@@ -28,7 +34,7 @@ shinyVolcanoOutput <- function(id) {
 #' @param customSettings list of custom settings
 #' @param facet facet on `strain` if `TRUE`
 #'
-#' @return reactive object for `shinyVolcanoUI`
+#' @return reactive object for `shinyVolcanoOutput`
 #' @importFrom shiny column fluidRow moduleServer observeEvent plotOutput
 #'             reactive renderPlot renderUI req selectInput selectizeInput
 #'             tagList uiOutput updateSelectInput sliderInput renderUI
@@ -42,6 +48,12 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
                          facet = FALSE) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
+    
+    # *** allow to flip from SD to p.value
+    # *** fix all the kludgey stuff--may need to refactor
+    # *** shinyContrastPlot: add scatterplot
+    # *** rename as contrast now has generic contrast/stat
+    # *** refactor data so Charles can use
     
     # INPUTS
     # Main inputs:
@@ -57,6 +69,11 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     # MODULES
     shinyDownloads("downloads", "Volcano", input, postfix,
                    plotObject, tableObject)
+    # Contrast Trait Plots
+    shinyContrastPlot("shinyContrastPlot",
+                      input, input, main_par,
+                      traitStatsSelected, customSettings, 
+                      shiny::reactive("Sex Contrasts"))
     
     # Server-side UIs
     output$shiny_input <- shiny::renderUI({
@@ -89,38 +106,10 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     })
     
     output$shiny_output <- shiny::renderUI({
-
+      
       shiny::tagList(
         shiny::uiOutput(ns("downloads")),
-        shiny::fluidRow(
-          shiny::column(
-            4,
-            shiny::selectInput(ns("term"), "Volcano term:", term_stats(),
-                               multiple = TRUE)),
-          shiny::column(
-            4,
-            shiny::checkboxInput(ns("traitnames"), "Trait names:", TRUE)),
-          shiny::column(
-            4,
-            shiny::checkboxInput(ns("interact"), "Interactive?", FALSE))),
-        
-        shiny::uiOutput(ns("volcano_inter")),
-        
-        # Sliders from Volcano plot display.
-        shiny::fluidRow(
-          shiny::column(
-            6,
-            shiny::sliderInput(ns("volsd"), "SD line:",
-                           0, signif(max(traitStats$SD, na.rm = TRUE), 2),
-                           1, step = 0.1)),
-          shiny::column(
-            6,
-            shiny::sliderInput(ns("volpval"), "-log10(p.value) line:",
-                           0, min(10, round(-log10(min(traitStats$p.value, na.rm = TRUE)), 1)),
-                           2, step = 0.5))),
-        
-        # Data table.
-        DT::dataTableOutput(ns("tablesum")))
+        shinyContrastPlotOutput(ns("shinyContrastPlot")))
     })
     
     term_stats <- shiny::reactive({
@@ -145,7 +134,7 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
         },
         # *** Add terms selectInput about here.
         shiny::renderPlot({
-          variation_biplot(traitStatsSelected(), "p.value", "blah")
+          biplot_evidence(traitStatsSelected(), "p.value", "blah")
         })
       )
     })
@@ -196,5 +185,3 @@ shinyVolcano <- function(id, main_par, traitStats, customSettings = NULL,
     })
   })
 }
-
-

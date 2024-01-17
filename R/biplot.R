@@ -6,9 +6,10 @@
 #'
 #' @return data frame
 #' 
-#' @importFrom dplyr across filter mutate
-#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr across any_of distinct filter mutate select
+#' @importFrom tidyr pivot_wider unite
 #' @export
+#' @rdname biplot_pca
 #'
 biplot_signal <- function(object,
                         datatraits = unique(object$datatrait),
@@ -66,9 +67,10 @@ biplot_signal <- function(object,
 #'
 #' @return data frame
 #' 
-#' @importFrom dplyr across filter mutate
-#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr across any_of distinct filter mutate select
+#' @importFrom tidyr pivot_wider unite
 #' @export
+#' @rdname biplot_pca
 #'
 biplot_stat <- function(object,
                         datatraits = unique(object$datatrait),
@@ -200,14 +202,26 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size"),
 #' 
 #' @importFrom ggplot2 aes
 #' @importFrom ordr geom_cols_vector geom_cols_text_radiate geom_rows_point ggbiplot
+#' @importFrom RColorBrewer brewer.pal
 #' @export
+#' @rdname biplot_pca
 #'
 biggplot <- function(bip_pca, axes = 1:2, scale.factor = 2) {
   
   if(is.null(bip_pca))
-    return(plot_null("Fewer traits than strains"))
+    return(plot_null("Fewer rows than columns"))
   
   CB_colors <- RColorBrewer::brewer.pal(n = 4, name = "Dark2")
+  names(CB_colors) <- c("DOWN", "UP", "NO", "EIGEN")
+  
+  termnames <- rownames(bip_pca$loadings)
+  if(all(termnames %in% names(foundr::CCcolors))) {
+    term_colors <- foundr::CCcolors
+  } else {
+    term_colors <- RColorBrewer::brewer.pal(n = max(3, length(termnames)),
+                                            name = "Dark2")
+    names(term_colors)[seq_along(termnames)] <- termnames
+  }
   
   if(is.numeric(axes))
     axes <- paste0("Comp.", axes)
@@ -231,14 +245,12 @@ biggplot <- function(bip_pca, axes = 1:2, scale.factor = 2) {
     ggplot2::scale_shape_manual(
       values = c(DOWN = 1, NO = 1, UP = 1, EIGEN = 5)) +
     ggplot2::scale_color_manual(
-      values = c(foundr::CCcolors, 
-                 c(DOWN = CB_colors[1], NO = CB_colors[3], UP = CB_colors[2],
-                   EIGEN = CB_colors[4]))) +
+      values = c(term_colors, CB_colors)) +
     ggplot2::labs(x = paste0(axes[1], " (", pct[axes[1]], "%)"),
                   y = paste0(axes[2], " (", pct[axes[2]], "%)"))
 }
 
-#' BiPlot for Condition Contrasts
+#' BiPlot for Evidence vs Spread
 #'
 #' @param object data frame
 #' @param ordername name of order column
@@ -250,10 +262,20 @@ biggplot <- function(bip_pca, axes = 1:2, scale.factor = 2) {
 #'
 #' @return gg plot object
 #' @export
+#' @rdname biplot_pca
 #' @importFrom dplyr filter
 #' @importFrom ggplot2 ggtitle
 #' @importFrom rlang .data
 #'
+biplot_evidence <- function(object, ordername, xlab,
+                            threshold, strain = "NONE",
+                            axes = 1:2, ...) {
+  if(inherits(object, "conditionContrasts")) {
+    condition_biplot(object, ordername, xlab, threshold, strain, axes, ...)
+  } else {
+    variation_biplot(object, ordername, xlab, threshold, strain, axes, ...)
+  }
+}
 condition_biplot <- function(object, ordername, xlab,
                              threshold, strain = "NONE",
                              axes = 1:2, ...) {
@@ -272,23 +294,6 @@ condition_biplot <- function(object, ordername, xlab,
     xlab <- paste(xlab, "colored by", strain)
   p + ggplot2::ggtitle(xlab)
 }
-
-#' BiPlot for Sources of Variation
-#'
-#' @param object data frame
-#' @param ordername name of order column
-#' @param xlab x label
-#' @param threshold vector of threshold values
-#' @param strain strain name to highlight in biplot
-#' @param axes axes to plot
-#' @param ... additional paramaters ignored
-#'
-#' @return gg plot object
-#' @export
-#' @importFrom dplyr filter
-#' @importFrom ggplot2 ggtitle
-#' @importFrom rlang .data
-#'
 variation_biplot <- function(object, ordername, xlab,
                              threshold, strain = "NONE",
                              axes = 1:2,

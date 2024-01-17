@@ -1,4 +1,4 @@
-#' One-sided Volcano Plot
+#' Volcano Plot
 #'
 #' @param object data frame from `strainstats`
 #' @param termname name of `term` to show
@@ -200,4 +200,21 @@ vol_default <- function(ordername) {
     vol$label <- "-log10(p.value)"
 
   vol
+}
+volcano_evidence <- function(object, ordername, termname, ...) {
+  if(inherits(object, "conditionContrasts")) {
+    volcano(
+      dplyr::mutate(
+        dplyr::rename(object, SD = "value"),
+        term = termname),
+      "signal", facet = TRUE, traitnames = FALSE,
+      ordername = ordername, ...)
+  } else {
+    terms <- termStats(object, signal = FALSE, drop_noise = TRUE)
+
+    volcano(
+      object,
+      terms, facet = FALSE, traitnames = FALSE,
+      ordername = ordername, ...)
+  }
 }

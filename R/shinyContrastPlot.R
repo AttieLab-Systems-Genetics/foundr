@@ -51,6 +51,7 @@ shinyContrastPlotOutput <- function(id) {
       shiny::column(6, shiny::sliderInput(ns("volsd"),
         "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
       shiny::column(6, shiny::uiOutput(ns("volvert")))),
+    shiny::uiOutput(ns("rownames")),
   
     shiny::uiOutput(ns("traitOutput")))
 }
@@ -64,7 +65,7 @@ shinyContrastPlotOutput <- function(id) {
 #'
 #' @return reactive object 
 #' @importFrom shiny column moduleServer observeEvent
-#'             reactive renderUI req selectInput tagList uiOutput
+#'             reactive reactiveVal renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
@@ -79,7 +80,6 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
     # shinyContrastPlot inputs
     #   main_par$tabpanel
     #   main_par$height
-    #   main_par$strains
     # RETURNS
     
     # MODULES
@@ -93,7 +93,11 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
 
       shiny::selectInput(ns("ordername"), "Order by:", orders)
     })
-    vol <- shiny::reactive({ vol_default(shiny::req(input$ordername)) })
+    ord_selection <- shiny::reactiveVal(NULL, label = "ord_selection")
+    shiny::observeEvent(input$ordername, ord_selection(input$ordername))
+    
+    vol <- shiny::reactive({ vol_default(shiny::req(ord_selection())) },
+                           label = "vol")
     
     output$volvert <- shiny::renderUI({
       shiny::req(vol())
@@ -103,6 +107,22 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
                          min = vol()$min, max = vol()$max,
                          value = vol()$value, step = vol()$step)
     })
+    vert_selection <- shiny::reactiveVal(NULL, label = "vert_selection")
+    shiny::observeEvent(input$volvert, vert_selection(input$volvert))
+
+    output$rownames <- shiny::renderUI({
+      title <- shiny::req(info())$title
+      if(title == "Strains") {
+        choices <- names(foundr::CCcolors)
+      } else {
+        choices <- termStats(contrastTable(), signal = FALSE, drop_noise = FALSE)
+      }
+        shiny::checkboxGroupInput(ns("rownames"), title,
+          choices = choices, selected = choices, inline = TRUE)
+    })
+    row_selection <- shiny::reactiveVal(NULL, label = "row_selection")
+    shiny::observeEvent(input$rownames, row_selection(input$rownames))
+    
     
     # Output
     output$traitOutput <- shiny::renderUI({
@@ -113,12 +133,18 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
     })
     
     # Plot
-    
+    info <- shiny::reactive({
+      # Set up particulars for contrast or stat
+      if(inherits(shiny::req(contrastTable()), "conditionContrasts"))
+        list(row = "strain", col = "value", title = "Strains")
+      else
+        list(row = "term", col = "SD", title = "Terms")
+    })
     # Filter to desired strains.
     contrasts_strains <- shiny::reactive({
-      shiny::req(contrastTable(), main_par$strains)
+      shiny::req(contrastTable(), row_selection(), info())
       
-      dplyr::filter(contrastTable(), .data$strain %in% main_par$strains)
+      dplyr::filter(contrastTable(), .data[[info()$row]] %in% row_selection())
     })
     
     # Generic plot function for `traits` and `eigens`.``
@@ -126,20 +152,20 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
       ggplot_conditionContrasts(
         data, bysex = sex_par$sex,
         ntrait = panel_par$ntrait,
-        ordername = input$ordername,
+        ordername = ord_selection(),
         plottype = plottype, threshold = threshold(),
         strain = input$strain,
         interact = shiny::isTruthy(input$interact))
     }
     threshold <- shiny::reactive({
-      shiny::req(input$volvert, input$volsd, input$ordername)
+      shiny::req(vert_selection(), input$volsd, ord_selection())
       
       out <- c(SD = input$volsd,
                p.value = 0.01, kME = 0.8, module = 10, size = 15)
-      if(input$ordername == "p.value")
-        out[input$ordername] <- 10 ^ -input$volvert
+      if(ord_selection() == "p.value")
+        out[ord_selection()] <- 10 ^ -vert_selection()
       else
-        out[input$ordername] <- input$volvert
+        out[ord_selection()] <- vert_selection()
       out
     })
     
@@ -160,26 +186,26 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
     }, label = "contrastDotPlot")
     
     output$plot <- shiny::renderUI({
-      shiny::req(contrasts_strains(), main_par$strains)
+      shiny::req(contrasts_strains(), row_selection())
       
       shiny::tagList(
         shiny::h3(modTitle()),
-        shiny::h4({"Volcano Plot"}),
+        shiny::h4("Volcano Plot"),
         shiny::uiOutput(ns("convolcano")),
         shiny::h4("BiPlot"),
-        shiny::selectInput(ns("strain"), "Strain Highlight", c("NONE", main_par$strains)),
+        shiny::selectInput(ns("strain"), "Vector Highlight", c("NONE", row_selection())),
         shiny::uiOutput(ns("conbiplot")),
         shiny::h4("DotPlot"),
         shiny::uiOutput(ns("condotplot"))
       )
     })
     shiny::observeEvent(
-      shiny::req(contrastTable(), input$ordername, vol()),
+      shiny::req(contrastTable(), ord_selection(), vol(), info()),
       {
-        maxsd <- signif(max(abs(contrastTable()$value), na.rm = TRUE), 2)
+        maxsd <- signif(max(abs(contrastTable()[[info()$col]]), na.rm = TRUE), 2)
         shiny::updateSliderInput(session, "volsd", max = maxsd)
         
-        if(input$ordername == "p.value") {
+        if(ord_selection() == "p.value") {
           maxvert <- min(10,
                          round(-log10(min(contrastTable()$p.value, na.rm = TRUE)), 1))
         } else {

@@ -61,8 +61,6 @@ summary_conditionContrasts(
 \item{sortby}{sort summary by this variable}
 
 \item{ordername}{column name to order entries}
-
-\item{ntraits}{number of traits to plot}
 }
 \value{
 object of class `conditionContrasts`
