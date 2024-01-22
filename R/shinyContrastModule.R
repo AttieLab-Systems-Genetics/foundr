@@ -44,7 +44,7 @@ shinyContrastModule <- function(id, panel_par, main_par,
     # MODULES
     # Contrast Eigen Plots
     shinyContrastPlot("shinyContrastPlot",
-      input, panel_par, main_par, contrastTable, customSettings,
+      input, main_par, contrastTable, customSettings,
       modTitle)
     
     contrastTable <- shiny::reactive({

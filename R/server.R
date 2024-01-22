@@ -26,7 +26,7 @@ server <- function(input, output, session,
   shinyTraitPanel("tabTraits", input, traitData, traitSignal, traitStats,
                   customSettings)
   shinyTimePanel("tabTimes", input, traitData, traitSignal, traitStats)
-  shinyVolcano("tabVolcano", input, traitStats, customSettings)
+  shinyStats("tabStats", input, traitStats, customSettings)
   shinyContrastPanel("tabContrasts", input,
                      traitSignal, traitStats, traitModule, customSettings)
   
@@ -43,7 +43,7 @@ server <- function(input, output, session,
     # Dataset selection.
     datasets <- unique(traitStats$dataset)
 
-    # Get new input parameters for Volcano.
+    # Get datasets.
     shiny::selectInput("dataset", "Datasets:",
                        datasets, datasets[1], multiple = TRUE)
   })
@@ -66,13 +66,13 @@ server <- function(input, output, session,
         if(length(timetraits_all()))
           shiny::showTab(inputId = "tabpanel", target = "Times")
         shiny::showTab(inputId = "tabpanel", target = "Contrasts")
-        shiny::showTab(inputId = "tabpanel", target = "Volcano")
+        shiny::showTab(inputId = "tabpanel", target = "Stats")
         shiny::showTab(inputId = "tabpanel", target = "About")
       } else {
         shiny::hideTab(inputId = "tabpanel", target = "Traits")
         shiny::hideTab(inputId = "tabpanel", target = "Times")
         shiny::hideTab(inputId = "tabpanel", target = "Contrasts")
-        shiny::hideTab(inputId = "tabpanel", target = "Volcano")
+        shiny::hideTab(inputId = "tabpanel", target = "Stats")
         shiny::hideTab(inputId = "tabpanel", target = "About")
       }
     })
@@ -105,14 +105,14 @@ server <- function(input, output, session,
                Contrasts = if(length(timetraits_all())) {
                  shinyContrastPanelInput("tabContrasts")
                },
-               Volcano   = shiny::uiOutput("dataset"),
+               Stats   = shiny::uiOutput("dataset"),
                Times     = if(length(timetraits_all())) {
                  shinyTimePanelInput("tabTimes") 
                }),
         
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
         
-        if(shiny::req(input$tabpanel) != "Volcano") {
+        if(shiny::req(input$tabpanel) != "Stats") {
           shiny::tagList(
             shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
             shiny::checkboxInput("facet", "Facet by strain?", TRUE))
@@ -134,7 +134,7 @@ server <- function(input, output, session,
         type = "tabs", header = "", id = "tabpanel",
         shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
         shiny::tabPanel("Contrasts",  shinyContrastPanelOutput("tabContrasts")),
-        shiny::tabPanel("Volcano",  shinyVolcanoOutput("tabVolcano")),
+        shiny::tabPanel("Stats",  shinyStatsOutput("tabStats")),
         shiny::tabPanel("Times",  shinyTimePanelOutput("tabTimes")),
         shiny::tabPanel("About",  shiny::uiOutput("intro"))
       )

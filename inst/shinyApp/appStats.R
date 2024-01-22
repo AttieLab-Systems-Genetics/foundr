@@ -15,7 +15,7 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
-title <- "Test Shiny Volcano Module"
+title <- "Test Shiny Stats Module"
 
 ui <- function() {
   # INPUTS
@@ -27,11 +27,10 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("dataset"),
-        shiny::numericInput("ntrait", "Traits:", 20, 5, 100, 5),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
         
       shiny::mainPanel(
-        foundr::shinyVolcanoOutput("shinyTest")
+        foundr::shinyStatsOutput("shinyTest")
         )))
 }
 
@@ -42,12 +41,12 @@ server <- function(input, output, session) {
     # Dataset selection.
     datasets <- unique(traitStats$dataset)
 
-    # Get new input parameters for Volcano.
+    # Get new input parameters for Stats.
     shiny::selectInput("dataset", "Datasets:",
                        datasets, datasets[1], multiple = TRUE)
   })
 
-  volcanoOutput <- foundr::shinyVolcano("shinyTest", input, traitStats)
+  foundr::shinyStats("shinyTest", input, traitStats)
 }
 
 shiny::shinyApp(ui = ui, server = server)

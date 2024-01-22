@@ -15,7 +15,6 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         foundr::shinyContrastTableInput("shinyContrastTable"),
-        shiny::numericInput("ntrait", "Traits:", 20, 5, 100, 5),
         shiny::uiOutput("strains")
       ),
       

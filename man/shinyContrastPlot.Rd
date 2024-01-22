@@ -16,7 +16,6 @@ shinyContrastPlotOutput(id)
 shinyContrastPlot(
   id,
   sex_par,
-  panel_par,
   main_par,
   contrastTable,
   customSettings = NULL,
@@ -26,7 +25,7 @@ shinyContrastPlot(
 \arguments{
 \item{id}{identifier}
 
-\item{sex_par, panel_par, main_par}{input parameters}
+\item{sex_par, main_par}{input parameters}
 
 \item{contrastTable}{reactive data frame}
 

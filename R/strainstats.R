@@ -122,7 +122,7 @@ termStats <- function(object, signal = TRUE, condition_name = NULL,
                       drop_noise = TRUE, cellmean = signal, ...) {
   terms <- unique(object$term)
   # Drop noise and other terms not of interest to user.
-  terms <- terms[terms != "rest"]
+  terms <- terms[!(terms %in% c("rest","rawSD"))]
   if(drop_noise) { 
     terms <- terms[terms != "noise"]
   }

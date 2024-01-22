@@ -51,14 +51,15 @@ shinyContrastPlotOutput <- function(id) {
       shiny::column(6, shiny::sliderInput(ns("volsd"),
         "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
       shiny::column(6, shiny::uiOutput(ns("volvert")))),
-    shiny::uiOutput(ns("rownames")),
   
+    shiny::uiOutput(ns("title")),
+    
     shiny::uiOutput(ns("traitOutput")))
 }
 #' Shiny Module Server for Contrast Plots
 #'
 #' @param id identifier
-#' @param sex_par,panel_par,main_par input parameters
+#' @param sex_par,main_par input parameters
 #' @param contrastTable reactive data frame
 #' @param customSettings list of custom settings
 #' @param modTitle character string title for section
@@ -70,7 +71,7 @@ shinyContrastPlotOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
+shinyContrastPlot <- function(id, sex_par, main_par,
                             contrastTable, customSettings = NULL,
                             modTitle = shiny::reactive("Eigentrait Contrasts")) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -110,19 +111,24 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
     vert_selection <- shiny::reactiveVal(NULL, label = "vert_selection")
     shiny::observeEvent(input$volvert, vert_selection(input$volvert))
 
+    output$title <- shiny::renderUI({
+      shiny::tagList(
+        shiny::h3(modTitle()),
+        shiny::uiOutput(ns("rownames"))
+      )
+    })
     output$rownames <- shiny::renderUI({
       title <- shiny::req(info())$title
       if(title == "Strains") {
         choices <- names(foundr::CCcolors)
       } else {
-        choices <- termStats(contrastTable(), signal = FALSE, drop_noise = FALSE)
+        choices <- termStats(contrastTable(), signal = FALSE, drop_noise = TRUE)
       }
-        shiny::checkboxGroupInput(ns("rownames"), title,
+        shiny::checkboxGroupInput(ns("rownames"), "",
           choices = choices, selected = choices, inline = TRUE)
     })
     row_selection <- shiny::reactiveVal(NULL, label = "row_selection")
     shiny::observeEvent(input$rownames, row_selection(input$rownames))
-    
     
     # Output
     output$traitOutput <- shiny::renderUI({
@@ -151,7 +157,7 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
     plotfn <- function(data, plottype) {
       ggplot_conditionContrasts(
         data, bysex = sex_par$sex,
-        ntrait = panel_par$ntrait,
+        ntrait = input$ntrait,
         ordername = ord_selection(),
         plottype = plottype, threshold = threshold(),
         strain = input$strain,
@@ -180,16 +186,13 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
       plotfn(contrasts_strains(), "biplot")
     }, label = "contrastBiPlot")
     contrastDotPlot <- shiny::reactive({
-      shiny::req(contrasts_strains())
+      shiny::req(contrasts_strains(), input$ntrait)
       
       plotfn(contrasts_strains(), "dotplot")
     }, label = "contrastDotPlot")
     
     output$plot <- shiny::renderUI({
-      shiny::req(contrasts_strains(), row_selection())
-      
       shiny::tagList(
-        shiny::h3(modTitle()),
         shiny::h4("Volcano Plot"),
         shiny::uiOutput(ns("convolcano")),
         shiny::h4("BiPlot"),
@@ -231,16 +234,20 @@ shinyContrastPlot <- function(id, sex_par, panel_par, main_par,
       }
     })
     output$condotplot <- shiny::renderUI({
-      if(shiny::isTruthy(input$interact)) {
-        plotly::renderPlotly(shiny::req(contrastDotPlot()))
-      } else {
-        shiny::renderPlot(print(shiny::req(contrastDotPlot())))
-      }
+      shiny::tagList(
+        shiny::numericInput(ns("ntrait"), "Traits:", 20, 5, 100, 5),
+        
+        if(shiny::isTruthy(input$interact)) {
+          plotly::renderPlotly(shiny::req(contrastDotPlot()))
+        } else {
+          shiny::renderPlot(print(shiny::req(contrastDotPlot())))
+        })
     })
     
     # Table
     tableObject <- shiny::reactive({
-      summary(shiny::req(contrastTable()), shiny::req(panel_par$ntrait))
+      summary(shiny::req(contrastTable()), 
+              ntrait = shiny::req(input$ntrait))
     })
     
     # DOWNLOADS

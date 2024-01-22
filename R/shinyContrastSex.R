@@ -54,7 +54,7 @@ shinyContrastSex <- function(id, panel_par, main_par,
     
     # Contrast Trait Plots
     shinyContrastPlot("shinyContrastPlot",
-                      input, panel_par, main_par,
+                      input, main_par,
                       contrastTable, customSettings, 
                       shiny::reactive("Sex Contrasts"))
   })

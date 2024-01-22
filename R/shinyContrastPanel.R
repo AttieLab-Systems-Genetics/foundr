@@ -95,10 +95,7 @@ shinyContrastPanel <- function(id, main_par,
       switch(
         input$contrast,
         Sex =, Module = {
-          shiny::fluidRow(
-            shiny::column(9, shinyContrastTableInput(ns("shinyContrastTable"))),
-            shiny::column(3, shiny::numericInput(ns("ntrait"), "Traits:",
-                                                 20, 5, 100, 5)))
+          shinyContrastTableInput(ns("shinyContrastTable"))
         },
         Time = {
           shiny::tagList(
