@@ -69,3 +69,32 @@ but in some cases are passed on to subsequent modules. the `moduleServer()`
 technology requires that their input selection us a namespace through the `ns()` device. See
 [Modularizing Shiny app code](https://shiny.posit.co/r/articles/improve/modules/)
 for details.
+
+Persistence of values and cross-reference is tricky.
+It helps to use `reactiveVal()` but need care.
+For `main_par$dataset`, I am finding the following behavior so far:
+
+- Trait panel
+  + change `dataset` does not change in Contrast or Stats panels
+  + change persists when switching back
+- Contrast panel 
+  + change `dataset` does not change in Trait or Stats panels
+  + change in Sex subpanel persists for Module subpanel and vice versa
+  + Time subpanel is handled on its own (for now)
+  + change does not persist when going to Trait or Stats and back
+- Stats panel 
+  + change `dataset` does not change in Trait or Contrast panels
+  + change does not persist when going to Trait or Contrast and back
+- Times panel
+  + uses its own system similar to Contrast/Time
+  
+More information:
+
+- The `server()` sets `input$dataset`, which is passed to all panels, but not necessarily used by them (yet).
+- `TraitPanel` uses `input$keydataset` from within `TraitOrder`. That module uses `reactiveVal` to ensure persistence, but it is not available per se outside.
+- `ContrastPanel` calls `ContrastTable`, which calls `TraitOrder`.
+- `StatsPanel` uses `input$dataset` from `server()`.
+- `TimePanel` uses its own system.
+
+It might be possible to move the `TraitOrder` version up to using the `server`.
+However, need to be careful about logic.
