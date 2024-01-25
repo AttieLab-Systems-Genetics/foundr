@@ -3,11 +3,11 @@
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyStats
+#' @rdname shinyStatsPanel
 #' @export
 #' @importFrom shiny NS uiOutput
 #'
-shinyStatsOutput <- function(id) {
+shinyStatsPanelOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
@@ -26,7 +26,7 @@ shinyStatsOutput <- function(id) {
 #' @param customSettings list of custom settings
 #' @param facet facet on `strain` if `TRUE`
 #'
-#' @return reactive object for `shinyStatsOutput`
+#' @return reactive object for `shinyStatsPanelOutput`
 #' @importFrom shiny column fluidRow moduleServer observeEvent plotOutput
 #'             reactive renderPlot renderUI req selectInput selectizeInput
 #'             tagList uiOutput updateSelectInput sliderInput renderUI
@@ -36,7 +36,7 @@ shinyStatsOutput <- function(id) {
 #' @importFrom rlang .data
 #' @export
 #'
-shinyStats <- function(id, main_par, traitStats, customSettings = NULL,
+shinyStatsPanel <- function(id, main_par, traitStats, customSettings = NULL,
                          facet = FALSE) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -64,13 +64,6 @@ shinyStats <- function(id, main_par, traitStats, customSettings = NULL,
                       input, main_par,
                       traitStatsSelected, customSettings, 
                       shiny::reactive("Stats Contrasts"))
-    
-    # Server-side UIs
-    output$shiny_input <- shiny::renderUI({
-      # Get new input parameters for Stats.
-      shiny::selectInput(ns("dataset"), "Datasets:",
-                         datasets(), datasets()[1], multiple = TRUE)
-    })
     
     # Dataset selection.
     datasets <- shiny::reactive({

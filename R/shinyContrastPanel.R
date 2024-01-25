@@ -84,7 +84,7 @@ shinyContrastPanel <- function(id, main_par,
       if(is.null(traitModule))
         return(NULL)
       pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
-      
+      if(is.null(pvalue)) pvalue <- 0.05
       dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
     })
     

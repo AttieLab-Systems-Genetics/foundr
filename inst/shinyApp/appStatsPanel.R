@@ -30,7 +30,7 @@ ui <- function() {
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
         
       shiny::mainPanel(
-        foundr::shinyStatsOutput("shinyTest")
+        foundr::shinyStatsPanelOutput("shinyTest")
         )))
 }
 
@@ -46,7 +46,7 @@ server <- function(input, output, session) {
                        datasets, datasets[1], multiple = TRUE)
   })
 
-  foundr::shinyStats("shinyTest", input, traitStats)
+  foundr::shinyStatsPanel("shinyTest", input, traitStats)
 }
 
 shiny::shinyApp(ui = ui, server = server)

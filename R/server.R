@@ -17,6 +17,7 @@ server <- function(input, output, session,
                    traitData = NULL, traitSignal = NULL, traitStats = NULL,
                    customSettings = NULL, traitModule = NULL) {
   # INPUTS
+  #    input$dataset
   #    input$strains
   #    input$height
   #    input$facet
@@ -26,7 +27,7 @@ server <- function(input, output, session,
   shinyTraitPanel("tabTraits", input, traitData, traitSignal, traitStats,
                   customSettings)
   shinyTimePanel("tabTimes", input, traitData, traitSignal, traitStats)
-  shinyStats("tabStats", input, traitStats, customSettings)
+  shinyStatsPanel("tabStats", input, traitStats, customSettings)
   shinyContrastPanel("tabContrasts", input,
                      traitSignal, traitStats, traitModule, customSettings)
   
@@ -134,7 +135,7 @@ server <- function(input, output, session,
         type = "tabs", header = "", id = "tabpanel",
         shiny::tabPanel("Traits", shinyTraitPanelOutput("tabTraits")),
         shiny::tabPanel("Contrasts",  shinyContrastPanelOutput("tabContrasts")),
-        shiny::tabPanel("Stats",  shinyStatsOutput("tabStats")),
+        shiny::tabPanel("Stats",  shinyStatsPanelOutput("tabStats")),
         shiny::tabPanel("Times",  shinyTimePanelOutput("tabTimes")),
         shiny::tabPanel("About",  shiny::uiOutput("intro"))
       )

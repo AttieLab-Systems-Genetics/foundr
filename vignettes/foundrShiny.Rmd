@@ -1,0 +1,71 @@
+---
+title: "foundrShiny"
+author: "Brian Yandell"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Shiny app.R organization
+
+This package has Shiny app routines organized in a modular fashion.
+The main deployment 
+[app.R](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/app.R)
+(located in the `inst/shinyApp` folder) is very short, calling `foundr` package routines
+[ui()](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/ui.R)
+and
+[server()](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/server.R).
+The `server()` in turn calls the following [moduleServer](https://shiny.posit.co/r/reference/shiny/1.7.0/moduleserver) modules,
+which correspond to the tab panels:
+
+- [shinyTraitPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTraitPanel.R)
+- [shinyContrastPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastPanel.R)
+- [shinyTimePanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTimePanel.R)
+- [shinyStatsPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyStats.R)
+
+Each of these in turn call additional modules. 
+See the following for more information on Shiny modules:
+
+- [Modularizing Shiny app code](https://shiny.posit.co/r/articles/improve/modules/)
+- [Mastering Shiny reactivity](https://mastering-shiny.org/reactivity-intro.html)
+
+Most `foundr` modules have their own "unit test" applets,
+located in the `inst/shinyApp` folder. 
+It turns out that having `app.R` in the folder `inst/shinyApp` enables one to
+run other apps in that same folder. Hence it is possible to unit test parts of
+the Shiny app. [There may be other Shiny tools to debug, but this is quite handy.]
+For instance, the panel applets are:
+
+- [appTraitPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appTraitPanel.R)
+- [appContrastPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appContrastPanel.R)
+- [appTimePanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appTimePanel.R)
+- [appStatsPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appStats.R)
+
+## Input parameters
+
+The Shiny app includes multiple input parameters, which change other features
+of the app. Some of these are at the level of the `ui()`, possibly through `server()`-side reactives. Others are within panel modules or buried deeper.
+The design is meant to have parameters at the appropriate level,
+near the visualizations that they adjust.
+
+### Server-level input parameters
+
+- `main_par$dataset` dataset(s) examined
+- `main_par$strains` strain(s) included for plots
+- `main_par$height` height of plots
+- `main_par$facet` facet on strains if `TRUE`
+- `main_par$tabpanel` current active tab panel
+
+These input parameters are referred to as `input$xxx` in the `server()` module,
+but are passed as a set to other modules as `main_par$xxx`.
+
+### Panel-level input parameters
+
+Input parameters in the panel and other modules are local to each module,
+but in some cases are passed on to subsequent modules. the `moduleServer()`
+technology requires that their input selection us a namespace through the `ns()` device. See
+[Modularizing Shiny app code](https://shiny.posit.co/r/articles/improve/modules/)
+for details.
