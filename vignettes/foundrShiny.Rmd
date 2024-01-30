@@ -44,6 +44,61 @@ For instance, the panel applets are:
 - [appTimePanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appTimePanel.R)
 - [appStatsPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appStats.R)
 
+## Modules called by panel modules
+
+Each of the panel modules calls further modules as follows
+(with links on first mention)
+
+- `TraitPanel`
+  - [shinyTraitOrder](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTraitOrder.R)
+  - [shinyTraitNames](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTraitNames.R) (key trait name)
+  - [shinyCorTable](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyCorTable.R)
+  - `shinyTraitNames` (related trait names)
+  - [shinyCorPlot](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyCorPlot.R)
+  - [shinyTraitTable](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTraitTable.R)
+  - [shinyTraitSolos](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTraitSolos.R)
+  - [shinyTraitPairs](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTraitPairs.R)
+  - [shinyDownloads](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyDownloads.R)
+- `StatsPanel`
+  - [shinyContrastPlot](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastPlot.R)
+    - `shinyDownloads`
+- `TimePanel`
+  - [shinyTimeTable](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTimeTable.R)
+    - [shinyTimeTraits](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTimeTraits.R)
+  - [shinyTimePlot](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyTimePlot.R)
+    - `shinyDownloads`
+- `ContrastPanel`
+  - [shinyContrastTable](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastTable.R)
+  - [shinyContrastSex](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastSex.R)
+    - `shinyContrastPlot`
+      - `shinyDownloads`
+  - `shinyContrastTable` (for contrasts over time)
+  - [shinyContrastTime](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastTime.R)
+    - `shinyTimeTraits`
+  - `shinyTimePlot`
+    - `shinyDownloads`
+  - [shinyContrastModule](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastModule.R)
+    - `shinyContrastPlot`
+      - `shinyDownloads`
+
+Notice that modules enable code reuse and reduction of
+code duplication.
+The `TraitNames` module is reused for the key trait
+and related trait names in the `Trait` panel.
+Download mechanics for all panels are handled by the `shinyDownloads` module.
+The `shinyContrastPlot` module used by the `Stats` panel for plots and tables is reused twice in the `Contrast` panel,
+for the `ContrastSex` and `ContrastModule` sub-panels.
+The `shinyTimePlot` and `shinyTimeTraits` modules used by the `Time` panel are
+reused for the `ContrastTime` sub-panel of the `Contrast` panel.
+The `shinyContrastTable` is used twice in the `Contrast` panel for traits on their own and traits measured over time.
+
+It is important to note that `module` is used here in two ways--for Shiny modules via `moduleServer()` and for dimension-reduction "modules" constructed of traits via [WGCNA](https://CRAN.R-project.org/package=WGCNA).
+The `ContrastModule` Shiny module handles both WGCNA module eigentraits (`eigens()`) and traits within a WGCNA module (`traits()`); this is done currently with `if` logic, but might be modularized further later.
+
+Another place where modularization could be leveraged is in the
+`ContrastPlot` module, which uses `if` and `switch` logic for
+various types of plots (`volcano`, `biplot`, `dotplot`, and maybe more). This begs some module redesign in the future.
+
 ## Input parameters
 
 The Shiny app includes multiple input parameters, which change other features
@@ -72,6 +127,26 @@ for details.
 
 Persistence of values and cross-reference is tricky.
 It helps to use `reactiveVal()` but need care.
+
+- `TraitPanel`
+  - `TraitOrderInput` dataset(s) and order
+  - `TraitNamesUI` key trait
+  - `reldataset` dataset(s)
+  - `TrainnamesUI` related traits
+  - `CorTableUI`
+  - `mincor` minimum correlation
+- `StatsPanel`
+  - `ContrastPlotInput`
+  - `ContrastPlotUI`
+- `TimePanel`
+  - `TimeTableInput`
+- `ContrastPanel`
+  - `ContrastTableInput` for `Sex`, `Module` and `Time` sub-panels
+  - `ContratsTimeInput` for `Time` sub-panel
+
+
+#### dataset parameter
+
 For `main_par$dataset`, I am finding the following behavior so far:
 
 - Trait panel

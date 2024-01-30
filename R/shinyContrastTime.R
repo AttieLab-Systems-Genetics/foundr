@@ -41,7 +41,6 @@ shinyContrastTime <- function(id, panel_par, main_par,
     timeTraitsOutput <- shinyTimeTraits("shinyTimeTraits", panel_par, main_par,
                                         traitSignal, contrastTable)
     
-    ###############################################################
     # Contrast Time Signal
     shiny::reactive({
       shiny::req(contrastTable(), timeTraitsOutput$traits,

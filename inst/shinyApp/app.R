@@ -2,12 +2,14 @@ devtools::install_cran("plotly") #  not yet on UW dataviz
 devtools::install_cran("markdown") #  not yet on UW dataviz
 devtools::install_cran("cowplot") #  not yet on UW dataviz
 devtools::install_cran("ggdendro") #  not yet on UW dataviz
-#devtools::install_github("byandell/foundr")
+options(shiny.sanitize.errors = FALSE)
 
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData")
 
 traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+
+#devtools::install_github("byandell/foundr")
 #db <- RSQLite::dbConnect(RSQLite::SQLite(),
 #                         file.path(dirpath, "traitData.sqlite"))
 #traitData <- dplyr::tbl(db, "traitData")

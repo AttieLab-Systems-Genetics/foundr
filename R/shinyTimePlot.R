@@ -1,19 +1,3 @@
-#' Shiny Module Input for Time Plots
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyTimePlot
-#' @export
-#' @importFrom shiny NS
-#'
-shinyTimePlotInput <- function(id) {
-  ns <- shiny::NS(id)
-  
-  # Trait Table Response.
-  shinyTraitTableUI(ns("shinyTable"))
-}
-
 #' Shiny Module Output for Time Plots
 #'
 #' @param id identifier for shiny reactive

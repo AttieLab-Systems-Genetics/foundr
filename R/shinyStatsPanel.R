@@ -30,7 +30,6 @@ shinyStatsPanelOutput <- function(id) {
 #' @importFrom shiny column fluidRow moduleServer observeEvent plotOutput
 #'             reactive renderPlot renderUI req selectInput selectizeInput
 #'             tagList uiOutput updateSelectInput sliderInput renderUI
-#' @importFrom DT renderDataTable dataTableOutput
 #' @importFrom plotly plotlyOutput ggplotly renderPlotly
 #' @importFrom ggplot2 ylim
 #' @importFrom rlang .data
@@ -72,15 +71,7 @@ shinyStatsPanel <- function(id, main_par, traitStats, customSettings = NULL,
     data_selection <- shiny::reactiveVal(NULL, label = "data_selection")
     shiny::observeEvent(main_par$dataset,
                         data_selection(main_par$dataset))
-    shiny::observeEvent(
-      !shiny::isTruthy(main_par$tabpanel) | main_par$tabpanel == "Stats",
-      {
-        selected <- data_selection()
-        shiny::updateSelectInput(session, "dataset", selected = selected)
-      },
-      label = "update_dataset")
-    
-    
+
     # Stats for selected datasets.
     traitStatsSelected <- shiny::reactive({
       shiny::req(data_selection())

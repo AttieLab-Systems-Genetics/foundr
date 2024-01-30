@@ -5,14 +5,12 @@
 #' @return nothing returned
 #' @rdname shinyTimePanel
 #' @export
-#' @importFrom shiny NS tagList
+#' @importFrom shiny NS
 #'
 shinyTimePanelInput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tagList(
-    shinyTimeTableInput(ns("shinyTimeTable")),
-    shinyTimePlotInput(ns("shinyTimePlot")))
+  shinyTimeTableInput(ns("shinyTimeTable"))
 }
 
 #' Shiny Module Output for Times Plot

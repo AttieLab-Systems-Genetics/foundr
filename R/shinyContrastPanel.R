@@ -100,8 +100,7 @@ shinyContrastPanel <- function(id, main_par,
         Time = {
           shiny::tagList(
             shinyContrastTableInput(ns("shinyContrastTimeTable")),
-            shinyContrastTimeInput(ns("shinyContrastTime")),
-            shinyTimePlotInput(ns("shinyTimePlot")))
+            shinyContrastTimeInput(ns("shinyContrastTime")))
         })
     })
     
