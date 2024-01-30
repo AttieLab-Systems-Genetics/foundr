@@ -65,9 +65,6 @@ shinyStatsPanel <- function(id, main_par, traitStats, customSettings = NULL,
                       shiny::reactive("Stats Contrasts"))
     
     # Dataset selection.
-    datasets <- shiny::reactive({
-      unique(traitStats$dataset)
-    })
     data_selection <- shiny::reactiveVal(NULL, label = "data_selection")
     shiny::observeEvent(main_par$dataset,
                         data_selection(main_par$dataset))

@@ -69,6 +69,7 @@ Each of the panel modules calls further modules as follows
     - `shinyDownloads`
 - `ContrastPanel`
   - [shinyContrastTable](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastTable.R)
+    - `shinyTraitOrder`
   - [shinyContrastSex](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/R/shinyContrastSex.R)
     - `shinyContrastPlot`
       - `shinyDownloads`
@@ -141,6 +142,7 @@ It helps to use `reactiveVal()` but need care.
 - `TimePanel`
   - `TimeTableInput`
 - `ContrastPanel`
+  - `TraitOrderInput` via `ContrastTable` for dataset(s) and order
   - `ContrastTableInput` for `Sex`, `Module` and `Time` sub-panels
   - `ContratsTimeInput` for `Time` sub-panel
 
@@ -149,19 +151,23 @@ It helps to use `reactiveVal()` but need care.
 
 For `main_par$dataset`, I am finding the following behavior so far:
 
-- Trait panel
+- `TraitPanel`
+  + `dataset` set in `TraitOrderInput`
   + change `dataset` does not change in Contrast or Stats panels
   + change persists when switching back
-- Contrast panel 
+- `StatsPanel` 
+  + `main_par$dataset` with local `reactiveVal()`
+  + change `dataset` does not change in Trait or Contrast panels
+  + change does not persist when going to Trait or Contrast and back
+- `TimesPanel`
+  + `main_par$dataset` with local `reactiveVal()`
+  + uses its own system similar to Contrast/Time
+- `ContrastPanel` 
+  + `dataset` set in `TraitOrderInput` via `ContrastTable`
   + change `dataset` does not change in Trait or Stats panels
   + change in Sex subpanel persists for Module subpanel and vice versa
   + Time subpanel is handled on its own (for now)
   + change does not persist when going to Trait or Stats and back
-- Stats panel 
-  + change `dataset` does not change in Trait or Contrast panels
-  + change does not persist when going to Trait or Contrast and back
-- Times panel
-  + uses its own system similar to Contrast/Time
   
 More information:
 
