@@ -1,5 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
@@ -15,7 +15,8 @@ ui <- function() {
       shiny::sidebarPanel(
         # Key Datasets and Trait.
         shiny::fluidRow(
-          shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
+          shiny::column(3, shiny::uiOutput("dataset")),
+          shiny::column(3, foundr::shinyTraitOrderInput("shinyOrder")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
         # Related Datasets and Traits.
@@ -23,10 +24,6 @@ ui <- function() {
           shiny::column(6, shiny::uiOutput("reldataset")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyNames"))),
         
-        shiny::fluidRow( 
-          shiny::column(6, foundr::shinyCorTableUI("shinyCorTable")),
-          shiny::column(6, foundr::shinyCorPlotUI("shinyCorPlot"))),
-        shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
       
       shiny::mainPanel(
@@ -53,7 +50,7 @@ server <- function(input, output, session) {
   
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input,
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input, input,
                                          traitStats, traitSignal)
   
   # Key Trait.
@@ -70,6 +67,14 @@ server <- function(input, output, session) {
                                         corTableOutput)
   
   # I/O FROM MODULE
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
   output$key_trait <- renderText({
     shiny::req(orderOutput(), corTableOutput())
     

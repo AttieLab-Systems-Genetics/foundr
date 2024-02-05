@@ -18,8 +18,8 @@ shinyTraitSolosUI <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
-#' @param main_par reactive arguments from `foundrServer`
-#' @param traitSolosObject reactive objects from `foundrServer`
+#' @param panel_par,main_par reactive arguments from `server`
+#' @param traitSolosObject reactive objects from `server`
 #'
 #' @return reactive object
 #' 
@@ -28,13 +28,13 @@ shinyTraitSolosUI <- function(id) {
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export
 #'
-shinyTraitSolos <- function(id, main_par, traitSolosObject) {
+shinyTraitSolos <- function(id, panel_par, main_par, traitSolosObject) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # Main inputs:
-    #   main_par$facet
+    #   panel_par$facet
     #   main_par$height
     
     # OUTPUTS
@@ -57,7 +57,7 @@ shinyTraitSolos <- function(id, main_par, traitSolosObject) {
 
       ggplot_traitSolos(
         traitSolosObject(),
-        facet_strain = main_par$facet,
+        facet_strain = panel_par$facet,
         boxplot = TRUE)
       },
       label = "solosPlot")

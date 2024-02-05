@@ -7,12 +7,12 @@
 \usage{
 shinyTimePlotOutput(id)
 
-shinyTimePlot(id, main_par, traitSignal, traitTimesData)
+shinyTimePlot(id, panel_par, main_par, traitSignal, traitTimesData)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{reactive arguments}
+\item{panel_par, main_par}{reactive arguments}
 
 \item{traitSignal}{static object}
 

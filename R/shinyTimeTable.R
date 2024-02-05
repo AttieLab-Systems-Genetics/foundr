@@ -34,17 +34,7 @@ shinyTimeTable <- function(id, panel_par, main_par,
                        responses = c("value", "cellmean")) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    # INPUTS
-    # passed inputs:
-    #   main_par$height
-    #   main_par$facet
-    #.  main_par$strains
-    # local inputs:
-    #   time
-    #   time_trait
-    #   time_response
-    
+
     # OUTPUTS
     # traitTimeData
     
@@ -73,7 +63,7 @@ shinyTimeTable <- function(id, panel_par, main_par,
       traitTimes(traitData, traitSignal, traitStats,
                  timeTraitsOutput$traits, timeTraitsOutput$time,
                  timeTraitsOutput$response,
-                 strains = main_par$strains)
+                 strains = panel_par$strains)
     }, label = "traitTimes")
   })
 }

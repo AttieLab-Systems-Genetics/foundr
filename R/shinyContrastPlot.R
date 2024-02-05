@@ -114,8 +114,7 @@ shinyContrastPlot <- function(id, sex_par, main_par,
     output$title <- shiny::renderUI({
       shiny::tagList(
         shiny::h3(modTitle()),
-        shiny::uiOutput(ns("rownames"))
-      )
+        shiny::uiOutput(ns("rownames")))
     })
     output$rownames <- shiny::renderUI({
       title <- shiny::req(info())$title

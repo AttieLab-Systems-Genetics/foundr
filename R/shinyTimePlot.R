@@ -23,7 +23,7 @@ shinyTimePlotOutput <- function(id) {
 #' Shiny Module Server for Time Plots
 #'
 #' @param id identifier for shiny reactive
-#' @param main_par reactive arguments 
+#' @param panel_par,main_par reactive arguments 
 #' @param traitSignal static object
 #' @param traitTimesData reactive object
 #' @param responses possible types of responses
@@ -36,7 +36,7 @@ shinyTimePlotOutput <- function(id) {
 #' @importFrom stringr str_remove str_replace_all
 #' @export
 #'
-shinyTimePlot <- function(id, main_par,
+shinyTimePlot <- function(id, panel_par, main_par,
                           traitSignal, traitTimesData) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
@@ -44,8 +44,8 @@ shinyTimePlot <- function(id, main_par,
     # INPUTS
     # passed inputs:
     #   main_par$height
-    #   main_par$facet
-    #   main_par$strains
+    #   panel_par$facet
+    #   panel_par$strains
     
     # MODULES
     shinyDownloads("downloads", "Time", input, postfix,
@@ -112,9 +112,9 @@ shinyTimePlot <- function(id, main_par,
     output$timestats <- shiny::renderPlot(print(timestats()))
 
     timeplots <- shiny::reactive({
-      shiny::req(traitTimesData(), main_par$strains)
+      shiny::req(traitTimesData(), panel_par$strains)
       
-      ggplot_traitTimes(traitTimesData()$traits, facet_strain = main_par$facet)
+      ggplot_traitTimes(traitTimesData()$traits, facet_strain = panel_par$facet)
     }, label = "timeplots")
     timestats <- shiny::reactive({
       shiny::req(traitTimesData())

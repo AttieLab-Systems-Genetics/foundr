@@ -1,5 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################

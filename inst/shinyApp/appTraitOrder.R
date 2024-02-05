@@ -1,5 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
@@ -14,6 +14,7 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         # Key Datasets and Trait.
+        shiny::uiOutput("dataset"),
         foundr::shinyTraitOrderInput("shinyOrder"),
         # Related Datasets and Traits.
         shiny::uiOutput("reldataset")),
@@ -21,8 +22,7 @@ ui <- function() {
       shiny::mainPanel(
         shiny::tagList(
           shiny::textOutput("key_trait"),
-          foundr::shinyTraitOrderUI("shinyOrder"),
-          foundr::shinyTraitOrderOutput("shinyOrder"))
+          foundr::shinyTraitOrderUI("shinyOrder"))
     )))
 }
 
@@ -36,15 +36,24 @@ server <- function(input, output, session) {
   
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input,
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input, input,
                                          traitStats, traitSignal)
 
   # I/O FROM MODULE
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
   output$key_trait <- renderText({
     shiny::req(orderOutput())
     
     foundr::unite_datatraits(orderOutput(), key = TRUE)[1]
   })
+  
 }
 
 shiny::shinyApp(ui = ui, server = server)

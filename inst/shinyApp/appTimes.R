@@ -1,20 +1,8 @@
-library(shiny)
-devtools::install_cran("plotly") #  not yet on UW dataviz
-devtools::install_cran("markdown") #  not yet on UW dataviz
-devtools::install_cran("cowplot") #  not yet on UW dataviz
-devtools::install_cran("ggdendro") #  not yet on UW dataviz
-#devtools::install_github("byandell/foundr")
-library(foundr)
-
 dirpath <- file.path("~", "founder_diet_study")
 dirpath <- file.path(dirpath, "HarmonizedData")
 traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
-
-#db <- RSQLite::dbConnect(RSQLite::SQLite(),
-#                         file.path(dirpath, "traitData.sqlite"))
-#traitData <- dplyr::tbl(db, "traitData")
 
 ################################################################
 
@@ -30,17 +18,17 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyTimesPanelInput("shinyTest"),
+        foundr::shinyTimePanelInput("shinyTest"),
         
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
         shiny::checkboxInput("facet", "Facet by strain?", FALSE),
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
         
-#        foundr::shinyTimesPanelUI("shinyTest")
+#        foundr::shinyTimePanelUI("shinyTest")
         ),
       
       shiny::mainPanel(
-        foundr::shinyTimesPanelOutput("shinyTest")
+        foundr::shinyTimePanelOutput("shinyTest")
         )))
 }
 
@@ -55,7 +43,7 @@ server <- function(input, output, session) {
                               choices = choices, selected = choices, inline = TRUE)
   })
 
-  timesOutput <- foundr::shinyTimesPanel("shinyTest", input, 
+  timesOutput <- foundr::shinyTimePanel("shinyTest", input, 
                   traitData, traitSignal, traitStats)
 }
 

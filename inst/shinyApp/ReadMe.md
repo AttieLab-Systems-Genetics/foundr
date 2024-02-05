@@ -2,18 +2,44 @@
 
 ## Shiny Modules
 
-Module names in **bold** below are `R/shiny*.R`.
+This shiny app [app.R](app.R) is composed of shiny module, in the package as `R/shiny*.R`.
 Modules are tested in `inst/shinyTest/app*.R`.
 Functions with `()` are shiny reactives.
 Arguments as `input$*` and shiny inputs.
 
-- **TraitSolos**
-- **TraitPairs**
-- **Correlation**
-- **Volcano**
-- **Effects**
-- **Times**
-- **Modules**
+- [TraitPanel](appTraitPanel.R)
+  - [TraitOrder](appTraitOrder.R)
+  - [TraitNames](appTraitNames.R)
+  - [CorTable](appCorTable.R)
+  - [CorPlot](appCorPlot.R)
+  - [TraitTable](appTraitTableNames.R)
+  - [TraitSolos](appTraitSolosNames.R)
+  - [TraitPairs](appTraitPairsNames.R)
+  - Downloads
+- [TimePanel](appTraitPanel.R)
+  - [TimeTable](appTimeTable.R)
+    - [TraitOrder](appTraitOrder.R)
+    - [TimeTraits](appTimeTraits.R)
+  - [TimePlot](appTimePlot.R)
+    - Downloads
+- [StatsPanel](appStatsPanel.R)
+  - [ContrastPlot](appContrastPlot.R)
+    - Downloads
+- [ContrastPanel](appContrastPanel.R)
+  - [ContrastTable](appContrastTable.R)
+  - [ContrastSex](appContrastSex.R)
+    - [ContrastPlot](appContrastPlot.R)
+      - Downloads
+  - [ContrastTime](appContrastTime.R);
+    - [TimeTraits](appTimeTraits.R)
+  - [TimePlot](appTimePlot.R)
+    - Downloads
+  - [ContrastModule](appContrastModule.R)
+    - [ContrastPlot](appContrastPlot.R)
+      - Downloads
+      
+ContrastPanel calls ContrastTime and TimePlot, and seem to be blocked.
+Seems to work OK for TimePanel with TimeTable and TimePlot.
 
 ### Helper Modules
 

@@ -45,7 +45,7 @@ timetraits <- function(object,
     object <- timetraitsall(object)
   }
   
-  if(is.null(object))
+  if(is.null(object) || !nrow(object))
     return(NULL)
 
   timecol <- match.arg(timecol)

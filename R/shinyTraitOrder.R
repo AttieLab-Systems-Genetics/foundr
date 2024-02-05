@@ -10,10 +10,11 @@
 shinyTraitOrderInput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::fluidRow(
-    shiny::column(6, shiny::uiOutput(ns("keydataset"))),
-    shiny::column(6, shiny::uiOutput(ns("order")))
-  )
+#  shiny::fluidRow(
+#    shiny::column(6, shiny::uiOutput(ns("keydataset"))),
+#    shiny::column(6, 
+  shiny::uiOutput(ns("order"))
+#  ))
 }
 
 #' Shiny Module UI for Trait Stats
@@ -65,22 +66,23 @@ shinyTraitOrder <- function(id, panel_par, main_par,
     #   orderstats()
     
     # Key Datasets.
-    output$keydataset <- renderUI({
-      datasets <- unique(traitStats$dataset)
-      choices <- datasets[1]
-      if(allDatasets) choices <- datasets
-      shiny::selectInput(ns("keydataset"), "Key Datasets:",
-                         datasets, choices, multiple = TRUE)
-    })
+#    output$keydataset <- renderUI({
+#      datasets <- unique(traitStats$dataset)
+#      choices <- datasets[1]
+#      if(allDatasets) choices <- datasets
+#      shiny::selectInput(ns("keydataset"), "Key Datasets:",
+#                         datasets, choices, multiple = TRUE)
+#    })
     key_selection <- shiny::reactiveVal(NULL, label = "key_selection")
-    shiny::observeEvent(input$keydataset, key_selection(input$keydataset))
-    shiny::observeEvent(
-      shiny::tagList(shiny::req(key_selection()), main_par$tabpanel,
-                     panel_par$contrast),
-      {
-        selected <- key_selection()
-        shiny::updateSelectInput(session, "keydataset", selected = selected)
-      })
+    shiny::observeEvent(main_par$dataset, key_selection(main_par$dataset))
+#    shiny::observeEvent(input$keydataset, key_selection(input$keydataset))
+#    shiny::observeEvent(
+#      shiny::tagList(shiny::req(key_selection()), main_par$tabpanel,
+#                     panel_par$contrast),
+#      {
+#        selected <- key_selection()
+#        shiny::updateSelectInput(session, "keydataset", selected = selected)
+#      })
 
     # Order Criteria for Trait Names
     output$order <- shiny::renderUI({

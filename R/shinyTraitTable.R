@@ -58,7 +58,7 @@ shinyTraitTable <- function(id, panel_par, main_par, keyTrait, relTraits,
     
     # INPUTS
     # Main inputs:
-    #   main_par$strains
+    #   panel_par$strains
     #   panel_par$reldataset
     # traitObject inputs: (see traitObjectUI)
     #   input$butresp
@@ -97,7 +97,7 @@ shinyTraitTable <- function(id, panel_par, main_par, keyTrait, relTraits,
                  traitSignal,
                  shiny::req(trait_names()),
                  shiny::req(resp_selection()),
-                 shiny::req(main_par$strains))
+                 shiny::req(panel_par$strains))
     }, label = "traitSolosObject")
     
     trait_names <- shiny::reactive({

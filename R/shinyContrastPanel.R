@@ -70,13 +70,20 @@ shinyContrastPanel <- function(id, main_par,
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
       input, main_par, traitSignal, traitStatsTime, customSettings, TRUE)
     # Contrast Time Traits
-    timeOutput <- shinyContrastTime("shinyContrastTime", input, main_par,
+    timeOutput <- shinyContrastTime("shinyContrastTime", main_par, main_par,
       traitSignal, traitStatsTime, contrastTimeOutput, customSettings)
     # Contrast Time Plots and Tables
-    shinyTimePlot("shinyTimePlot", main_par, traitSignal, timeOutput)
+    shinyTimePlot("shinyTimePlot", input, main_par, traitSignal, timeOutput)
     # Contrast Modules.
     moduleOutput <- shinyContrastModule("shinyContrastModule",
       input, main_par, traitContrPval, traitModule)
+    
+    # SERVER-SIDE Inputs
+    output$strains <- shiny::renderUI({
+      choices <- names(foundr::CCcolors)
+      shiny::checkboxGroupInput(ns("strains"), "Strains",
+                                choices = choices, selected = choices, inline = TRUE)
+    })
     
     traitContrPval <- reactive({
       shiny::req(contrastOutput())
@@ -95,7 +102,8 @@ shinyContrastPanel <- function(id, main_par,
       switch(
         input$contrast,
         Sex =, Module = {
-          shinyContrastTableInput(ns("shinyContrastTable"))
+          shiny::tagList(
+            shinyContrastTableInput(ns("shinyContrastTable")))
         },
         Time = {
           shiny::tagList(

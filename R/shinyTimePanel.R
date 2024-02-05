@@ -24,8 +24,13 @@ shinyTimePanelInput <- function(id) {
 #'
 shinyTimePanelOutput <- function(id) {
   ns <- shiny::NS(id)
+
+  shiny::tagList(
+    shiny::fluidRow(
+      shiny::column(9, shiny::uiOutput(ns("strains"))),
+      shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE))),
   
-  shinyTimePlotOutput(ns("shinyTimePlot"))
+    shinyTimePlotOutput(ns("shinyTimePlot")))
 }
 
 #' Shiny Module Server for Times Plots
@@ -45,14 +50,24 @@ shinyTimePanel <- function(id, main_par,
     
     # INPUTS
     # passed inputs:
+    #   main_par$dataset
     #   main_par$height
-    #   main_par$facet
-    #   main_par$strains
+    #   input$strains
+    #   input$facet
 
     # MODULES
     timeOutput <- shinyTimeTable("shinyTimeTable", input, main_par, 
                                  traitData, traitSignal, traitStats)
     
-    shinyTimePlot("shinyTimePlot", main_par, traitSignal, timeOutput)
+    shinyTimePlot("shinyTimePlot", input, main_par, traitSignal, timeOutput)
+    
+    # SERVER-SIDE Inputs
+    output$strains <- shiny::renderUI({
+      choices <- names(foundr::CCcolors)
+      shiny::checkboxGroupInput(ns("strains"), "Strains",
+                                choices = choices, selected = choices, inline = TRUE)
+    })
+    
+    
   })
 }

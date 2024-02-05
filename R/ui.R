@@ -10,8 +10,6 @@
 #'
 ui <- function(title) {
   # INPUTS
-  #   input$facet: Facet by strain?
-  #   input$strains: Strains to select
   #   input$height: Plot Height
   #
   # OUTPUTS

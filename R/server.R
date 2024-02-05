@@ -18,9 +18,7 @@ server <- function(input, output, session,
                    customSettings = NULL, traitModule = NULL) {
   # INPUTS
   #    input$dataset
-  #    input$strains
   #    input$height
-  #    input$facet
   #    input$tabpanel
   
   # CALL MODULES
@@ -34,12 +32,6 @@ server <- function(input, output, session,
   output$intro <- foundrIntro(customSettings$help)
   
   # SERVER-SIDE INPUTS
-  output$strains <- shiny::renderUI({
-    choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput(
-      "strains", "Strains",
-      choices = choices, selected = choices, inline = TRUE)
-  })
   output$dataset <- shiny::renderUI({
     # Dataset selection.
     datasets <- unique(traitStats$dataset)
@@ -100,24 +92,29 @@ server <- function(input, output, session,
     shiny::req(input$tabpanel)
 
     if(shiny::isTruthy(entrykey())) {
+      # Tab-specific side panel.
+      shiny::req(input$tabpanel)
       shiny::tagList(
-        switch(shiny::req(input$tabpanel),
-               Traits    = shinyTraitPanelInput("tabTraits"),
+        shiny::fluidRow(
+          shiny::column(3, shiny::uiOutput("dataset")),
+          if(input$tabpanel == "Traits") {
+            shiny::column(9, shinyTraitPanelInput("tabTraits"))
+          }),
+        
+        if(input$tabpanel == "Traits") {
+          shinyTraitPanelUI("tabTraits")
+        },
+        
+        switch(input$tabpanel,
                Contrasts = if(length(timetraits_all())) {
                  shinyContrastPanelInput("tabContrasts")
                },
-               Stats   = shiny::uiOutput("dataset"),
                Times     = if(length(timetraits_all())) {
                  shinyTimePanelInput("tabTimes") 
                }),
         
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
         
-        if(shiny::req(input$tabpanel) != "Stats") {
-          shiny::tagList(
-            shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-            shiny::checkboxInput("facet", "Facet by strain?", TRUE))
-        },
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6,
                            step = 1))
       }

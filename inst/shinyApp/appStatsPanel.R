@@ -1,17 +1,8 @@
-library(shiny)
-devtools::install_cran("plotly") #  not yet on UW dataviz
-devtools::install_cran("markdown") #  not yet on UW dataviz
-devtools::install_cran("cowplot") #  not yet on UW dataviz
-devtools::install_cran("ggdendro") #  not yet on UW dataviz
-#devtools::install_github("byandell/foundr")
-
-#dirpath <- "~/FounderDietStudy/Enrich"
-#traitStats <- readRDS(file.path(dirpath, "EnrichStats.rds"))
-#traitStats$dataset <- "Enrich"
-
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
+traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
 
 ################################################################
 

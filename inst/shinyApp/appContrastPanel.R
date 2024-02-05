@@ -3,6 +3,10 @@ dirpath <- file.path(dirpath, "HarmonizedData")
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
+dirpath <- file.path("~/Documents/Research/attie_alan/FounderDietStudy/deployLiver")
+traitSignal <- readRDS(file.path(dirpath, "liverSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "liverStats.rds"))
+traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
 
 customSettings <- list(condition = "diet")
 
@@ -12,8 +16,7 @@ title <- "Test Shiny Contrast Trait Panel"
 
 ui <- function() {
   # INPUTS
-  #   input$facet: Facet by strain?
-  #   input$strains: Strains to select
+  #   input$dataset: Datasets to select
   #   input$height: Plot Height
   # OUTPUTS (see shinyTraitPairs)
   #   output$filename: 
@@ -25,14 +28,9 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         foundr::shinyContrastPanelInput("shinyPanel"),
+        shiny::uiOutput("dataset")),
 
-        shiny::hr(style="border-width:5px;color:black;background-color:black"),
-        
-        shiny::uiOutput("strains"),
-        shiny::checkboxInput("facet", "Facet by strain?", TRUE),
-        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
-
-      shiny::mainPanel(
+    shiny::mainPanel(
         foundr::shinyContrastPanelOutput("shinyPanel")
       )))
 }
@@ -47,12 +45,15 @@ server <- function(input, output, session) {
                           customSettings)
   
   # SERVER-SIDE INPUTS
-  output$strains <- shiny::renderUI({
-    choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput(
-      "strains", "Strains",
-      choices = choices, selected = choices, inline = TRUE)
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
   })
+  
 }
 
 shiny::shinyApp(ui = ui, server = server)

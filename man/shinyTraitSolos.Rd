@@ -7,14 +7,14 @@
 \usage{
 shinyTraitSolosUI(id)
 
-shinyTraitSolos(id, main_par, traitSolosObject)
+shinyTraitSolos(id, panel_par, main_par, traitSolosObject)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
 
-\item{main_par}{reactive arguments from `foundrServer`}
+\item{panel_par, main_par}{reactive arguments from `server`}
 
-\item{traitSolosObject}{reactive objects from `foundrServer`}
+\item{traitSolosObject}{reactive objects from `server`}
 
 \item{input, output, session}{standard shiny arguments}
 }

@@ -11,6 +11,9 @@
 #' @importFrom tibble rownames_to_column
 #'
 eigen_contrast <- function(object, contr_object) {
+  if(is.null(object))
+    return(NULL)
+
   object <- 
     dplyr::mutate(
       dplyr::left_join(

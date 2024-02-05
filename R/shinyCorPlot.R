@@ -1,31 +1,21 @@
-#' Shiny Module UI for Trait Correlations
+#' Shiny Module Output for Trait Correlations
 #'
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
 #' @rdname shinyCorPlot
-#' @importFrom shiny NS checkboxInput
-#' @export
-#'
-shinyCorPlotUI <- function(id) {
-  ns <- shiny::NS(id)
-
-  shiny::checkboxInput(ns("abscor"), "Absolute Correlation?", TRUE)
-}
-
-#' Shiny Module UI for Trait Correlations
-#'
-#' @param id identifier for shiny reactive
-#'
-#' @return nothing returned
-#' @rdname shinyCorPlot
-#' @importFrom shiny NS uiOutput
+#' @importFrom shiny h3 NS tagList uiOutput
 #' @export
 #'
 shinyCorPlotOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::uiOutput(ns("shiny_output"))
+  shiny::tagList(
+    shiny::h3("Correlation"),
+    shiny::fluidRow( 
+      shiny::column(6, shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7)),
+      shiny::column(6, shiny::checkboxInput(ns("abscor"), "Absolute Correlation?", TRUE))),
+    shiny::uiOutput(ns("shiny_output")))
 }
 
 #' Shiny Module Server for Trait Stats
@@ -48,7 +38,7 @@ shinyCorPlot <- function(id, panel_par, main_par, CorTable,
     
     # INPUTS
     # calling module inputs
-    #   panel_par$mincor:     Minimum Correlation
+    #   input$mincor:     Minimum Correlation
     #   main_par$height:    Plot height
     # shinyCorPlot inputs
     #   input$abscor:         Absolute Correlation
@@ -64,11 +54,11 @@ shinyCorPlot <- function(id, panel_par, main_par, CorTable,
     })
 
     corplot <- shiny::reactive({
-      shiny::req(panel_par$mincor, CorTable())
+      shiny::req(input$mincor, CorTable())
       
       ggplot_bestcor(
         mutate_datasets(CorTable(), customSettings$dataset, undo = TRUE), 
-        panel_par$mincor, shiny::isTruthy(input$abscor))
+        input$mincor, shiny::isTruthy(input$abscor))
     })
     output$corplot <- shiny::renderPlot({
       shiny::req(corplot())

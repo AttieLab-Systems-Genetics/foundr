@@ -1,20 +1,8 @@
-#dirpath <- file.path("~", "founder_diet_study")
-#dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
-#traitData <- readRDS(file.path(dirpath, "traitData.rds"))
-#traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
-#traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
-
-#db <- RSQLite::dbConnect(RSQLite::SQLite(),
-#                         file.path(dirpath, "traitData.sqlite"))
-#traitData <- dplyr::tbl(db, "traitData")
-
-dirpath <- "~/FounderDietStudy"
-traitData <- readRDS(file.path(dirpath, "Enrich", "EnrichData.rds"))
-traitStats <- readRDS(file.path(dirpath, "Enrich", "EnrichStats.rds"))
-traitSignal <- readRDS(file.path(dirpath, "Enrich", "EnrichSignal.rds"))
-traitData$dataset <- "Enrich"
-traitSignal$dataset <- "Enrich"
-traitStats$dataset <- "Enrich"
+dirpath <- file.path("~", "founder_diet_study")
+dirpath <- file.path(dirpath, "HarmonizedData")
+traitData <- readRDS(file.path(dirpath, "traitData.rds"))
+traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
+traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 
 ################################################################
 
@@ -36,7 +24,8 @@ ui <- function() {
       shiny::sidebarPanel(
         # Key Datasets and Trait.
         shiny::fluidRow(
-          shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
+          shiny::column(3, shiny::uiOutput("dataset")),
+          shiny::column(3, foundr::shinyTraitOrderInput("shinyOrder")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
         # Related Datasets and Traits.
@@ -48,10 +37,6 @@ ui <- function() {
         foundr::shinyTraitTableUI("shinyTable"),
         
         shiny::uiOutput("strains"),
-        
-        # Correlation Type.
-        foundr::shinyCorTableUI("shinyCorTable"),
-        shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7)
       ),
 
       shiny::mainPanel(
@@ -71,7 +56,7 @@ server <- function(input, output, session) {
 
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input,
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input, input,
                                          traitStats, traitSignal)
   
   # Key Trait.
@@ -118,6 +103,14 @@ server <- function(input, output, session) {
   })
   
   # SERVER-SIDE INPUTS
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",

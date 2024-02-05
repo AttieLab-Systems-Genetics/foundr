@@ -44,6 +44,14 @@ For instance, the panel applets are:
 - [appTimePanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appTimePanel.R)
 - [appStatsPanel](https://github.com/AttieLab-Systems-Genetics/foundr/blob/main/inst/shinyApp/appStats.R)
 
+## Tasks to Do
+
+- Update `TraitPanel` and `TimePanel` to use raw and normed data
+  + Re-harmonize `TraitData` to raw data
+- Selections on `ContrastPlot` plots
+- Modules for volcano, biplot, dotplot to simplify code
+  + Renaming?
+
 ## Modules called by panel modules
 
 Each of the panel modules calls further modules as follows

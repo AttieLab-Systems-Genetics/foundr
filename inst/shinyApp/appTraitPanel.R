@@ -1,5 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 traitData <- readRDS(file.path(dirpath, "traitData.rds"))
 traitSignal <- readRDS(file.path(dirpath, "traitSignal.rds"))
 traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
@@ -18,21 +18,18 @@ ui <- function() {
   #   input$facet: Facet by strain?
   #   input$strains: Strains to select
   #   input$height: Plot Height
-  # OUTPUTS (see shinyTraitPairs)
-  #   output$filename: 
-  #   output$downloadPlot
-  #   output$downloadTable
 
   shiny::fluidPage(
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
-        foundr::shinyTraitPanelInput("shinyPanel"),
+        shiny::fluidRow(
+          shiny::column(3, shiny::uiOutput("dataset")),
+          shiny::column(9, foundr::shinyTraitPanelInput("shinyPanel"))),
+        foundr::shinyTraitPanelUI("shinyPanel"),
 
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
-        
-        shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
-        shiny::checkboxInput("facet", "Facet by strain?", FALSE),
+                
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)
       ),
 
@@ -57,6 +54,15 @@ server <- function(input, output, session) {
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
   })
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
+  
 }
 
 shiny::shinyApp(ui = ui, server = server)

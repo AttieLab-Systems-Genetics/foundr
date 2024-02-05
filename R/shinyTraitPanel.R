@@ -12,20 +12,26 @@ shinyTraitPanelInput <- function(id) {
   shiny::tagList(
     # Key Datasets and Trait.
     shiny::fluidRow(
-      shiny::column(6, shinyTraitOrderInput(ns("shinyOrder"))),
-      shiny::column(6, shinyTraitNamesUI(ns("shinyKeyTrait")))),
-    
+      shiny::column(4, shinyTraitOrderInput(ns("shinyOrder"))),
+      shiny::column(8, shinyTraitNamesUI(ns("shinyKeyTrait")))))
+}
+#' Shiny Module UI for Trait Panel
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTraitPanel
+#' @importFrom shiny column fluidRow NS uiOutput
+#' @export
+#'
+shinyTraitPanelUI <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::tagList(
     # Related Datasets and Traits.
     shiny::fluidRow(
       shiny::column(6, shiny::uiOutput(ns("reldataset"))),
-      shiny::column(6, shinyTraitNamesUI(ns("shinyRelTraits")))),
-    
-    # Correlation Type, Absolute, Minimum Settings.
-    shinyCorTableUI(ns("shinyCorTable")),
-    shiny::sliderInput(ns("mincor"), "Minimum:", 0, 1, 0.7)
-  )
+      shiny::column(6, shinyTraitNamesUI(ns("shinyRelTraits")))))
 }
-
 #' Shiny Module Output for Trait Panel
 #'
 #' @param id identifier for shiny reactive
@@ -39,11 +45,12 @@ shinyTraitPanelOutput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
-    shiny::fluidRow(
-      shiny::column(4, shiny::radioButtons(ns("butshow"),
-                         "", c("Plots","Tables"), "Plots", inline = TRUE)),
-      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
+    shiny::uiOutput(ns("text")),
     
+    shiny::radioButtons(ns("butshow"),
+                        "", c("Plots","Tables"), "Plots", inline = TRUE),
+    shinyDownloadsOutput(ns("downloads")),
+  
     shiny::uiOutput(ns("traitOutput")))
 }
 
@@ -68,12 +75,12 @@ shinyTraitPanel <- function(id, main_par,
     
     # INPUTS
     # shinyTraitPanel inputs
-    #   main_par$facet: Facet by strain?
-    #   main_par$strains: Strains to select
     #   main_par$height: Plot Height
     #   input$butshow: show Plots or Tables
     #   input$mincor: minimum correlation
     #   input$reldataset: relative datasets
+    #   input$facet: Facet by strain?
+    #   input$strains: Strains to select
     #
     # RETURNS
     #   trait_names()
@@ -101,12 +108,19 @@ shinyTraitPanel <- function(id, main_par,
                                    traitData, traitSignal,
                                    customSettings)
     # Solo and Pairs Plots.
-    solosOutput <- shinyTraitSolos("shinySolos", main_par, tableOutput)
-    pairsOutput <- shinyTraitPairs("shinyPairs", main_par, trait_names,
+    solosOutput <- shinyTraitSolos("shinySolos", input, main_par, tableOutput)
+    pairsOutput <- shinyTraitPairs("shinyPairs", input, main_par, trait_names,
                                    tableOutput)
     # Downloads
     shinyDownloads("downloads", "Trait", input, postfix,
                    plotObject, tableObject)
+    
+    # SERVER-SIDE Inputs
+    output$strains <- shiny::renderUI({
+      choices <- names(foundr::CCcolors)
+      shiny::checkboxGroupInput(ns("strains"), "Strains",
+        choices = choices, selected = choices, inline = TRUE)
+    })
     
     # Trait Names.
     trait_names <- shiny::reactive({
@@ -124,43 +138,63 @@ shinyTraitPanel <- function(id, main_par,
     })
 
     # Output
+    output$text <- shiny::renderUI({
+      condition <- customSettings$condition
+      if(shiny::isTruthy(condition))
+        condition <- tolower(condition)
+      else
+        condition <- "Condition"
+      
+      shiny::tagList(
+        shiny::h3("Traits"),
+        shiny::renderText({
+          paste0(
+            "This panel examines traits by ",
+            condition, ", strain and sex. ",
+            "Traits are typically ordered by significance of model terms. ",
+            "Value shows all data; cellmean shows values averaged over replicates. ",
+            "Selecting Related Traits yields multiple Trait Plots plus Pairs Plots. ",
+            "Correlation sorts Related Traits.")
+        }),
+        shiny::fluidRow(
+          shiny::column(9, shiny::uiOutput(ns("strains"))),
+          shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE))))
+    })
     output$traitOutput <- shiny::renderUI({
       shiny::tagList(
-      switch(shiny::req(input$butshow),
-             Plots = {
-               shiny::tagList(
-                 # Trait Table Response.
-                 shinyTraitTableUI(ns("shinyTable")),
-                 shiny::uiOutput(ns("plots")))
-              },
-             Tables = shiny::uiOutput(ns("tables"))))
+        switch(shiny::req(input$butshow),
+          Plots = {
+            shiny::tagList(
+              shiny::h3("Trait Plots"),
+              # Trait Table Response.
+              shinyTraitTableUI(ns("shinyTable")),
+              # Trait Solos Plot
+              shinyTraitSolosUI(ns("shinySolos")),
+              # Trait Pairs Plot
+              if(length(shiny::req(trait_names())) > 1)
+                shiny::tagList(
+                  shiny::h3("Trait Pairs"),
+                  shinyTraitPairsUI(ns("shinyPairs"))))
+          },
+          Tables = {
+            shiny::tagList(
+              shiny::radioButtons(ns("buttable"), "Download:", c("Cell Means","Correlations","Stats"), "Cell Means",
+                                  inline = TRUE),
+              shinyTraitTableOutput(ns("shinyTable")),
+              shinyTraitOrderUI(ns("shinyOrder")))
+          }),
+        
+        # Correlation Plots or Tables
+        switch(shiny::req(input$butshow),
+          Plots = {
+            if(is_bestcor(corTableOutput()))
+              shinyCorPlotOutput(ns("shinyCorPlot"))
+          },
+          Table = {
+            shinyCorTableOutput(ns("shinyCorTable"))
+          }))
     })
-    # Tables
-    output$tables <- shiny::renderUI({
-      shiny::tagList(
-        shiny::radioButtons(ns("buttable"), "Download:", c("Cell Means","Correlations","Stats"), "Cell Means",
-                            inline = TRUE),
-        shinyTraitTableOutput(ns("shinyTable")),
-        shinyCorTableOutput(ns("shinyCorTable")),
-        shinyTraitOrderUI(ns("shinyOrder"))
-      )
-    })
-    # Plots
-    output$plots <- shiny::renderUI({
-      shiny::tagList(
-        shiny::h3("Trait Plots"),
-        shinyTraitSolosUI(ns("shinySolos")),
-        if(length(shiny::req(trait_names())) > 1)
-          shiny::tagList(
-            shiny::h3("Trait Pairs"),
-            shinyTraitPairsUI(ns("shinyPairs"))),
-        if(is_bestcor(corTableOutput()))
-          shiny::tagList(
-            shiny::h3("Correlations"),
-            shinyCorPlotUI(ns("shinyCorPlot")),
-            shinyCorPlotOutput(ns("shinyCorPlot"))))
-    })
-    
+
     # DOWNLOADS
     postfix <- shiny::reactive({
       filename <- stringr::str_replace(trait_names()[1], ": ", "_")

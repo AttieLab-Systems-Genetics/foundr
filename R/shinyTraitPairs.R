@@ -18,7 +18,7 @@ shinyTraitPairsUI <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param input,output,session standard shiny arguments
-#' @param main_par reactive arguments from `foundrServer`
+#' @param panel_par,main_par reactive arguments from `foundrServer`
 #' @param trait_names reactive with trait names
 #' @param traitSolosObject reactive objects from `foundrServer`
 #'
@@ -29,14 +29,14 @@ shinyTraitPairsUI <- function(id) {
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export
 #'
-shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
+shinyTraitPairs <- function(id, panel_par, main_par, trait_names, traitSolosObject) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # Main inputs:
-    #   main_par$facet
     #   main_par$height
+    #   panel_par$facet
     # TraitPairs inputs:
     #   input$pair (obsolete)
     
@@ -62,7 +62,7 @@ shinyTraitPairs <- function(id, main_par, trait_names, traitSolosObject) {
           traitSolosObject(),
           trait_names(),
           pair()),
-        facet_strain = shiny::isTruthy(main_par$facet),
+        facet_strain = shiny::isTruthy(panel_par$facet),
         parallel_lines = TRUE)
       },
       label = "pairsPlot")

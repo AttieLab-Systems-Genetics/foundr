@@ -1,5 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 traitData <- dplyr::filter(
   readRDS(file.path(dirpath, "traitData.rds")),
   dataset %in% c("Physio", "PlaMet0"))
@@ -33,16 +33,14 @@ ui <- function() {
       shiny::sidebarPanel(
         # Key Datasets and Trait.
         shiny::fluidRow(
-          shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
+          shiny::column(3, shiny::uiOutput("dataset")),
+          shiny::column(3, foundr::shinyTraitOrderInput("shinyOrder")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
         # Related Datasets and Traits.
         shiny::fluidRow(
           shiny::column(6, shiny::uiOutput("reldataset")),
           shiny::column(6, shinyTraitNamesUI("shinyRelTraits"))),
-        
-        foundr::shinyCorTableUI("shinyCorTable"),
-        shiny::sliderInput("mincor", "Minimum:", 0, 1, 0.7),
         
         foundr::shinyTraitTableUI("shinyTable"),
         
@@ -65,7 +63,7 @@ server <- function(input, output, session) {
   
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input,
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input, input,
                                          traitStats, traitSignal)
 
   # Key Trait.
@@ -86,6 +84,14 @@ server <- function(input, output, session) {
   solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
 
   # SERVER-SIDE INPUTS
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
