@@ -10,9 +10,13 @@
 shinyDownloadsOutput <- function(id) {
   ns <- shiny::NS(id)
   
+  shiny::tagList(
+  shiny::renderText("DownloadsOutput"), #***
+  
     shiny::fluidRow(
       shiny::column(3, shiny::uiOutput(ns("downloads"))),
       shiny::column(9, shiny::uiOutput(ns("filename"))))
+)
 }
 
 #' Shiny Module Server for Downloads

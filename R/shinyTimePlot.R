@@ -1,3 +1,21 @@
+#' Shiny Module UI for Time Plots
+#'
+#' @param id identifier for shiny reactive
+#'
+#' @return nothing returned
+#' @rdname shinyTimePlot
+#' @export
+#' @importFrom shiny column fluidRow NS radioButtons tagList
+#'
+shinyTimePlotUI <- function(id) {
+  ns <- shiny::NS(id)
+  
+  shiny::tagList(
+    shiny::fluidRow(
+      shiny::column(4, shiny::radioButtons(ns("butshow"),
+        "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(8, shinyDownloadsOutput(ns("downloads")))))
+}
 #' Shiny Module Output for Time Plots
 #'
 #' @param id identifier for shiny reactive
@@ -10,14 +28,8 @@
 shinyTimePlotOutput <- function(id) {
   ns <- shiny::NS(id)
   
-  shiny::tagList(
-    shiny::fluidRow(
-      shiny::column(4, shiny::radioButtons(ns("butshow"),
-                         "", c("Plots","Tables"), "Plots", inline = TRUE)),
-      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
-    
-    # Plots and Tables.
-    shiny::uiOutput(ns("plotstables")))
+  # Plots and Tables.
+  shiny::uiOutput(ns("plotstables"))
 }
 
 #' Shiny Module Server for Time Plots

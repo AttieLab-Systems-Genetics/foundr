@@ -3,7 +3,7 @@
 #' @param id identifier for shiny reactive
 #'
 #' @return nothing returned
-#' @rdname shinyTimeTraits
+#' @rdname shinyContrastTime
 #' @export
 #' @importFrom shiny NS
 #'
@@ -11,8 +11,8 @@ shinyContrastTimeInput <- function(id) {
   ns <- shiny::NS(id)
   
   shinyTimeTraitsInput(ns("shinyTimeTraits"))
+  
 }
-
 #' Shiny Module Server for Contrasts over Time
 #'
 #' @param id identifier for shiny reactive
@@ -43,7 +43,7 @@ shinyContrastTime <- function(id, panel_par, main_par,
     
     # Contrast Time Signal
     shiny::reactive({
-      shiny::req(contrastTable(), timeTraitsOutput$traits,
+      shiny::req(contrastTable(), timeTraitsOutput$traits, panel_par$strains,
                  timeTraitsOutput$response, timeTraitsOutput$time)
       
       # Convert `contrastTable()` to a `Signal` style data frame.
@@ -51,7 +51,7 @@ shinyContrastTime <- function(id, panel_par, main_par,
       
       traitTimes(contrastSignal, contrastSignal, traitStats,
                  timeTraitsOutput$traits, timeTraitsOutput$time,
-                 timeTraitsOutput$response, strains = main_par$strains)
+                 timeTraitsOutput$response, strains = panel_par$strains)
     }, label = "contrastTime")
   })
 }

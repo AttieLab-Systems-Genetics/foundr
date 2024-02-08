@@ -8,15 +8,20 @@ Functions with `()` are shiny reactives.
 Arguments as `input$*` and shiny inputs.
 
 - [TraitPanel](appTraitPanel.R)
+  - `input$strains`
+  - `input$facet`
   - [TraitOrder](appTraitOrder.R)
   - [TraitNames](appTraitNames.R)
   - [CorTable](appCorTable.R)
   - [CorPlot](appCorPlot.R)
   - [TraitTable](appTraitTableNames.R)
+    - `panel_par$strains`
   - [TraitSolos](appTraitSolosNames.R)
   - [TraitPairs](appTraitPairsNames.R)
   - Downloads
 - [TimePanel](appTraitPanel.R)
+  - `input$strains`
+  - `input$facet`
   - [TimeTable](appTimeTable.R)
     - [TraitOrder](appTraitOrder.R)
     - [TimeTraits](appTimeTraits.R)
@@ -26,20 +31,53 @@ Arguments as `input$*` and shiny inputs.
   - [ContrastPlot](appContrastPlot.R)
     - Downloads
 - [ContrastPanel](appContrastPanel.R)
-  - [ContrastTable](appContrastTable.R)
-  - [ContrastSex](appContrastSex.R)
+  - `input$contrast`: Sex, Time, Module
+  - `input$strains`
+  - `input$facet`
+  - contrastOutput <- [ContrastTable](appContrastTable.R)
+    - [TraitOrder](appTraitOrder.R)
+      - `input$order`
+      - `main_par$dataset`
+  - [ContrastSex](appContrastSex.R) <- contrastOutput
     - [ContrastPlot](appContrastPlot.R)
+      - `input$butshow`: Plots, Tables
+      - `input$interact`
+      - `input$ordername`: Order by
+      - `input$rownames`
       - Downloads
-  - [ContrastTime](appContrastTime.R);
+  - contrastTimeOutput <- [ContrastTable](appContrastTable.R)
+    - `panel_par$strains`
+    - [TraitOrder](appTraitOrder.R)
+      - `input$order`
+      - `main_par$dataset`
+  - timeOutput <- [ContrastTime](appContrastTime.R) <- contrastTimeOutput
+    - `panel_par$strains`
     - [TimeTraits](appTimeTraits.R)
-  - [TimePlot](appTimePlot.R)
+      - `input$time`
+      - `input$response`
+      - `input$traits`
+      - `main_par$tabpanel`
+      - `panel_par$contrast`
+  -  [TimePlot](appTimePlot.R) <- timeOutput
+    - `input$butshow`
+    - `input$buttable`
+    - `main_par$height`
+    - `panel_par$strains`
+    - `panel_par$facet`
     - Downloads
-  - [ContrastModule](appContrastModule.R)
+  - [ContrastModule](appContrastModule.R) <- contrastOutput
     - [ContrastPlot](appContrastPlot.R)
+      - `input$butshow`: Plots, Tables
+      - `input$interact`
+      - `input$ordername`: Order by
+      - `input$rownames`
       - Downloads
       
 ContrastPanel calls ContrastTime and TimePlot, and seem to be blocked.
 Seems to work OK for TimePanel with TimeTable and TimePlot.
+Need to put input$strains and input$facet in ContrastPanel to match TimePanel.
+
+I seem to have fixed this problem. However, ContrastPanel subpanels Sex and Module rely on strains and facet within them. This may connect to ContrastPlot so watch out.
 
 ### Helper Modules
 

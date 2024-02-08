@@ -26,6 +26,8 @@ shinyTimePanelOutput <- function(id) {
   ns <- shiny::NS(id)
 
   shiny::tagList(
+    shinyTimePlotUI(ns("shinyTimePlot")),
+    
     shiny::fluidRow(
       shiny::column(9, shiny::uiOutput(ns("strains"))),
       shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE))),

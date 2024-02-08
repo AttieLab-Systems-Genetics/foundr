@@ -11,9 +11,9 @@ shinyContrastPanelInput <- function(id) {
   ns <- shiny::NS(id)
   
   shiny::tagList(
+    shiny::uiOutput(ns("shinyInput")),
     shiny::radioButtons(ns("contrast"), "Contrast by ...",
-                        c("Sex", "Time", "Module"), inline = TRUE),
-    shiny::uiOutput(ns("shinyInput")))
+                        c("Sex", "Time", "Module"), inline = TRUE))
 }
 
 #' Shiny Module Output for Contrast Panel
@@ -70,7 +70,7 @@ shinyContrastPanel <- function(id, main_par,
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
       input, main_par, traitSignal, traitStatsTime, customSettings, TRUE)
     # Contrast Time Traits
-    timeOutput <- shinyContrastTime("shinyContrastTime", main_par, main_par,
+    timeOutput <- shinyContrastTime("shinyContrastTime", input, main_par,
       traitSignal, traitStatsTime, contrastTimeOutput, customSettings)
     # Contrast Time Plots and Tables
     shinyTimePlot("shinyTimePlot", input, main_par, traitSignal, timeOutput)
@@ -91,7 +91,7 @@ shinyContrastPanel <- function(id, main_par,
       if(is.null(traitModule))
         return(NULL)
       pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
-      if(is.null(pvalue)) pvalue <- 0.05
+      if(is.null(pvalue)) pvalue <- 0.0
       dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
     })
     
@@ -114,15 +114,23 @@ shinyContrastPanel <- function(id, main_par,
     
     # Output
     output$shinyOutput <- shiny::renderUI({
+      shiny::req(input$contrast)
       shiny::tagList(
         shiny::uiOutput(ns("text")),
         
-        switch(shiny::req(input$contrast),
+        if(input$contrast == "Time") {
+          shiny::fluidRow(
+            shiny::column(9, shiny::uiOutput(ns("strains"))),
+            shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE)))
+        },
+        
+        switch(input$contrast,
           Sex = shinyContrastSexOutput(ns("shinyContrastSex")),
           Time = {
-            shiny::req(timeOutput())
-            
-            shinyTimePlotOutput(ns("shinyTimePlot"))
+            shiny::tagList(
+              shinyTimePlotUI(ns("shinyTimePlot")),
+              shinyTimePlotOutput(ns("shinyTimePlot"))
+            )
           },
           Module = shinyContrastModuleOutput(ns("shinyContrastModule"))))
     })

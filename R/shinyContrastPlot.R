@@ -59,7 +59,7 @@ shinyContrastPlotOutput <- function(id) {
 #' Shiny Module Server for Contrast Plots
 #'
 #' @param id identifier
-#' @param sex_par,main_par input parameters
+#' @param panel_par,main_par input parameters
 #' @param contrastTable reactive data frame
 #' @param customSettings list of custom settings
 #' @param modTitle character string title for section
@@ -71,16 +71,13 @@ shinyContrastPlotOutput <- function(id) {
 #' @importFrom DT renderDataTable
 #' @export
 #'
-shinyContrastPlot <- function(id, sex_par, main_par,
+shinyContrastPlot <- function(id, panel_par, main_par,
                             contrastTable, customSettings = NULL,
                             modTitle = shiny::reactive("Eigentrait Contrasts")) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
-    # shinyContrastPlot inputs
-    #   main_par$tabpanel
-    #   main_par$height
     # RETURNS
     
     # MODULES
@@ -155,7 +152,7 @@ shinyContrastPlot <- function(id, sex_par, main_par,
     # Generic plot function for `traits` and `eigens`.``
     plotfn <- function(data, plottype) {
       ggplot_conditionContrasts(
-        data, bysex = sex_par$sex,
+        data, bysex = panel_par$sex,
         ntrait = input$ntrait,
         ordername = ord_selection(),
         plottype = plottype, threshold = threshold(),

@@ -27,9 +27,10 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
+        shiny::uiOutput("dataset"),
         foundr::shinyContrastPanelInput("shinyPanel"),
-        shiny::uiOutput("dataset")),
-
+        shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
+      
     shiny::mainPanel(
         foundr::shinyContrastPanelOutput("shinyPanel")
       )))

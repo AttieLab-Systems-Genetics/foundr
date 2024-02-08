@@ -31,19 +31,11 @@ ui <- function() {
 
 server <- function(input, output, session) {
   
-#  shiny::onStop(function() {RSQLite::dbDisconnect(db)})
-  
-  # SERVER-SIDE INPUTS
-  output$strains <- shiny::renderUI({
-    choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput("strains", "Strains", choices = choices,
-                              selected = choices, inline = TRUE)
-  })
-
   # MODULES
   foundr::shinyTimePanel("shinyTimePanel", input,
                          traitData, traitSignal, traitStats)
   
+  # SERVER-SIDE INPUTS
   output$dataset <- shiny::renderUI({
     # Dataset selection.
     datasets <- unique(traitStats$dataset)
