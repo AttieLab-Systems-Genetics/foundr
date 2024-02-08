@@ -163,6 +163,10 @@ biplot_pca <- function(bip, size = c("module","kME","p.value","size"),
     bip <- bip[,-match(factors, colnames(bip))]
     bip <- t(bip)
   }
+  # Remove rows with empty data.
+  keep <- apply(bip, 1, function(x) !any(is.na(x)))
+  bip <- bip[keep,]
+  orders <- orders[keep,]
   
   # The `princomp` routine cannot handle wide tables.
   if(ncol(bip) > nrow(bip)) return(NULL)
