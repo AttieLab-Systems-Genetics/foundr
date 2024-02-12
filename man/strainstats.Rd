@@ -17,10 +17,10 @@ strainstats(
 
 summary_strainstats(
   object,
-  terms = NULL,
+  terms = termsnow,
   stats = c("deviation", "log10.p"),
   model = c("parts", "terms"),
-  threshold = c(SD = 1, p = 0.01),
+  threshold = c(SD = 1, p.value = 0.01),
   ...
 )
 

@@ -312,7 +312,7 @@ variation_biplot <- function(object, ordername, xlab,
     term %in% terms)
   
   bip_pca <- biplot_pca(biplot_stat(object,
-                                    orders = "strain:diet"),
+                                    orders = terms[1]),
                         size = ordername,
                         strain = strain, threshold)
   p <- biggplot(bip_pca, axes, scale.factor = 4)

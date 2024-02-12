@@ -188,6 +188,12 @@ summary_conditionContrasts <- function(object, ntrait = 20,
                                        sortby = ordername,
                                        ordername = attr(object, "ordername"),
                                        ...) {
+  if(is.null(object)) return(NULL)
+  
+  if(is.null(ntrait) || ntrait == 0) ntrait <- Inf
+  
+  # Ordername used to sort for conditions.  
+  if(is.null(ordername)) ordername <- "p.value"
   
   if(ordername == "kME") {
     ford <- function(x) -abs(x)

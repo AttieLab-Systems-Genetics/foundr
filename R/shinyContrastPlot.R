@@ -242,8 +242,16 @@ shinyContrastPlot <- function(id, panel_par, main_par,
     
     # Table
     tableObject <- shiny::reactive({
-      summary(shiny::req(contrastTable()), 
+      shiny::req(contrastTable())
+      title <- shiny::req(info())$title
+      if(title == "Strains") {
+        summary_conditionContrasts(contrastTable(), 
               ntrait = shiny::req(input$ntrait))
+      } else { # title == "Terms"
+        summary_strainstats(contrastTable(),
+                            stats = "log10.p", model = "terms",
+                            threshold = c(p.value = 1.0, SD = 0.0))
+      }
     })
     
     # DOWNLOADS

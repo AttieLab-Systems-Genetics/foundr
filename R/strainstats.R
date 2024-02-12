@@ -207,20 +207,22 @@ strain_stats <- function(fitsum, termname = "") {
 #' @rdname strainstats
 #'
 summary_strainstats <- function(object,
-                                terms = NULL,
+                                terms = termsnow,
                                 stats = c("deviation", "log10.p"),
                                 model = c("parts", "terms"),
-                                threshold = c(SD = 1, p = 0.01),
+                                threshold = c(SD = 1, p.value = 0.01),
                                 ...) {
   
   if(is.null(object))
     return(NULL)
   
+  termsnow <- termStats(object, signal = FALSE)
+
   # Set thresholds.
   if(!is.null(threshold) && length(threshold)) {
     if(!("log10.p" %in% names(threshold))) {
-      if("p" %in% names(threshold))
-        threshold["log10.p"] <- -log10(threshold["p"])
+      if("p.value" %in% names(threshold))
+        threshold["log10.p"] <- -log10(threshold["p.value"])
       else
         threshold["log10.p"] <- -Inf
     }
@@ -251,7 +253,7 @@ summary_strainstats <- function(object,
         function(x) signif(x, 4)))
   
   if(!is.null(terms)) {
-    dplyr::arrange(
+    object <- dplyr::arrange(
       dplyr::filter(
         object,
         .data$term %in% terms),
@@ -272,35 +274,37 @@ summary_strainstats <- function(object,
               !(.data$term %in% c("signal", "cellmean", "rest", "rawSD")))
           })
     }
-    
-    if(length(stats) == 1) {
-      switch(stats,
-             deviation = {
-               tidyr::pivot_wider(
-                 dplyr::select(
-                   dplyr::filter(
-                     object,
-                     .data$term != "rawSD"),
-                   -.data$log10.p),
-                 names_from = "term", values_from = "deviance")
-             },
-             log10.p = {
-               tidyr::pivot_wider(
-                 dplyr::select(
-                   object,
-                   -deviance),
-                 names_from = "term", values_from = "log10.p")
-             })
-    } else {
-      dplyr::arrange(
-        object,
-        dplyr::desc(log10.p))
-    }
   }
+  if(length(stats) == 1) {
+    switch(stats,
+           deviation = {
+             out <- tidyr::pivot_wider(
+               dplyr::select(
+                 dplyr::filter(
+                   object,
+                   .data$term != "rawSD"),
+                 -.data$log10.p),
+               names_from = "term", values_from = "deviance")
+           },
+           log10.p = {
+             out <- tidyr::pivot_wider(
+               dplyr::select(
+                 object,
+                 -deviance),
+               names_from = "term", values_from = "log10.p")
+           })
+    purrr::map_df(
+      purrr::discard(out, ~all(is.na(.x))),
+      ~.x)
+  } else {
+    dplyr::arrange(
+      object,
+      dplyr::desc(log10.p))
+  }
+  
 }
 #' @export
 #' @rdname strainstats
 #' @method summary strainstats
 summary.strainstats <- function(object, ...)
   summary_strainstats(object, ...)
-
