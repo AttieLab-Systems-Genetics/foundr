@@ -1,20 +1,28 @@
 #' Shiny Module Input for Time Traits
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTimeTraits
 #' @export
-#' @importFrom shiny NS uiOutput
-#'
 shinyTimeTraitsInput <- function(id) {
   ns <- shiny::NS(id)
-  
-  shiny::uiOutput(ns("shinyInput"))
+  shiny::selectizeInput(ns("traits"), "Traits:", NULL, multiple = TRUE)
 }
-
+#' Shiny Module UI for Time Traits
+#' @return nothing returned
+#' @rdname shinyTimeTraits
+#' @export
+shinyTimeTraitsUI <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::uiOutput(ns("shinyUI")) # Time Unit
+}
+#' Shiny Module Output for Time Traits
+#' @return nothing returned
+#' @rdname shinyTimeTraits
+#' @export
+shinyTimeTraitsOutput <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::uiOutput(ns("shinyOutput")) # Response
+}
 #' Shiny Module Server for Times Plots
-#'
 #' @param id identifier for shiny reactive
 #' @param panel_par,main_par reactive arguments 
 #' @param traitSignal static object
@@ -22,24 +30,23 @@ shinyTimeTraitsInput <- function(id) {
 #' @param responses possible types of responses
 #'
 #' @return nothing returned
-#' @importFrom shiny column fluidRow h3 observeEvent moduleServer plotOutput
-#'             reactive reactiveValues renderPlot renderUI req selectInput
-#'             selectizeInput tagList uiOutput updateSelectizeInput
+#' @importFrom shiny column fluidRow h3 observeEvent moduleServer NS plotOutput
+#'             radioButtons reactive reactiveValues renderPlot renderUI req
+#'             selectInput selectizeInput tagList uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
 #' @export
 #'
 shinyTimeTraits <- function(id, panel_par, main_par,
                        traitSignal, traitOrder,
-                       responses = c("value", "cellmean")) {
+                       responses = c("value", "normed", "cellmean")) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
     # INPUTS
     # local inputs:
-    #   time
-    #   traits
-    #   response
-    
+    #   input$time
+    #   input$traits
+    #   input$response
     # OUTPUTS
     #   list with inputs
     
@@ -47,18 +54,14 @@ shinyTimeTraits <- function(id, panel_par, main_par,
     timetrait_all <- timetraitsall(traitSignal)
 
     # Inputs
-    output$shinyInput <- shiny::renderUI({
+    output$shinyUI <- shiny::renderUI({
       timeunits <- time_units(timetrait_all)
-      shiny::tagList(
-        shiny::fluidRow(
-          shiny::column(6, shiny::selectInput(ns("time"), "Time Unit:",
-            timeunits, selections$time)),
-          shiny::column(6, shiny::selectInput(ns("response"), "Response:",
-            responses, selections$response))),
-        
-        shiny::selectizeInput(ns("traits"), "Traits:", NULL,
-                              multiple = TRUE)
-      )
+  
+      shiny::selectInput(ns("time"), "Time Unit:", timeunits, selections$time)
+    })
+    output$shinyOutput <- shiny::renderUI({
+      shiny::radioButtons(ns("response"), "Response:",
+                         responses, selections$response, inline = TRUE)
     })
     selections <- shiny::reactiveValues(time = NULL, response = "cellmean",
                                         traits = NULL)

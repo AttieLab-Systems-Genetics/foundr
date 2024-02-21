@@ -2,20 +2,18 @@
 % Please edit documentation in R/shinyTimeTable.R
 \name{shinyTimeTableInput}
 \alias{shinyTimeTableInput}
+\alias{shinyTimeTableUI}
+\alias{shinyTimeTableOutput}
 \alias{shinyTimeTable}
 \title{Shiny Module Input for Times Table}
 \usage{
 shinyTimeTableInput(id)
 
-shinyTimeTable(
-  id,
-  panel_par,
-  main_par,
-  traitData,
-  traitSignal,
-  traitStats,
-  responses = c("value", "cellmean")
-)
+shinyTimeTableUI(id)
+
+shinyTimeTableOutput(id)
+
+shinyTimeTable(id, panel_par, main_par, traitData, traitSignal, traitStats)
 }
 \arguments{
 \item{id}{identifier for shiny reactive}
@@ -23,16 +21,22 @@ shinyTimeTable(
 \item{panel_par, main_par}{reactive arguments}
 
 \item{traitData, traitSignal, traitStats}{static objects}
-
-\item{responses}{possible types of responses}
 }
 \value{
+nothing returned
+
+nothing returned
+
 nothing returned
 
 nothing returned
 }
 \description{
 Shiny Module Input for Times Table
+
+Shiny Module UI for Times Table
+
+Shiny Module Output for Times Table
 
 Shiny Module Server for Times Plots
 }

@@ -66,7 +66,7 @@ strain_time <- function(traitData,
                         traitSignal,
                         traitnames = timetraits(traitSignal, timecol)[1],
                         timecol = c("week", "minute","minute_summary","week_summary"),
-                        response = c("value","cellmean","signal"),
+                        response = c("value", "normed", "cellmean","signal"),
                         strains = names(foundr::CCcolors),
                         ...) {
   if(is.null(traitData) | is.null(traitSignal))
@@ -76,6 +76,12 @@ strain_time <- function(traitData,
   
   # Rename timecol to `time`. 
   timecol <- match.arg(timecol)
+  
+  if(response == "normed") {
+    # Apply nqrank() to get normal scores, keeping same mean and SD.
+    traitData <- normalscores(traitData)
+    response <- "value"
+  }
   
   # Select object based on `response`.
   if(response != "value") {

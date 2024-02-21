@@ -97,21 +97,19 @@ server <- function(input, output, session,
       shiny::tagList(
         shiny::fluidRow(
           shiny::column(3, shiny::uiOutput("dataset")),
-          if(input$tabpanel == "Traits") {
-            shiny::column(9, shinyTraitPanelInput("tabTraits"))
+          if(input$tabpanel %in% c("Traits","Times")) {
+            shiny::column(9, 
+              switch(input$tabpanel,
+                Traits = shinyTraitPanelInput("tabTraits"),
+                Times  = if(length(timetraits_all())) shinyTimePanelInput("tabTimes")))
           }),
         
-        if(input$tabpanel == "Traits") {
-          shinyTraitPanelUI("tabTraits")
-        },
-        
         switch(input$tabpanel,
-               Contrasts = if(length(timetraits_all())) {
-                 shinyContrastPanelInput("tabContrasts")
-               },
-               Times     = if(length(timetraits_all())) {
-                 shinyTimePanelInput("tabTimes") 
-               }),
+          Traits    = shinyTraitPanelUI("tabTraits"),
+          Contrasts = if(length(timetraits_all()))
+                        shinyContrastPanelInput("tabContrasts"),
+          Times     = if(length(timetraits_all()))
+                        shinyTimePanelUI("tabTimes")),
         
         shiny::hr(style="border-width:5px;color:black;background-color:black"),
         

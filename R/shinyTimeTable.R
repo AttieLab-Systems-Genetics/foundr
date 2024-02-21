@@ -1,37 +1,43 @@
 #' Shiny Module Input for Times Table
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTimeTable
 #' @export
-#' @importFrom shiny NS tagList
-#'
 shinyTimeTableInput <- function(id) {
   ns <- shiny::NS(id)
-  
-  shiny::tagList(
-    shinyTraitOrderInput(ns("shinyOrder")),
-    shinyTimeTraitsInput(ns("shinyTimeTraits")))
+  shiny::fluidRow(
+    shiny::column(4, shinyTraitOrderInput(ns("shinyOrder"))), # Order
+    shiny::column(8, shinyTimeTraitsInput(ns("shinyTimeTraits")))) # Traits
 }
-
+#' Shiny Module UI for Times Table
+#' @return nothing returned
+#' @rdname shinyTimeTable
+#' @export
+shinyTimeTableUI <- function(id) {
+  ns <- shiny::NS(id)
+  shinyTimeTraitsUI(ns("shinyTimeTraits")) # Time Unit
+}
+#' Shiny Module Output for Times Table
+#' @return nothing returned
+#' @rdname shinyTimeTable
+#' @export
+shinyTimeTableOutput <- function(id) {
+  ns <- shiny::NS(id)
+  shinyTimeTraitsOutput(ns("shinyTimeTraits")) # Response
+}
 #' Shiny Module Server for Times Plots
 #'
 #' @param id identifier for shiny reactive
 #' @param panel_par,main_par reactive arguments 
 #' @param traitData,traitSignal,traitStats static objects
-#' @param responses possible types of responses
 #'
 #' @return nothing returned
-#' @importFrom shiny column fluidRow h3 observeEvent moduleServer plotOutput
+#' @importFrom shiny column fluidRow h3 observeEvent moduleServer NS plotOutput
 #'             reactive reactiveVal renderPlot renderUI req selectInput
 #'             selectizeInput tagList uiOutput updateSelectizeInput
-#' @importFrom DT renderDataTable
+#' @importFrom shiny column fluidRow NS
 #' @export
-#'
 shinyTimeTable <- function(id, panel_par, main_par,
-                       traitData, traitSignal, traitStats,
-                       responses = c("value", "cellmean")) {
+                       traitData, traitSignal, traitStats) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 

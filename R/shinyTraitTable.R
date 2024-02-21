@@ -12,7 +12,7 @@ shinyTraitTableUI <- function(id) {
   ns <- shiny::NS(id)
 
   shiny::radioButtons(ns("butresp"), "Response",
-                      c("value", "cellmean"),
+                      c("value", "normed", "cellmean"),
                       "value", inline = TRUE)
 }
 

@@ -10,7 +10,7 @@ traitSolos(
   traitData,
   traitSignal = partition(traitData),
   traitnames = trait_names(traitData),
-  response = c("value", "cellmean", "signal"),
+  response = c("value", "normed", "cellmean", "signal"),
   strains = names(foundr::CCcolors),
   abbrev = FALSE,
   sep = ": "

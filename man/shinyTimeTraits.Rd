@@ -2,10 +2,16 @@
 % Please edit documentation in R/shinyTimeTraits.R
 \name{shinyTimeTraitsInput}
 \alias{shinyTimeTraitsInput}
+\alias{shinyTimeTraitsUI}
+\alias{shinyTimeTraitsOutput}
 \alias{shinyTimeTraits}
 \title{Shiny Module Input for Time Traits}
 \usage{
 shinyTimeTraitsInput(id)
+
+shinyTimeTraitsUI(id)
+
+shinyTimeTraitsOutput(id)
 
 shinyTimeTraits(
   id,
@@ -13,7 +19,7 @@ shinyTimeTraits(
   main_par,
   traitSignal,
   traitOrder,
-  responses = c("value", "cellmean")
+  responses = c("value", "normed", "cellmean")
 )
 }
 \arguments{
@@ -31,9 +37,17 @@ shinyTimeTraits(
 nothing returned
 
 nothing returned
+
+nothing returned
+
+nothing returned
 }
 \description{
 Shiny Module Input for Time Traits
+
+Shiny Module UI for Time Traits
+
+Shiny Module Output for Time Traits
 
 Shiny Module Server for Times Plots
 }

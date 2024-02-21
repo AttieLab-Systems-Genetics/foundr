@@ -9,7 +9,7 @@ strain_time(
   traitSignal,
   traitnames = timetraits(traitSignal, timecol)[1],
   timecol = c("week", "minute", "minute_summary", "week_summary"),
-  response = c("value", "cellmean", "signal"),
+  response = c("value", "normed", "cellmean", "signal"),
   strains = names(foundr::CCcolors),
   ...
 )

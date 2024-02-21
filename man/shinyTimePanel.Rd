@@ -2,11 +2,14 @@
 % Please edit documentation in R/shinyTimePanel.R
 \name{shinyTimePanelInput}
 \alias{shinyTimePanelInput}
+\alias{shinyTimePanelUI}
 \alias{shinyTimePanelOutput}
 \alias{shinyTimePanel}
 \title{Shiny Module Input for Time Panel}
 \usage{
 shinyTimePanelInput(id)
+
+shinyTimePanelUI(id)
 
 shinyTimePanelOutput(id)
 
@@ -25,9 +28,13 @@ nothing returned
 nothing returned
 
 nothing returned
+
+nothing returned
 }
 \description{
 Shiny Module Input for Time Panel
+
+Shiny Module UI for Time Panel
 
 Shiny Module Output for Times Plot
 

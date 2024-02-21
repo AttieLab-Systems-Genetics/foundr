@@ -22,7 +22,7 @@
 traitSolos <- function(traitData, 
                        traitSignal = partition(traitData),
                        traitnames = trait_names(traitData),
-                       response = c("value", "cellmean", "signal"),
+                       response = c("value", "normed", "cellmean", "signal"),
                        strains = names(foundr::CCcolors),
                        abbrev = FALSE,
                        sep = ": ") {
@@ -41,6 +41,11 @@ traitSolos <- function(traitData,
   
   response <- match.arg(response)
   
+  if(response == "normed") {
+    # Apply nqrank() to get normal scores, keeping same mean and SD.
+    traitData <- normalscores(traitData)
+    response <- "value"
+  }
   if(response == "value") {
     # Include columns for cellmean and value
     traitData <-

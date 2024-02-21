@@ -1,37 +1,30 @@
 #' Shiny Module UI for Time Plots
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTimePlot
 #' @export
-#' @importFrom shiny column fluidRow NS radioButtons tagList
-#'
+shinyTimePlotInput <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::uiOutput(ns("plotfront"))
+}
+#' Shiny Module UI for Time Plots
+#' @return nothing returned
+#' @rdname shinyTimePlot
+#' @export
 shinyTimePlotUI <- function(id) {
   ns <- shiny::NS(id)
-  
-  shiny::tagList(
-    shiny::fluidRow(
-      shiny::column(4, shiny::radioButtons(ns("butshow"),
-        "", c("Plots","Tables"), "Plots", inline = TRUE)),
-      shiny::column(8, shinyDownloadsOutput(ns("downloads")))))
+  shiny::fluidRow(
+    shiny::column(4, shiny::radioButtons(ns("butshow"),
+      "", c("Plots","Tables"), "Plots", inline = TRUE)),
+    shiny::column(8, shinyDownloadsOutput(ns("downloads"))))
 }
 #' Shiny Module Output for Time Plots
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTimePlot
 #' @export
-#' @importFrom shiny NS uiOutput
-#'
 shinyTimePlotOutput <- function(id) {
   ns <- shiny::NS(id)
-  
-  # Plots and Tables.
-  shiny::uiOutput(ns("plotstables"))
+  shiny::uiOutput(ns("plotstables")) # Plots and Tables
 }
-
 #' Shiny Module Server for Time Plots
 #'
 #' @param id identifier for shiny reactive
@@ -41,9 +34,9 @@ shinyTimePlotOutput <- function(id) {
 #' @param responses possible types of responses
 #'
 #' @return nothing returned
-#' @importFrom shiny column fluidRow h3 moduleServer observeEvent plotOutput
-#'             reactive reactiveVal renderPlot renderUI req selectInput
-#'             selectizeInput tagList uiOutput updateSelectizeInput
+#' @importFrom shiny column fluidRow h3 moduleServer NS observeEvent plotOutput
+#'             radioButtons reactive reactiveVal renderPlot renderUI req
+#'             selectInput selectizeInput tagList uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
 #' @importFrom stringr str_remove str_replace_all
 #' @export
@@ -75,6 +68,12 @@ shinyTimePlot <- function(id, panel_par, main_par,
     })
     relTraits <- shiny::reactiveVal(NULL)
     
+    output$plotfront <- shiny::renderUI({
+      if(shiny::req(input$butshow) == "Tables") {
+        shiny::radioButtons(ns("buttable"), "Download:",
+          c("Cell Means","Stats"), "Cell Means", inline = TRUE)
+      }
+    })
     output$plotstables <- shiny::renderUI({
       switch(shiny::req(input$butshow),
              Plots  = shiny::uiOutput(ns("plots")),
@@ -90,16 +89,12 @@ shinyTimePlot <- function(id, panel_par, main_par,
     traitstable <- shiny::reactive({
       shiny::req(traitTimesData())
       
-      # Summary is a bit klugey for now.
       summary_traitTime(traitTimesData())
     }, label = "statstable")
     output$tables <- shiny::renderUI({
       shiny::req(statstable())
       
       shiny::tagList(
-        shiny::radioButtons(ns("buttable"), "Download:",
-          c("Cell Means","Stats"), "Cell Means", inline = TRUE),
-        
         shiny::h3("Cell Means"),
         DT::renderDataTable(traitstable(), escape = FALSE,
                             options = list(scrollX = TRUE, pageLength = 10)),

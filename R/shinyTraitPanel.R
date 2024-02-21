@@ -1,13 +1,8 @@
 #' Shiny Module Input for Trait Panel
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTraitPanel
-#' @importFrom shiny column fluidRow NS uiOutput
 #' @export
-#'
-shinyTraitPanelInput <- function(id) {
+shinyTraitPanelInput <- function(id) { # 4:Order, 8:Traits
   ns <- shiny::NS(id)
   shiny::tagList(
     # Key Datasets and Trait.
@@ -16,15 +11,10 @@ shinyTraitPanelInput <- function(id) {
       shiny::column(8, shinyTraitNamesUI(ns("shinyKeyTrait")))))
 }
 #' Shiny Module UI for Trait Panel
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTraitPanel
-#' @importFrom shiny column fluidRow NS uiOutput
 #' @export
-#'
-shinyTraitPanelUI <- function(id) {
+shinyTraitPanelUI <- function(id) { # Related Datasets and Traits
   ns <- shiny::NS(id)
   shiny::tagList(
     # Related Datasets and Traits.
@@ -33,27 +23,25 @@ shinyTraitPanelUI <- function(id) {
       shiny::column(6, shinyTraitNamesUI(ns("shinyRelTraits")))))
 }
 #' Shiny Module Output for Trait Panel
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTraitPanel
-#' @importFrom shiny NS uiOutput
 #' @export
-#'
-shinyTraitPanelOutput <- function(id) {
+shinyTraitPanelOutput <- function(id) { # Plots or Tables
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     shiny::uiOutput(ns("text")),
-    
-    shiny::radioButtons(ns("butshow"),
-                        "", c("Plots","Tables"), "Plots", inline = TRUE),
-    shinyDownloadsOutput(ns("downloads")),
-  
+    shiny::fluidRow(
+      shiny::column(4, shiny::radioButtons(ns("butshow"),
+        "", c("Plots","Tables"), "Plots", inline = TRUE)),
+      shiny::column(8, shinyDownloadsOutput(ns("downloads")))),
+    shiny::fluidRow(
+      shiny::column(6, shinyTraitTableUI(ns("shinyTable"))), # Response
+      shiny::column(6, shiny::uiOutput(ns("downtable")))),
+    shiny::fluidRow(
+      shiny::column(9, shiny::uiOutput(ns("strains"))),
+      shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE))),
     shiny::uiOutput(ns("traitOutput")))
 }
-
 #' Shiny Module Server for Trait Panel
 #'
 #' @param id identifier for shiny reactive
@@ -61,12 +49,11 @@ shinyTraitPanelOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column h3 moduleServer observeEvent reactive renderUI req
-#'             selectInput tagList uiOutput updateSelectInput
+#' @importFrom shiny column fluidRow h3 moduleServer NS observeEvent reactive
+#'             renderUI req selectInput tagList uiOutput updateSelectInput
 #' @importFrom DT renderDataTable
 #' @importFrom stringr str_remove str_replace
 #' @export
-#'
 shinyTraitPanel <- function(id, main_par,
                             traitData, traitSignal, traitStats,
                             customSettings = NULL) {
@@ -152,13 +139,17 @@ shinyTraitPanel <- function(id, main_par,
             "This panel examines traits by ",
             condition, ", strain and sex. ",
             "Traits are typically ordered by significance of model terms. ",
-            "Value shows all data; cellmean shows values averaged over replicates. ",
+            "Response value shows raw data; normed shows values after normal scores preserving mean and SD;",
+            "cellmean shows normed values averaged over replicates. ",
             "Selecting Related Traits yields multiple Trait Plots plus Pairs Plots. ",
             "Correlation sorts Related Traits.")
-        }),
-        shiny::fluidRow(
-          shiny::column(9, shiny::uiOutput(ns("strains"))),
-          shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE))))
+        }))
+    })
+    output$downtable <- shiny::renderUI({
+      if(shiny::req(input$butshow == "Tables")) {
+        shiny::radioButtons(ns("buttable"), "Download:",
+          c("Cell Means","Correlations","Stats"), "Cell Means", inline = TRUE)
+      }
     })
     output$traitOutput <- shiny::renderUI({
       shiny::tagList(
@@ -166,8 +157,6 @@ shinyTraitPanel <- function(id, main_par,
           Plots = {
             shiny::tagList(
               shiny::h3("Trait Plots"),
-              # Trait Table Response.
-              shinyTraitTableUI(ns("shinyTable")),
               # Trait Solos Plot
               shinyTraitSolosUI(ns("shinySolos")),
               # Trait Pairs Plot
@@ -178,8 +167,6 @@ shinyTraitPanel <- function(id, main_par,
           },
           Tables = {
             shiny::tagList(
-              shiny::radioButtons(ns("buttable"), "Download:", c("Cell Means","Correlations","Stats"), "Cell Means",
-                                  inline = TRUE),
               shinyTraitTableOutput(ns("shinyTable")),
               shinyTraitOrderUI(ns("shinyOrder")))
           }),
