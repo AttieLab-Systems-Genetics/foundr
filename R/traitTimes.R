@@ -45,7 +45,8 @@ summary_traitTime <- function(object, traitnames = names(object$traits)) {
       delim = ": ",
       names = c("dataset", "trait"))
       
-  tidyr::pivot_wider(object, names_from = "strain", values_from = "value")
+  tidyr::pivot_wider(object, names_from = "strain", values_from = "value",
+                     names_sort = TRUE)
 }
 
 #' Strains over Time

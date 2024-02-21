@@ -167,7 +167,8 @@ summary_traitSolos <- function(object,
     dplyr::select(
       tidyr::pivot_wider(
         object,
-        names_from = "strain", values_from = "value"),
+        names_from = "strain", values_from = "value",
+        names_sort = TRUE),
       dplyr::any_of(nobject)),
     .data$trait, .data$sex)
   
