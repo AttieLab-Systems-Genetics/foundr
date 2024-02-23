@@ -45,6 +45,10 @@ partition <- function(object,
   # Somehow this give extra entries when there are missing values.
 
   redfit <- function(object) {
+    object <- dplyr::filter(object, !is.na(.data[[value]]))
+    if(!nrow(object))
+      return(NULL)
+    
     # Reduced model: value ~ rest
     formred <- stats::formula(paste(value, "~", rest))
     fitred <- stats::lm(formred, object)
