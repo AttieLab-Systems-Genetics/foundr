@@ -28,7 +28,7 @@ shinyTraitTableOutput <- function(id) {
 #'
 #' @return reactive object for `shinyTrait` routines
 #' 
-#' @importFrom shiny h3 moduleServer HS radioButtons reactive reactiveVal
+#' @importFrom shiny h3 moduleServer NS radioButtons reactive reactiveVal
 #'             renderUI req tagList uiOutput
 #' @importFrom DT dataTableOutput renderDataTable
 #' @export

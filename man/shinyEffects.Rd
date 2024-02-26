@@ -17,8 +17,6 @@ shinyEffects(
 )
 }
 \arguments{
-\item{id}{identifier for shiny reactive}
-
 \item{input, output, session}{standard shiny arguments}
 
 \item{main_par}{reactive arguments from `foundrServer`}

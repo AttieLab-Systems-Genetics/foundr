@@ -18,7 +18,7 @@ shinyContrastTable(
 )
 }
 \arguments{
-\item{id}{identifier}
+\item{id}{identifier for shiny reactive}
 
 \item{panel_par, main_par}{parameters from calling modules}
 
