@@ -180,7 +180,7 @@ shinyContrastPlot <- function(id, panel_par, main_par,
     shiny::observeEvent(
       shiny::req(contrastTable(), ord_selection(), vol(), info()),
       {
-        maxsd <- signif(max(abs(contrastTable()[[info()$col]]), na.rm = TRUE), 2)
+        maxsd <- min(signif(max(abs(contrastTable()[[info()$col]]), na.rm = TRUE), 2), 5)
         shiny::updateSliderInput(session, "volsd", max = maxsd)
         
         if(ord_selection() == "p.value") {

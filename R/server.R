@@ -8,8 +8,8 @@
 #' 
 #' @export
 #' 
-#' @importFrom shiny checkboxGroupInput hideTab observeEvent reactive renderUI
-#'             req showTab
+#' @importFrom shiny checkboxGroupInput hideTab observeEvent reactive reactiveVal
+#'             renderUI req showTab
 #' @importFrom grDevices dev.off pdf
 #' @importFrom utils write.csv
 #'
@@ -35,11 +35,14 @@ server <- function(input, output, session,
   output$dataset <- shiny::renderUI({
     # Dataset selection.
     datasets <- unique(traitStats$dataset)
-
+    selected <- data_selection()
+    
     # Get datasets.
-    shiny::selectInput("dataset", "Datasets:",
-                       datasets, datasets[1], multiple = TRUE)
+    shiny::selectInput("dataset", "Datasets:", datasets, selected, multiple = TRUE)
   })
+  data_selection <- shiny::reactiveVal(unique(traitStats$dataset)[1], label = "data_selection")
+  shiny::observeEvent(input$dataset, data_selection(input$dataset))
+  
   
   # Entry key
   entrykey <- shiny::reactive({
