@@ -1,15 +1,9 @@
 #' Shiny Module Input for Contrast Plots
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastPlot
-#' @importFrom shiny column fluidRow NS radioButtons uiOutput
 #' @export
-#'
 shinyContrastPlotInput <- function(id) {
   ns <- shiny::NS(id)
-
   shiny::tagList(
     shiny::fluidRow(
       shiny::column(4, shiny::radioButtons(ns("butshow"),
@@ -17,43 +11,28 @@ shinyContrastPlotInput <- function(id) {
       shiny::column(8, shinyDownloadsOutput(ns("downloads")))))
 }
 #' Shiny Module UI for Contrast Plots
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastPlot
-#' @importFrom shiny column fluidRow NS radioButtons uiOutput
 #' @export
-#'
 shinyContrastPlotUI <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::fluidRow(
     shiny::column(4, shiny::uiOutput(ns("ordername"))),
-    shiny::column(8, shiny::checkboxInput(ns("interact"),
-                                          "Interactive?")))
+    shiny::column(8, shiny::checkboxInput(ns("interact"), "Interactive?")))
 }
 #' Shiny Module Output for Contrast Plots
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastPlot
-#' @importFrom shiny column fluidRow NS radioButtons uiOutput
 #' @export
-#'
 shinyContrastPlotOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     # Sliders from Volcano plot display.
     shiny::fluidRow(
       shiny::column(6, shiny::sliderInput(ns("volsd"),
         "SD line:", min = 0, max = 2, value = 1, step = 0.1)),
       shiny::column(6, shiny::uiOutput(ns("volvert")))),
-  
     shiny::uiOutput(ns("title")),
-    
     shiny::uiOutput(ns("traitOutput")))
 }
 #' Shiny Module Server for Contrast Plots
@@ -65,9 +44,9 @@ shinyContrastPlotOutput <- function(id) {
 #' @param modTitle character string title for section
 #'
 #' @return reactive object 
-#' @importFrom shiny column moduleServer observeEvent
-#'             reactive reactiveVal renderUI req selectInput tagList uiOutput
-#'             updateSelectInput
+#' @importFrom shiny column fluidRow moduleServer NS observeEvent
+#'             radioButtons reactive reactiveVal renderUI req selectInput
+#'             tagList uiOutput updateSelectInput
 #' @importFrom DT renderDataTable
 #' @export
 #'

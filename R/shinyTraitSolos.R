@@ -1,19 +1,11 @@
 #' Shiny Module UI for traitSolos
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
-#' 
 #' @rdname shinyTraitSolos
-#' @importFrom shiny NS uiOutput
 #' @export
-#'
 shinyTraitSolosUI <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::uiOutput(ns("shiny_solosPlot"))
 }
-
 #' Shiny Module Server for trait solos Plots
 #'
 #' @param id identifier for shiny reactive
@@ -23,7 +15,7 @@ shinyTraitSolosUI <- function(id) {
 #'
 #' @return reactive object
 #' 
-#' @importFrom shiny moduleServer observeEvent plotOutput radioButtons reactive 
+#' @importFrom shiny moduleServer NS observeEvent plotOutput radioButtons reactive 
 #'             renderPlot renderUI req tagList uiOutput
 #' @importFrom DT renderDataTable dataTableOutput
 #' @export

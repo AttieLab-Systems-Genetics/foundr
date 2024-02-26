@@ -1,23 +1,14 @@
 #' Shiny Module Output for Stats Plot
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyStatsPanel
 #' @export
-#' @importFrom shiny NS uiOutput
-#'
 shinyStatsPanelOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     shinyContrastPlotInput(ns("shinyContrastPlot")),
     shinyContrastPlotUI(ns("shinyContrastPlot")),
-    
-    shinyContrastPlotOutput(ns("shinyContrastPlot"))
-  )
+    shinyContrastPlotOutput(ns("shinyContrastPlot")))
 }
-
 #' Shiny Module Server for Stats Plots
 #'
 #' @param id identifier for shiny reactive
@@ -27,9 +18,9 @@ shinyStatsPanelOutput <- function(id) {
 #' @param facet facet on `strain` if `TRUE`
 #'
 #' @return reactive object for `shinyStatsPanelOutput`
-#' @importFrom shiny column fluidRow moduleServer observeEvent plotOutput
+#' @importFrom shiny column fluidRow moduleServer NS observeEvent plotOutput
 #'             reactive renderPlot renderUI req selectInput selectizeInput
-#'             tagList uiOutput updateSelectInput sliderInput renderUI
+#'             sliderInput tagList uiOutput updateSelectInput
 #' @importFrom plotly plotlyOutput ggplotly renderPlotly
 #' @importFrom ggplot2 ylim
 #' @importFrom rlang .data

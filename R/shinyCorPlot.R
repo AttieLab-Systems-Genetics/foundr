@@ -1,15 +1,9 @@
 #' Shiny Module Output for Trait Correlations
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyCorPlot
-#' @importFrom shiny h3 NS tagList uiOutput
 #' @export
-#'
 shinyCorPlotOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     shiny::h3("Correlation"),
     shiny::fluidRow( 
@@ -17,7 +11,6 @@ shinyCorPlotOutput <- function(id) {
       shiny::column(6, shiny::checkboxInput(ns("abscor"), "Absolute Correlation?", TRUE))),
     shiny::uiOutput(ns("shiny_output")))
 }
-
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
@@ -27,8 +20,8 @@ shinyCorPlotOutput <- function(id) {
 #' @param customSettings static list of settings
 #'
 #' @return reactive object
-#' @importFrom shiny isTruthy moduleServer plotOutput reactive renderUI
-#'             renderPlot req  
+#' @importFrom shiny h3 isTruthy moduleServer NS plotOutput reactive renderUI
+#'             renderPlot req tagList uiOutput 
 #' @export
 #'
 shinyCorPlot <- function(id, panel_par, main_par, CorTable,

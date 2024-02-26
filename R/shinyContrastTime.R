@@ -1,17 +1,10 @@
 #' Shiny Module Input for Contrasts over Time
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastTime
 #' @export
-#' @importFrom shiny NS
-#'
 shinyContrastTimeInput <- function(id) {
   ns <- shiny::NS(id)
-  
   shinyTimeTraitsInput(ns("shinyTimeTraits"))
-  
 }
 #' Shiny Module Server for Contrasts over Time
 #'
@@ -21,7 +14,7 @@ shinyContrastTimeInput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny h3 isTruthy moduleServer reactive renderText renderUI
+#' @importFrom shiny h3 isTruthy moduleServer NS reactive renderText renderUI
 #'             tagList
 #' @importFrom stringr str_to_title
 #' @export

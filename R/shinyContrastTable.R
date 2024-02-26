@@ -1,28 +1,21 @@
 #' Shiny Module Input for Trait Panel
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastTable
-#' @importFrom shiny NS
 #' @export
-#'
 shinyContrastTableInput <- function(id) {
   ns <- shiny::NS(id)
-
   shinyTraitOrderInput(ns("shinyOrder"))
 }
-
 #' Shiny Module Server for Contrast Panel
 #'
-#' @param id identifier
+#' @param id identifier for shiny reactive
 #' @param panel_par,main_par parameters from calling modules
 #' @param traitSignal,traitStats static data frames
 #' @param customSettings list of custom settings
 #' @param allDatasets initially select all datasets if `TRUE`
 #'
 #' @return reactive object 
-#' @importFrom shiny column moduleServer observeEvent
+#' @importFrom shiny column moduleServer NS observeEvent
 #'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable

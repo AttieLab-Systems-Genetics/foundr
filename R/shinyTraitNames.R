@@ -1,17 +1,11 @@
 #' Shiny Module UI for Trait Names
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTraitNames
-#' @importFrom shiny NS uiOutput
 #' @export
-#'
 shinyTraitNamesUI <- function(id) {
   ns <- shiny::NS(id)
   shiny::uiOutput(ns("shiny_names"))
 }
-
 #' Shiny Module Server for Trait Names
 #'
 #' Select trait names in one of two modes, depending on the fixed `multiples`:
@@ -26,8 +20,8 @@ shinyTraitNamesUI <- function(id) {
 #'
 #' @return reactive vector of trait names
 #' 
-#' @importFrom shiny moduleServer observeEvent reactive req
-#'             selectizeInput updateSelectizeInput
+#' @importFrom shiny moduleServer NS observeEvent reactive req
+#'             selectizeInput uiOutput updateSelectizeInput
 #' @importFrom DT renderDataTable
 #' @importFrom dplyr distinct
 #' @importFrom rlang .data

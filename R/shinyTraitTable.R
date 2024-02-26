@@ -1,40 +1,23 @@
 #' Shiny Module UI for Trait Table
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
-#' 
 #' @rdname shinyTraitTable
-#' @importFrom shiny NS uiOutput
 #' @export
-#'
 shinyTraitTableUI <- function(id) {
   ns <- shiny::NS(id)
-
   shiny::radioButtons(ns("butresp"), "Response",
                       c("value", "normed", "cellmean"),
                       "value", inline = TRUE)
 }
-
 #' Shiny Module UI for Trait Object
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
-#' 
 #' @rdname shinyTraitTable
-#' @importFrom shiny h3 NS tagList 
-#' @importFrom DT dataTableOutput
 #' @export
-#'
 shinyTraitTableOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     shiny::h3("Cell Means"),
     DT::dataTableOutput(ns("shiny_traitObject")))
 }
-
 #' Shiny Module Server for Trait Object
 #'
 #' @param id identifier for shiny reactive
@@ -45,8 +28,9 @@ shinyTraitTableOutput <- function(id) {
 #'
 #' @return reactive object for `shinyTrait` routines
 #' 
-#' @importFrom shiny moduleServer radioButtons reactive reactiveVal renderUI req
-#' @importFrom DT renderDataTable
+#' @importFrom shiny h3 moduleServer HS radioButtons reactive reactiveVal
+#'             renderUI req tagList uiOutput
+#' @importFrom DT dataTableOutput renderDataTable
 #' @export
 #'
 

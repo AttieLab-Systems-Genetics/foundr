@@ -19,9 +19,9 @@ traitStats <- readRDS(file.path(dirpath, "traitStats.rds"))
 traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
 
 #dirpath <- file.path("~/Documents/Research/attie_alan/FounderDietStudy/deployLiver")
-traitSignal <- readRDS(file.path(dirpath, "liverSignal.rds"))
-traitStats <- readRDS(file.path(dirpath, "liverStats.rds"))
-traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
+#traitSignal <- readRDS(file.path(dirpath, "liverSignal.rds"))
+#traitStats <- readRDS(file.path(dirpath, "liverStats.rds"))
+#traitModule <- readRDS(file.path(dirpath, "traitModule.rds"))
 
 # Set up help.md using datasets in `traitSignal`
 foundr::link_datasets(

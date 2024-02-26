@@ -1,12 +1,7 @@
 #' Shiny Module Output for Modules of Contrasts
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastModule
 #' @export
-#' @importFrom shiny NS tagList uiOutput
-#'
 shinyContrastModuleOutput <- function(id) {
   ns <- shiny::NS(id)
   
@@ -20,7 +15,6 @@ shinyContrastModuleOutput <- function(id) {
     shiny::uiOutput(ns("module")),
     shinyContrastPlotOutput(ns("shinyContrastPlot")))
 }
-
 #' Shiny Module Server for Modules of Contrasts
 #'
 #' @param id identifier for shiny reactive
@@ -30,8 +24,8 @@ shinyContrastModuleOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny h3 moduleServer reactive renderPlot renderUI req
-#'             selectizeInput tagList updateSelectizeInput
+#' @importFrom shiny h3 moduleServer NS reactive renderPlot renderUI req
+#'             selectizeInput tagList uiOutput updateSelectizeInput
 #' @importFrom stringr str_to_title
 #' @export
 #'

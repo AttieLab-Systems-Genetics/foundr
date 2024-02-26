@@ -1,12 +1,7 @@
 #' Shiny Module Input for Trait Stats
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTraitOrder
-#' @importFrom shiny NS column fluidRow uiOutput
 #' @export
-#'
 shinyTraitOrderInput <- function(id) {
   ns <- shiny::NS(id)
   
@@ -18,23 +13,15 @@ shinyTraitOrderInput <- function(id) {
 }
 
 #' Shiny Module UI for Trait Stats
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyTraitOrder
-#' @importFrom shiny h3 NS tagList
-#' @importFrom DT dataTableOutput
 #' @export
-#'
 shinyTraitOrderUI <- function(id) {
   ns <- shiny::NS(id)
-
   shiny::tagList(  
     shiny::h3("Stats"),
     DT::dataTableOutput(ns("key_stats")))
 }
-
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
@@ -44,9 +31,9 @@ shinyTraitOrderUI <- function(id) {
 #' @param allDatasets initially select all datasets if `TRUE`
 #'
 #' @return reactive object
-#' @importFrom shiny moduleServer observeEvent reactive reactiveVal renderUI req 
-#'             selectInput updateSelectInput
-#' @importFrom DT renderDataTable
+#' @importFrom shiny column fluidRow h3 moduleServer NS observeEvent reactive 
+#'             reactiveVal renderUI req selectInput tagList uiOutput updateSelectInput
+#' @importFrom DT dataTableOutput renderDataTable
 #' @importFrom plotly plotlyOutput renderPlotly
 #' @export
 #'

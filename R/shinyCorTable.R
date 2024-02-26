@@ -1,21 +1,13 @@
 #' Shiny Module UI for Trait Correlations
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyCorTable
-#' @importFrom shiny h3 NS tagList
-#' @importFrom DT dataTableOutput
 #' @export
-#'
 shinyCorTableOutput <- function(id) {
   ns <- shiny::NS(id)
-
   shiny::tagList(
     shiny::h3("Correlation"),
     DT::dataTableOutput(ns("cortable")))
 }
-
 #' Shiny Module Server for Trait Stats
 #'
 #' @param id identifier for shiny reactive
@@ -27,8 +19,9 @@ shinyCorTableOutput <- function(id) {
 #' @return reactive object
 #' @importFrom dplyr distinct filter select
 #' @importFrom tidyr unite
-#' @importFrom shiny isTruthy moduleServer observeEvent reactive reactiveVal req
-#' @importFrom DT renderDataTable
+#' @importFrom shiny h3 isTruthy moduleServer NS observeEvent reactive reactiveVal
+#'             req tagList
+#' @importFrom DT dataTableOutput renderDataTable
 #' @importFrom rlang .data
 #' @export
 #'

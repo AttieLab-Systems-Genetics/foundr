@@ -1,24 +1,15 @@
 #' Shiny Module Output for Downloads
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyDownloads
-#' @importFrom shiny column fluidRow NS uiOutput
 #' @export
-#'
 shinyDownloadsOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
-  shiny::renderText("DownloadsOutput"), #***
-  
+  shiny::renderText("DownloadsOutput"),
     shiny::fluidRow(
       shiny::column(3, shiny::uiOutput(ns("downloads"))),
-      shiny::column(9, shiny::uiOutput(ns("filename"))))
-)
+      shiny::column(9, shiny::uiOutput(ns("filename")))))
 }
-
 #' Shiny Module Server for Downloads
 #'
 #' @param id identifier for shiny reactive
@@ -29,8 +20,8 @@ shinyDownloadsOutput <- function(id) {
 #' @param tableObject reactive table pring object
 #'
 #' @return nothing 
-#' @importFrom shiny downloadButton downloadHandler moduleServer
-#'             renderUI req textAreaInput
+#' @importFrom shiny column downloadButton downloadHandler fluidRow
+#'             moduleServer NS renderUI req textAreaInput uiOutput
 #' @importFrom utils write.csv    
 #' @importFrom grDevices dev.off pdf
 #' @export

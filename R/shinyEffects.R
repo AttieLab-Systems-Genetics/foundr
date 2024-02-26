@@ -1,18 +1,13 @@
 #' Shiny Module UI for Effects Plot
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyEffects
 #' @export
-#'
 shinyEffectsUI <- function(id) {
   ns <- NS(id)
   shiny::tagList(
     shiny::uiOutput(ns("shiny_effects"))
   )
 }
-
 #' Shiny Module Server for effects Plots
 #'
 #' @param input,output,session standard shiny arguments

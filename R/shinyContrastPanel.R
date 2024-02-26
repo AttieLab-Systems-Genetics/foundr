@@ -1,36 +1,22 @@
 #' Shiny Module Input for Contrast Panel
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastPanel
-#' @importFrom shiny NS radioButtons tagList
 #' @export
-#'
 shinyContrastPanelInput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     shiny::uiOutput(ns("shinyInput")),
     shiny::radioButtons(ns("contrast"), "Contrast by ...",
                         c("Sex", "Time", "Module"), inline = TRUE))
 }
-
 #' Shiny Module Output for Contrast Panel
-#'
-#' @param id identifier for shiny reactive
-#'
 #' @return nothing returned
 #' @rdname shinyContrastPanel
-#' @importFrom shiny NS uiOutput
 #' @export
-#'
 shinyContrastPanelOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::uiOutput(ns("shinyOutput"))
 }
-
 #' Shiny Module Server for Contrast Panel
 #'
 #' @param id identifier for shiny reactive
@@ -39,8 +25,8 @@ shinyContrastPanelOutput <- function(id) {
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column fluidRow h3 isTruthy moduleServer reactive
-#'             renderText renderUI tagList
+#' @importFrom shiny column fluidRow h3 isTruthy moduleServer NS radioButtons
+#'             reactive renderText renderUI tagList uiOutput
 #' @importFrom stringr str_to_title
 #' @export
 #'
