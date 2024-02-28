@@ -4,14 +4,11 @@
 #' @export
 shinyContrastModuleOutput <- function(id) {
   ns <- shiny::NS(id)
-  
   shiny::tagList(
     shinyContrastPlotInput(ns("shinyContrastPlot")),
-    
     shiny::fluidRow(
       shiny::column(3, shiny::uiOutput(ns("sex"))),
       shiny::column(9, shinyContrastPlotUI(ns("shinyContrastPlot")))),
-    
     shiny::uiOutput(ns("module")),
     shinyContrastPlotOutput(ns("shinyContrastPlot")))
 }

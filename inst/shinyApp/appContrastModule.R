@@ -14,6 +14,7 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
+        shiny::uiOutput("dataset"),
         foundr::shinyContrastTableInput("shinyContrastTable"),
         shiny::uiOutput("strains")
       ),
@@ -42,6 +43,14 @@ server <- function(input, output, session) {
     input, input, traitContrPval, traitModule)
   
   # SERVER-SIDE INPUTS
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
   output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput(
@@ -52,6 +61,7 @@ server <- function(input, output, session) {
   traitContrPval <- reactive({
     shiny::req(contrastOutput())
     pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
+    if(is.null(pvalue)) pvalue <- 1.0
     
     dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
   })

@@ -46,7 +46,7 @@ server <- function(input, output, session) {
     shiny::req(contrastOutput())
 
     pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
-    if(is.null(pvalue)) pvalue <- 0.0
+    if(is.null(pvalue)) pvalue <- 1.0
     
     dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
   })
