@@ -24,6 +24,7 @@ ui <- function() {
     shiny::titlePanel(title),
     shiny::sidebarLayout(
       shiny::sidebarPanel(
+        shiny::column(3, shiny::uiOutput("dataset")),
         shiny::selectInput("trait","Traits:",c("Enrich: 15N2-Urea_enrichment_120_18wk","Enrich: N-Methyl-D3-Creatinine_enrichment_0_18wk","Enrich: 5,5,5-D3-Leucine_enrichment_120_18wk","Enrich: Trimethyl-D9-Carnitine_enrichment_60_18wk")),
         foundr::shinyTraitTableUI("shinyObject"),
         shiny::uiOutput("strains"), # See SERVER-SIDE INPUTS below
@@ -55,10 +56,18 @@ server <- function(input, output, session) {
   tableOutput <- foundr::shinyTraitTable("shinyObject", input, input,
                                          keyTrait, relTraits,
                                          traitData, traitSignal)
-  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, tableOutput)
+  solosOutput <- foundr::shinyTraitSolos("shinySolos", input, input, tableOutput)
   
   # SERVER-SIDE INPUTS
-  output$strains <- shiny::renderUI({
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
+    output$strains <- shiny::renderUI({
     choices <- names(foundr::CCcolors)
     shiny::checkboxGroupInput("strains", "Strains",
                               choices = choices, selected = choices, inline = TRUE)

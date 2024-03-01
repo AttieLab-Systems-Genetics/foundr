@@ -4,7 +4,7 @@
 \alias{ggplot_template}
 \title{GGplot template for other routines}
 \usage{
-ggplot_template(object, ..., drop_xlab = FALSE, legend_position = "none")
+ggplot_template(object, ..., drop_xlab = FALSE, legend_position = "bottom")
 }
 \arguments{
 \item{object}{list of data frames to be plotted}

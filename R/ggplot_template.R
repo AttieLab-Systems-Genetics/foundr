@@ -58,7 +58,7 @@
 ggplot_template <- function(object,
                             ...,
                             drop_xlab = FALSE,
-                            legend_position = "none") {
+                            legend_position = "bottom") {
   
   if(is.null(object))
     return(plot_null("No Traits to Plot."))
@@ -67,10 +67,11 @@ ggplot_template <- function(object,
                       legend_position = legend_position, ...)
   
   lplots <- length(plots)
+  drop_xlab <- drop_xlab & (lplots > 1)
   
   # Remove x label and legend for multiple plots
   if(drop_xlab) {
-    for(i in seq_len(lplots - 1)) {
+    if(lplots > 1) for(i in seq_len(lplots - 1)) {
       plots[[i]] <- plots[[i]] +
         ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
         ggplot2::xlab("")
@@ -78,18 +79,23 @@ ggplot_template <- function(object,
         plots[[i]] <- plots[[i]] +
           ggplot2::theme(legend.position = "none")
     }
+    if(lplots > 1) {
+      
+    }
     # For last plot, separate legend.
     leg <- cowplot::get_legend(
       plots[[lplots]] + ggplot2::theme(legend.position = "bottom"))
     # Last plot: no labels or axis.
     p <- plots[[lplots]] +
       ggplot2::theme(legend.position = "none")
+    
+    pairplot <- attr(object[[lplots]], "pair")
     # Drop X labels and title unless it is pair plot.
-    if(is.null(pairplot <- attr(object[[lplots]], "pair"))) {
-      p <- p + 
-        ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
-        ggplot2::xlab("")
-    }
+#    if(is.null(pairplot <- attr(object[[lplots]], "pair"))) {
+#      p <- p + 
+#        ggplot2::theme(axis.text.x = ggplot2::element_blank()) +
+#        ggplot2::xlab("")
+#    }
     # Drop X title if time.
     if(!is.null(pairplot) && pairplot[1] == "time")
       p <- p + ggplot2::xlab("")

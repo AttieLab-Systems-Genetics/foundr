@@ -62,7 +62,8 @@ shinyContrastModule <- function(id, panel_par, main_par,
       shiny::req(traitContrast())
       
       datasets <- unique(traitContrast()$dataset)
-      datasets[datasets %in% names(contrastModule)]
+      # *** Currently only handles one dataset.
+      datasets[datasets %in% names(contrastModule)][1]
     })
     # Restrict `contrastModule` to datasets in `traitContrast()`
     datamodule <- shiny::reactive({
