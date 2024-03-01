@@ -50,7 +50,7 @@ shinyTraitPanelOutput <- function(id) { # Plots or Tables
 #'
 #' @return reactive object 
 #' @importFrom shiny column fluidRow h3 moduleServer NS observeEvent reactive
-#'             renderUI req selectInput tagList uiOutput updateSelectInput
+#'             reactiveVal renderUI req selectInput tagList uiOutput updateSelectInput
 #' @importFrom DT renderDataTable
 #' @importFrom stringr str_remove str_replace
 #' @export
@@ -116,13 +116,15 @@ shinyTraitPanel <- function(id, main_par,
       label = "trait_names")
     
     # Related Datasets.
-    datasets <- shiny::reactive({
-      unique(traitStats$dataset)
-    })
     output$reldataset <- renderUI({
+      datasets <- unique(traitStats$dataset)
+      selected <- data_selection()
       shiny::selectInput(ns("reldataset"), "Related Datasets:",
-                         datasets(), datasets()[1], multiple = TRUE)
+                         datasets, selected, multiple = TRUE)
     })
+    data_selection <- shiny::reactiveVal(unique(traitStats$dataset)[1], label = "data_selection")
+    shiny::observeEvent(input$reldataset, data_selection(input$reldataset))
+    
 
     # Output
     output$text <- shiny::renderUI({
