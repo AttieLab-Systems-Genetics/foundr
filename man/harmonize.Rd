@@ -11,7 +11,8 @@ harmonize(
   ...,
   normalize = TRUE,
   condition_name = "condition",
-  minstrains = nstrains - 2
+  minstrains = nstrains - 2,
+  drop_na_pvalue = TRUE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ harmonize(
 \item{condition_name}{name of `condition` column if present.}
 
 \item{minstrains}{minimum number of `strains` allowed per `trait`}
+
+\item{drop_na_pvalue}{drop traits with any missing pvalues if `TRUE`; if `FALSE` return `traitStats` object only}
 }
 \value{
 side action to save RDS files locally

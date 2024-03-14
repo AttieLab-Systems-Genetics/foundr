@@ -7,6 +7,7 @@
 #' @param normalize apply `normalscores` if `TRUE`
 #' @param condition_name name of `condition` column if present.
 #' @param minstrains minimum number of `strains` allowed per `trait`
+#' @param drop_na_pvalue drop traits with any missing pvalues if `TRUE`; if `FALSE` return `traitStats` object only
 #'
 #' @return side action to save RDS files locally
 #' @export
@@ -16,7 +17,8 @@
 harmonize <- function(dataset, links, userHarmony, ...,
                       normalize = TRUE,
                       condition_name = "condition",
-                      minstrains = nstrains - 2) {
+                      minstrains = nstrains - 2,
+                      drop_na_pvalue = TRUE) {
   # Harmonize data with user-supplied harmony function.
   # Function must have `dataset` as first argument and include `...` argument.
   cat("Harmonizing raw data ...\n", stderr())
@@ -42,10 +44,15 @@ harmonize <- function(dataset, links, userHarmony, ...,
         traitStats,
         !(.data$term %in% c("noise", "rawSD"))),
       is.na(.data$p.value))$trait)
-  traitStats <-
-    dplyr::filter(
-      traitStats,
-      !(.data$trait %in% dropTraits))
+  if(drop_na_pvalue & length(dropTraits)) {
+    traitStats <-
+      dplyr::filter(
+        traitStats,
+        !(.data$trait %in% dropTraits))
+  } else {
+    # For now cannot handle this, so return traitStats object
+    if(!drop_na_pvalue) return(traitStats)
+  }
   # Additional traits were dropped due to failed fit.
   keepTraits <- unique(traitStats$trait)
   
