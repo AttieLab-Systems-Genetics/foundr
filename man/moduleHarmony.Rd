@@ -9,7 +9,9 @@ moduleHarmony(
   links,
   object,
   responsename = names(object[[1]]),
-  ...
+  ...,
+  datatraits = FALSE,
+  traitparams = FALSE
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ moduleHarmony(
 \item{responsename}{name of response to extract}
 
 \item{...}{additional parameters ignored}
+
+\item{datatraits}{incorporate `dataset` into `trait` if `TRUE`}
+
+\item{traitparams}{incorporate key `params` into `trait` if `TRUE`}
 }
 \value{
 harmonize object

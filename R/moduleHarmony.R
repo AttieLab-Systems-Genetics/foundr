@@ -90,7 +90,7 @@ moduleHarmony <- function(datasetname,
 
   if(datatraits) {
     # Unite dataset and trait into trait column name
-    out <- tidyr::unite(out, trait, .data$dataset, .data$trait),
+    out <- tidyr::unite(out, trait, .data$dataset, .data$trait)
   }
   
   out
