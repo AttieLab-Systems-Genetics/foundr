@@ -35,6 +35,44 @@ eigen_contrast <- function(object, contr_object) {
 }
 # Apply eigen_contrast over list of `traitModule`s and `contr_object`.
 eigen_contrast_dataset <- function(object, contr_object) {
+  if(is.null(object) | is.null(contr_object))
+    return(NULL)
+  
+  if("value" %in% names(object))
+    return(eigen_contrast_dataset_value(object, contr_object))
+  
+  eigen_contrast_dataset_sex(object, contr_object)
+}
+
+eigen_contrast_dataset_value <- function(object, contr_object) {
+  datasets <- names(object)
+  if(!all(datasets %in% "value"))
+    return(NULL)
+  
+  # Get information for each module.
+  objectInfo <-
+    dplyr::ungroup(
+      dplyr::summarize(
+        dplyr::group_by(
+          object$value$modules,
+          .data$module),
+        kME = signif(max(abs(kME), na.rm = TRUE), 4),
+        #       p.value = signif(min(p.value, na.rm = TRUE), 4),
+        size = dplyr::n(),
+        drop = sum(dropped) / size,
+        .groups = "drop"))
+  
+  # Join contrast object with module information
+  dplyr::mutate(
+    dplyr::left_join(
+      dplyr::rename(contr_object, module = "trait"),
+      objectInfo,
+      by = "module"),
+    trait = factor(.data$module, unique(.data$module)),
+    module = match(.data$trait, levels(.data$trait)))
+}
+
+eigen_contrast_dataset_sex <- function(object, contr_object) {
   datasets <- names(object)
   if(!all(datasets %in% contr_object$dataset))
     return(NULL)
