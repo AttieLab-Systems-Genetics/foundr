@@ -16,8 +16,8 @@ shinyContrastModuleOutput <- function(id) {
 #'
 #' @param id identifier for shiny reactive
 #' @param panel_par,main_par reactive arguments 
-#' @param traitContrast reactive data frames
-#' @param contrastModule static data frames
+#' @param moduleContrast,traitContast reactive data frames
+#' @param traitModule static data frames
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
@@ -27,8 +27,8 @@ shinyContrastModuleOutput <- function(id) {
 #' @export
 #'
 shinyContrastModule <- function(id, panel_par, main_par,
-                              traitContrast, contrastModule,
-                              customSettings = NULL) {
+                                traitModule, moduleContrast, traitContrast,
+                                customSettings = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -50,52 +50,48 @@ shinyContrastModule <- function(id, panel_par, main_par,
 
     # INPUTS
     output$module <- shiny::renderUI({
-      shiny::selectizeInput(ns("module"), "Module:",
-                            shiny::req(datatraits()))
+      shiny::selectizeInput(ns("module"), "Module:", NULL)
     })
+
     sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
     output$sex <- shiny::renderUI({
       shiny::selectInput(ns("sex"), "", as.vector(sexes))
     })
     
-    datasets <- shiny::reactive({
-      shiny::req(traitContrast())
-      
-      datasets <- unique(traitContrast()$dataset)
-      # *** Currently only handles one dataset.
-      datasets[datasets %in% names(contrastModule)][1]
-    })
-    # Restrict `contrastModule` to datasets in `traitContrast()`
+    # Restrict `traitModule` to datasets in `moduleContrast()`
     datamodule <- shiny::reactive({
-      contrastModule[shiny::req(datasets())]
+      traitModule[shiny::req(main_par$dataset)]
     })
     
     # Eigen Contrasts.
     eigens <- shiny::reactive({
-      shiny::req(datamodule(), traitContrast())
+      shiny::req(datamodule(), moduleContrast())
       
-      eigen_contrast_dataset(datamodule(), traitContrast())
+      eigen_contrast_dataset(datamodule(), moduleContrast())
     })
 
     datatraits <- shiny::reactive({
-      shiny::req(input$sex)
+      shiny::req(input$sex, eigens(), eigens(), main_par$dataset)
       
-      tidyr::unite(shiny::req(eigens()), datatraits, dataset, trait,
+      tidyr::unite(eigens(), datatraits, dataset, trait,
                    sep = ": ")$datatraits
-    }, label = "datatraits") 
+    }, label = "datatraits")
     shiny::observeEvent(
-      shiny::req(datasets(), input$sex, eigens()), {
-      sextraits <- datatraits()[
-        grep(paste0(": ", names(sexes)[match(input$sex, sexes)], "_"),
-             datatraits())]
+      shiny::req(datatraits(), main_par$dataset, input$sex),
+      {
+        # Use subset of traits if dealing with sex modules.
+        sextraits <- datatraits()
+        if(is_sex_module(shiny::req(datamodule())))
+          sextraits <- sextraits[
+            grep(paste0(": ", names(sexes)[match(input$sex, sexes)], "_"), sextraits)]
         
-      shiny::updateSelectizeInput(session, "module", choices = sextraits,
-                                  selected = "", server = TRUE)
+        shiny::updateSelectizeInput(session, "module", choices = sextraits,
+                                    selected = "", server = TRUE)
     })
     
     # Compare Selected Module Eigens to Traits in Module
     traits <- shiny::reactive({
-      shiny::req(datamodule(), input$sex, input$module,
+      shiny::req(datamodule(), input$sex, input$module, main_par$dataset,
                  traitContrast(), eigens())
       
       eigen_traits_dataset(datamodule(), input$sex, input$module,

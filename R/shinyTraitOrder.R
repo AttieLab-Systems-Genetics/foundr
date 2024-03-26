@@ -21,7 +21,7 @@ shinyTraitOrderUI <- function(id) {
 #' @param panel_par,main_par input reactive list
 #' @param traitStats static data frame
 #' @param customSettings custom settings list
-#' @param allDatasets initially select all datasets if `TRUE`
+#' @param keepDatatraits keep datatraits if not `NULL`
 #'
 #' @return reactive object
 #' @importFrom shiny column fluidRow h3 moduleServer NS observeEvent reactive 
@@ -32,7 +32,7 @@ shinyTraitOrderUI <- function(id) {
 #'
 shinyTraitOrder <- function(id, panel_par, main_par,
                             traitStats,
-                            customSettings = NULL, allDatasets = FALSE) {
+                            customSettings = NULL, keepDatatraits = shiny::reactive(NULL)) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -90,12 +90,22 @@ shinyTraitOrder <- function(id, panel_par, main_par,
       orderTraitStats(order_selection(), key_stats())
     })
     key_stats <- shiny::reactive({
-      if(shiny::isTruthy(key_selection())) {
-        dplyr::filter(
-          traitStats,
-          .data$dataset %in% key_selection())
+      if(shiny::isTruthy(keepDatatraits())) {
+        dplyr::select(
+          dplyr::filter(
+            tidyr::unite(
+              traitStats,
+              datatraits, dataset, trait, sep = ": ", remove = FALSE),
+            datatraits %in% keepDatatraits()),
+          -datatraits)
       } else {
-        NULL
+        if(shiny::isTruthy(key_selection())) {
+          dplyr::filter(
+            traitStats,
+            .data$dataset %in% key_selection())
+        } else {
+          NULL
+        }
       }
     })
 

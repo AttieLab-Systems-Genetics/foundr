@@ -34,22 +34,32 @@ eigen_contrast <- function(object, contr_object) {
   object
 }
 # Apply eigen_contrast over list of `traitModule`s and `contr_object`.
+is_sex_module <- function(object) {
+  !("value" %in% names(object[[1]]))
+}
 eigen_contrast_dataset <- function(object, contr_object) {
   if(is.null(object) | is.null(contr_object))
     return(NULL)
   
-  if("value" %in% names(object))
+  if(!is_sex_module(object))
     return(eigen_contrast_dataset_value(object, contr_object))
   
   eigen_contrast_dataset_sex(object, contr_object)
 }
 
 eigen_contrast_dataset_value <- function(object, contr_object) {
+  # Can only handle one trait module right now.
+  if(length(object) > 1)
+    return(NULL)
+  
+  # Should be one module with element `value`.
+  object <- object[[1]]
   datasets <- names(object)
   if(!all(datasets %in% "value"))
     return(NULL)
   
   # Get information for each module.
+  # Could add information from `contr_object` later.
   objectInfo <-
     dplyr::ungroup(
       dplyr::summarize(
@@ -62,7 +72,7 @@ eigen_contrast_dataset_value <- function(object, contr_object) {
         drop = sum(dropped) / size,
         .groups = "drop"))
   
-  # Join contrast object with module information
+  # Join contrast object of eigenvalues with module information
   dplyr::mutate(
     dplyr::left_join(
       dplyr::rename(contr_object, module = "trait"),
@@ -76,7 +86,10 @@ eigen_contrast_dataset_sex <- function(object, contr_object) {
   datasets <- names(object)
   if(!all(datasets %in% contr_object$dataset))
     return(NULL)
+  # Split contrast object by dataset
   contr_object <- split(contr_object, contr_object$dataset)[datasets]
+  # For each `dataset`, construct contrast of eigens.
+  # The `contr_object` is only used for module information.
   out <- purrr::map(datasets, function(x) {
     eigen_contrast(object[[x]], contr_object[[x]])
     })

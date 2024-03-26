@@ -79,6 +79,98 @@ eigen_traits_dataset <- function(object = NULL,
                                  modulename = NULL,
                                  contr_object = NULL,
                                  eigen_object = eigen_contrast(object, contr_object)) {
+  if(is.null(object) | is.null(contr_object))
+    return(NULL)
+  
+  # Module name `dataset` must match one of the elements of `object`
+  if(!all(stringr::str_remove(modulename, ": .*$") %in% names(object)))
+    return(NULL)
+  
+  if(!is_sex_module(object))
+    return(eigen_traits_dataset_value(object, sexname, modulename, contr_object, eigen_object))
+  
+  eigen_traits_dataset_sex(object, sexname, modulename, contr_object, eigen_object)
+}
+keptDatatraits <- function(traitModule, dataset) {
+  # If MixMod, then get all the kept `dataset: trait` values.
+  ds <- dataset
+  if(ds == "MixMod") {
+    tidyr::unite(
+      dplyr::filter(traitModule[[ds]]$value$module, !dropped),
+      datatraits, dataset, trait, sep = ": ")$datatraits
+  } else {
+    NULL
+  }
+}
+
+eigen_traits_contr_object <- function(object, traitStat, traitSignal,
+                                       term_id = "strain:diet") {
+  # This generates `contr_object` for `eigen_traits_dataset_value`
+  objectTraits <- unite(filter(object$value$modules, !dropped),
+                        datatrait, dataset, trait, sep = ": ",
+                        remove = FALSE)
+  
+  # The default contr_object refers only to the datasets.
+  # Need to go back to how shinyContrastTable sets up
+  # Get traits as below filter from traitSignal
+  # Probably need to set up another module.
+  
+  modStats <- 
+    traitStats |>
+    unite(datatrait, dataset, trait, sep = ": ", remove = FALSE) |>
+    filter(datatrait %in% 
+           filter(objectTraits, module %in% modulename)$datatrait) |>
+    select(-datatrait)
+  modSignal <- 
+    traitSignal |>
+    unite(datatrait, dataset, trait, sep = ": ", remove = FALSE) |>
+    filter(datatrait %in% 
+           filter(objectTraits, module %in% modulename)$datatrait) |>
+    select(-datatrait)
+  
+  conditionContrasts(modSignal, modStats, 
+                     termname = term_id, rawStats = modStats)
+}
+eigen_traits_dataset_value <- function(object = NULL,
+                                     sexname = NULL,
+                                     modulename = NULL,
+                                     contr_object = NULL,
+                                     eigen_object = eigen_contrast(object, contr_object)) {
+  if(is.null(object) | is.null(contr_object))
+    return(NULL)
+  
+  # Can only handle one trait module right now.
+  if(length(object) > 1)
+    return(NULL)
+  
+  # The `object` is one traitModule with element `value`.
+  object <- object[[1]]
+  datasets <- names(object)
+  if(!all(datasets %in% "value"))
+    return(NULL)
+
+  modulename <- stringr::str_remove(modulename, "^.*: ")
+  contr_object <- 
+    dplyr::filter(
+      dplyr::left_join(
+        contr_object,
+        dplyr::select(object$value$modules, -dropped),
+        by = c("dataset", "trait")),
+      .data$module %in% modulename)
+  # Return contr_object after filtering
+  # Could add columns from `object$value$modules`
+  dplyr::select(
+    dplyr::bind_rows(
+      (dplyr::filter(eigen_object, trait == modulename) |>
+         dplyr::mutate(trait = "Eigen", module = modulename))[names(contr_object)],
+      contr_object),
+    -module)
+}
+eigen_traits_dataset_sex <- function(object = NULL,
+                                 sexname = NULL,
+                                 modulename = NULL,
+                                 contr_object = NULL,
+                                 eigen_object = eigen_contrast(object, contr_object)) {
   if(is.null(object) || is.null(contr_object) || is.null(eigen_object) ||
      is.null(modulename))
     return(NULL)

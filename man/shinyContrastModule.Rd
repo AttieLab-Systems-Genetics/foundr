@@ -11,8 +11,9 @@ shinyContrastModule(
   id,
   panel_par,
   main_par,
+  traitModule,
+  moduleContrast,
   traitContrast,
-  contrastModule,
   customSettings = NULL
 )
 }
@@ -21,9 +22,9 @@ shinyContrastModule(
 
 \item{panel_par, main_par}{reactive arguments}
 
-\item{traitContrast}{reactive data frames}
+\item{traitModule}{static data frames}
 
-\item{contrastModule}{static data frames}
+\item{moduleContrast, traitContast}{reactive data frames}
 
 \item{customSettings}{list of custom settings}
 }

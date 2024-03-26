@@ -16,7 +16,7 @@ shinyTraitOrder(
   main_par,
   traitStats,
   customSettings = NULL,
-  allDatasets = FALSE
+  keepDatatraits = shiny::reactive(NULL)
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ shinyTraitOrder(
 
 \item{customSettings}{custom settings list}
 
-\item{allDatasets}{initially select all datasets if `TRUE`}
+\item{keepDatatraits}{keep datatraits if not `NULL`}
 }
 \value{
 reactive object

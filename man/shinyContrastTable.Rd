@@ -14,7 +14,7 @@ shinyContrastTable(
   traitSignal,
   traitStats,
   customSettings = NULL,
-  allDatasets = FALSE
+  keepDatatraits = shiny::reactive(NULL)
 )
 }
 \arguments{
@@ -26,7 +26,7 @@ shinyContrastTable(
 
 \item{customSettings}{list of custom settings}
 
-\item{allDatasets}{initially select all datasets if `TRUE`}
+\item{keepDatatraits}{keep datatraits if not `NULL`}
 }
 \value{
 nothing returned

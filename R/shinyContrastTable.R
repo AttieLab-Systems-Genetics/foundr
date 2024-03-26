@@ -12,7 +12,7 @@ shinyContrastTableInput <- function(id) {
 #' @param panel_par,main_par parameters from calling modules
 #' @param traitSignal,traitStats static data frames
 #' @param customSettings list of custom settings
-#' @param allDatasets initially select all datasets if `TRUE`
+#' @param keepDatatraits keep datatraits if not `NULL`
 #'
 #' @return reactive object 
 #' @importFrom shiny column moduleServer NS observeEvent
@@ -23,7 +23,7 @@ shinyContrastTableInput <- function(id) {
 #'
 shinyContrastTable <- function(id, panel_par, main_par,
                             traitSignal, traitStats,
-                            customSettings = NULL, allDatasets = FALSE) {
+                            customSettings = NULL, keepDatatraits = shiny::reactive(NULL)) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -36,8 +36,7 @@ shinyContrastTable <- function(id, panel_par, main_par,
     # MODULES
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", panel_par, main_par,
-                                   traitStats, traitSignal,
-                                   customSettings, allDatasets)
+                                   traitStats, customSettings, keepDatatraits)
     
     ###############################################################
     

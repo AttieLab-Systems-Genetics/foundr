@@ -37,7 +37,7 @@ ggplot_evidence_spread <- function(object,
     else
       termname <- object$term[1]
   }
-  if(is.null(ordername))
+  if(is.null(ordername) || ordername == "")
     ordername <- "p.value"
   
   plottype <- match.arg(plottype)
