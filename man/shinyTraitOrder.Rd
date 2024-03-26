@@ -15,7 +15,6 @@ shinyTraitOrder(
   panel_par,
   main_par,
   traitStats,
-  traitSignal = NULL,
   customSettings = NULL,
   allDatasets = FALSE
 )
@@ -25,17 +24,13 @@ shinyTraitOrder(
 
 \item{panel_par, main_par}{input reactive list}
 
-\item{traitStats, traitSignal}{static data frame}
+\item{traitStats}{static data frame}
 
 \item{customSettings}{custom settings list}
 
 \item{allDatasets}{initially select all datasets if `TRUE`}
 }
 \value{
-nothing returned
-
-nothing returned
-
 reactive object
 }
 \description{

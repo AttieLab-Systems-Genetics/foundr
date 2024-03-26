@@ -75,8 +75,7 @@ shinyTraitPanel <- function(id, main_par,
     # MODULES
     # Order Traits by Stats.
     orderOutput <- shinyTraitOrder("shinyOrder", input, main_par,
-                                   traitStats, traitSignal,
-                                   customSettings)
+                                   traitStats, customSettings)
     # Key Trait.
     keyTraitOutput <- shinyTraitNames("shinyKeyTrait", main_par, orderOutput)
     # Key Trait and Correlation Table.

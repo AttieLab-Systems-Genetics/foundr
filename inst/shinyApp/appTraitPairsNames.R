@@ -1,5 +1,5 @@
 dirpath <- file.path("~", "founder_diet_study")
-dirpath <- file.path(dirpath, "HarmonizedData", "Normalized")
+dirpath <- file.path(dirpath, "HarmonizedData")
 traitData <- dplyr::filter(
   readRDS(file.path(dirpath, "traitData.rds")),
   dataset %in% c("Physio", "PlaMet0"))
@@ -32,7 +32,8 @@ ui <- function() {
       shiny::sidebarPanel(
         # Key Datasets and Trait.
         shiny::fluidRow(
-          shiny::column(6, foundr::shinyTraitOrderInput("shinyOrder")),
+          shiny::column(3, shiny::uiOutput("dataset")),
+          shiny::column(3, foundr::shinyTraitOrderInput("shinyOrder")),
           shiny::column(6, foundr::shinyTraitNamesUI("shinyKeyTrait"))),
         
         # Related Datasets and Traits.
@@ -45,25 +46,38 @@ ui <- function() {
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1),
         
         # Trait Table Response.
-        foundr::shinyTraitTableUI("shinyTable"),
-        
-        foundr::shinyCorTableUI("shinyCorTable")
+        foundr::shinyTraitTableUI("shinyTable")
       ),
 
       shiny::mainPanel(
         shiny::tagList(
           foundr::shinyTraitPairsUI("shinyPairs"),
-          foundr::shinyTraitTableOutput("shinyObject")
+          foundr::shinyTraitTableOutput("shinyTable")
         )
       )))
 }
 
 server <- function(input, output, session) {
   
+  # *** There is some bug here that gets duplicate names to `trait_names`.
+  # *** This is fixed by a kludge in `traitSolos`.
+  # *** The problem does not manifest in `appTraitPanel`
+  
   customSettings <- NULL
+  
+  # I/O FROM MODULE
+  output$dataset <- shiny::renderUI({
+    # Dataset selection.
+    datasets <- unique(traitStats$dataset)
+    
+    # Get datasets.
+    shiny::selectInput("dataset", "Datasets:",
+                       datasets, datasets[1], multiple = TRUE)
+  })
+
   # MODULES
   # Order Traits by Stats.
-  orderOutput <- foundr::shinyTraitOrder("shinyOrder", traitStats, traitSignal)
+  orderOutput <- foundr::shinyTraitOrder("shinyOrder", input, input, traitStats)
   
   # Key Trait.
   keyTraitOutput <- foundr::shinyTraitNames("shinyKeyTrait", input, orderOutput)
@@ -76,20 +90,18 @@ server <- function(input, output, session) {
   relTraitsOutput <- foundr::shinyTraitNames("shinyRelTraits", input,
                                       corTableOutput, TRUE)
 
-  # Filter static traitData based on selected trait_names.
-  traitDataInput <- shiny::reactive({
-    shiny::req(trait_names())
-    
-    foundr::subset_trait_names(traitData, trait_names())
-  })
-  
-  tableOutput <- foundr::shinyTraitTable("shinyTable", input, trait_names,
-                                 traitDataInput, traitSignal)
-  
-  pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, trait_names,
+  tableOutput <- foundr::shinyTraitTable("shinyTable", input, input, trait_names,
+                                 relTraitsOutput, traitData, traitSignal)
+
+  pairsOutput <- foundr::shinyTraitPairs("shinyPairs", input, input, trait_names,
                                  tableOutput)
   
   # Trait Names.
+  trait_name <- shiny::reactive({
+    c(shiny::req(keyTraitOutput()),
+      relTraitsOutput())
+  },
+  label = "trait_names")
   trait_names <- shiny::reactive({
     c(shiny::req(keyTraitOutput()),
       relTraitsOutput())

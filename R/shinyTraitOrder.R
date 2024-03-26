@@ -1,19 +1,11 @@
 #' Shiny Module Input for Trait Stats
-#' @return nothing returned
 #' @rdname shinyTraitOrder
 #' @export
 shinyTraitOrderInput <- function(id) {
   ns <- shiny::NS(id)
-  
-#  shiny::fluidRow(
-#    shiny::column(6, shiny::uiOutput(ns("keydataset"))),
-#    shiny::column(6, 
   shiny::uiOutput(ns("order"))
-#  ))
 }
-
 #' Shiny Module UI for Trait Stats
-#' @return nothing returned
 #' @rdname shinyTraitOrder
 #' @export
 shinyTraitOrderUI <- function(id) {
@@ -24,9 +16,10 @@ shinyTraitOrderUI <- function(id) {
 }
 #' Shiny Module Server for Trait Stats
 #'
+#' 
 #' @param id identifier for shiny reactive
 #' @param panel_par,main_par input reactive list
-#' @param traitStats,traitSignal static data frame
+#' @param traitStats static data frame
 #' @param customSettings custom settings list
 #' @param allDatasets initially select all datasets if `TRUE`
 #'
@@ -38,7 +31,7 @@ shinyTraitOrderUI <- function(id) {
 #' @export
 #'
 shinyTraitOrder <- function(id, panel_par, main_par,
-                            traitStats, traitSignal = NULL,
+                            traitStats,
                             customSettings = NULL, allDatasets = FALSE) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns

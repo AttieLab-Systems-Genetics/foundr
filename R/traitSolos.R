@@ -39,8 +39,9 @@ traitSolos <- function(traitData,
     bys <- c("dataset","strain","sex","trait")
   }
   
-  response <- match.arg(response)
+  traitnames <- unique(traitnames)
   
+  response <- match.arg(response)
   if(response == "normed") {
     # Apply nqrank() to get normal scores, keeping same mean and SD.
     traitData <- normalscores(traitData)

@@ -63,7 +63,7 @@ shinyTraitTable <- function(id, panel_par, main_par, keyTrait, relTraits,
     })
     relData <- shiny::reactive({
       shiny::req(panel_par$reldataset)
-      
+
       subset_trait_names(traitData, relTraits())
     })
     traitDataInput <- shiny::reactive({
