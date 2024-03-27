@@ -6,8 +6,7 @@ shinyContrastPanelInput <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
     shiny::uiOutput(ns("shinyInput")),
-    shiny::radioButtons(ns("contrast"), "Contrast by ...",
-                        c("Sex", "Time", "Module"), inline = TRUE))
+    shiny::uiOutput(ns("butby")))
 }
 #' Shiny Module Output for Contrast Panel
 #' @return nothing returned
@@ -38,7 +37,12 @@ shinyContrastPanel <- function(id, main_par,
     
     # INPUTS
     # RETURNS
-    #   contrastOutput
+    #   moduleContrast
+    
+    # *** not totally set with the Time button
+    # *** make sure data are really there, and make Time plot work
+    # *** sometimes the traits don't work properly in moduleContrast
+    # *** think about better naming conventions
     
     # Identify all Time Traits.
     timetrait_all <- timetraitsall(traitSignal)
@@ -46,15 +50,18 @@ shinyContrastPanel <- function(id, main_par,
     traitStatsTime <- time_trait_subset(traitStats, timetrait_all)
     
     # MODULES
-    # Contrast Trait Table
-    contrastOutput <- shinyContrastTable("shinyContrastTable",
+    # Contrast Module Table
+    moduleContrast <- shinyContrastTable("shinyContrastTable",
       input, main_par, traitSignal, traitStats, customSettings)
+    # Contrast Trait Table
+    traitContrast <- shinyContrastTable("shinyContrastTable",
+      input, main_par, traitSignal, traitStats, customSettings, keepDatatraits)
     # Contrast Trait Plots by Sex
     shinyContrastSex("shinyContrastSex",
-      input, main_par, contrastOutput, customSettings)
+      input, main_par, moduleContrast, customSettings)
     # Contrast Time Trait Table
     contrastTimeOutput <- shinyContrastTable("shinyContrastTimeTable",
-      input, main_par, traitSignal, traitStatsTime, customSettings, TRUE)
+      input, main_par, traitSignal, traitStatsTime, customSettings)
     # Contrast Time Traits
     timeOutput <- shinyContrastTime("shinyContrastTime", input, main_par,
       traitSignal, traitStatsTime, contrastTimeOutput, customSettings)
@@ -62,7 +69,7 @@ shinyContrastPanel <- function(id, main_par,
     shinyTimePlot("shinyTimePlot", input, main_par, traitSignal, timeOutput)
     # Contrast Modules.
     moduleOutput <- shinyContrastModule("shinyContrastModule",
-      input, main_par, traitContrPval, traitModule)
+      input, main_par, traitModule, moduleContrast, traitContrast)
     
     # SERVER-SIDE Inputs
     output$strains <- shiny::renderUI({
@@ -70,17 +77,25 @@ shinyContrastPanel <- function(id, main_par,
       shiny::checkboxGroupInput(ns("strains"), "Strains",
                                 choices = choices, selected = choices, inline = TRUE)
     })
-    
-    traitContrPval <- reactive({
-      shiny::req(contrastOutput())
+    output$butby <- shiny::renderUI({
+      if(length(timetraits_dataset())) {
+        buttons <- c("Sex", "Time", "Module")
+      } else {
+        buttons <- c("Sex", "Module")
+      }
+      shiny::radioButtons(ns("contrast"), "Contrast by ...",
+                          buttons, inline = TRUE)
+    })
+    timetraits_dataset <- shiny::reactive({
+      shiny::req(main_par$dataset)
       
-      if(is.null(traitModule))
-        return(NULL)
-      pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
-      if(is.null(pvalue)) pvalue <- 1.0
-      dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
+      foundr::timetraitsall(dplyr::filter(traitSignal, dataset %in% main_par$dataset))
     })
     
+    
+    keepDatatraits <- reactive({
+      foundr:::keptDatatraits(traitModule, shiny::req(main_par$dataset)[1])
+    })
     
     # Input
     output$shinyInput <- shiny::renderUI({
@@ -148,6 +163,6 @@ shinyContrastPanel <- function(id, main_par,
     })
 
     ###############################################################
-    contrastOutput
+    moduleContrast
   })
 }
