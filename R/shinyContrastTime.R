@@ -6,6 +6,14 @@ shinyContrastTimeInput <- function(id) {
   ns <- shiny::NS(id)
   shinyTimeTraitsInput(ns("shinyTimeTraits"))
 }
+#' Shiny Module UI for Contrasts over Time
+#' @return nothing returned
+#' @rdname shinyContrastTime
+#' @export
+shinyContrastTimeUI <- function(id) {
+  ns <- shiny::NS(id)
+  shinyTimeTraitsUI(ns("shinyTimeTraits"))
+}
 #' Shiny Module Server for Contrasts over Time
 #'
 #' @param id identifier for shiny reactive

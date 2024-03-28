@@ -4,8 +4,16 @@
 #' @export
 shinyContrastPanelInput <- function(id) {
   ns <- shiny::NS(id)
+  shiny::uiOutput(ns("shinyInput")) # Order, Traits (if butby == "Time")
+}
+#' Shiny Module Input for Contrast Panel
+#' @return nothing returned
+#' @rdname shinyContrastPanel
+#' @export
+shinyContrastPanelUI <- function(id) {
+  ns <- shiny::NS(id)
   shiny::tagList(
-    shiny::uiOutput(ns("shinyInput")),
+    shiny::uiOutput(ns("shinyUI")), # Time Unit (if butby == "Time")
     shiny::uiOutput(ns("butby")))
 }
 #' Shiny Module Output for Contrast Panel
@@ -79,7 +87,7 @@ shinyContrastPanel <- function(id, main_par,
     })
     output$butby <- shiny::renderUI({
       if(length(timetraits_dataset())) {
-        buttons <- c("Sex", "Time", "Module")
+        buttons <- c("Sex", "Module", "Time")
       } else {
         buttons <- c("Sex", "Module")
       }
@@ -103,14 +111,19 @@ shinyContrastPanel <- function(id, main_par,
       switch(
         input$contrast,
         Sex =, Module = {
-          shiny::tagList(
-            shinyContrastTableInput(ns("shinyContrastTable")))
+          shiny::column(4, shinyContrastTableInput(ns("shinyContrastTable")))
         },
         Time = {
-          shiny::tagList(
-            shinyContrastTableInput(ns("shinyContrastTimeTable")),
-            shinyContrastTimeInput(ns("shinyContrastTime")))
+          shiny::fluidRow(
+            shiny::column(4, shinyContrastTableInput(ns("shinyContrastTimeTable"))), # Order
+            shiny::column(8, shinyContrastTimeInput(ns("shinyContrastTime")))) # Traits
         })
+    })
+    output$shinyUI <- shiny::renderUI({
+      shiny::req(input$contrast)
+      if(input$contrast == "Time") {
+        shinyContrastTimeUI(ns("shinyContrastTime")) # Time Unit
+      }
     })
     
     # Output

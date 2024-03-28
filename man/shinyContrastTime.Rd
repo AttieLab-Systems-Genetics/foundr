@@ -2,10 +2,13 @@
 % Please edit documentation in R/shinyContrastTime.R
 \name{shinyContrastTimeInput}
 \alias{shinyContrastTimeInput}
+\alias{shinyContrastTimeUI}
 \alias{shinyContrastTime}
 \title{Shiny Module Input for Contrasts over Time}
 \usage{
 shinyContrastTimeInput(id)
+
+shinyContrastTimeUI(id)
 
 shinyContrastTime(
   id,
@@ -29,10 +32,14 @@ shinyContrastTime(
 \value{
 nothing returned
 
+nothing returned
+
 reactive object
 }
 \description{
 Shiny Module Input for Contrasts over Time
+
+Shiny Module UI for Contrasts over Time
 
 Shiny Module Server for Contrasts over Time
 }

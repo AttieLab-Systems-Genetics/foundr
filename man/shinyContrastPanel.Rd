@@ -2,11 +2,14 @@
 % Please edit documentation in R/shinyContrastPanel.R
 \name{shinyContrastPanelInput}
 \alias{shinyContrastPanelInput}
+\alias{shinyContrastPanelUI}
 \alias{shinyContrastPanelOutput}
 \alias{shinyContrastPanel}
 \title{Shiny Module Input for Contrast Panel}
 \usage{
 shinyContrastPanelInput(id)
+
+shinyContrastPanelUI(id)
 
 shinyContrastPanelOutput(id)
 
@@ -33,9 +36,13 @@ nothing returned
 
 nothing returned
 
+nothing returned
+
 reactive object
 }
 \description{
+Shiny Module Input for Contrast Panel
+
 Shiny Module Input for Contrast Panel
 
 Shiny Module Output for Contrast Panel
