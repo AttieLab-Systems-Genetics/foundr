@@ -49,7 +49,16 @@ shinyContrastPanel <- function(id, main_par,
     
     # *** not totally set with the Time button
     # *** make sure data are really there, and make Time plot work
-    # *** sometimes the traits don't work properly in moduleContrast
+    
+    # *** changes to shinyContrastPanel for MixMod:
+    # *** reset of Module when sex changes--do not do for MixMod
+    # *** MixMod traits calculations are slow: only do for selected Module?
+    # *** this may require moving input$module up one level
+    # *** this involves keptDatatraits in eigen_traits.R, which is passed to shinyContrastTable
+    # *** which is before module is identified in shinyContrastModule
+    
+    # *** not sure we need shinyModule{Eigen,Datasets} anymore
+    # *** also reconsdier shinyModule{Comp,Dendro,Names,s}
     # *** think about better naming conventions
     
     # Identify all Time Traits.

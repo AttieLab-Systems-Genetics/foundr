@@ -224,8 +224,9 @@ shinyContrastPlot <- function(id, panel_par, main_par,
       shiny::req(contrastTable())
       title <- shiny::req(info())$title
       if(title == "Strains") {
-        summary_conditionContrasts(contrastTable(), 
-              ntrait = shiny::req(input$ntrait))
+        summary_conditionContrasts(
+          dplyr::filter(contrastTable(), sex == shiny::req(panel_par$sex)),
+          ntrait = 0)
       } else { # title == "Terms"
         summary_strainstats(contrastTable(),
                             stats = "log10.p", model = "terms",

@@ -153,7 +153,7 @@ eigen_traits_dataset_value <- function(object = NULL,
   contr_object <- 
     dplyr::filter(
       dplyr::left_join(
-        contr_object,
+        dplyr::filter(contr_object, sex %in% sexname),
         dplyr::select(object$value$modules, -dropped),
         by = c("dataset", "trait")),
       .data$module %in% modulename)
@@ -161,7 +161,7 @@ eigen_traits_dataset_value <- function(object = NULL,
   # Could add columns from `object$value$modules`
   dplyr::select(
     dplyr::bind_rows(
-      (dplyr::filter(eigen_object, trait == modulename) |>
+      (dplyr::filter(eigen_object, trait == modulename, sex %in% sexname) |>
          dplyr::mutate(trait = "Eigen", module = modulename))[names(contr_object)],
       contr_object),
     -module)
