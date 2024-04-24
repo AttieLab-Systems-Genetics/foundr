@@ -6,6 +6,14 @@ shinyContrastTableInput <- function(id) {
   ns <- shiny::NS(id)
   shinyTraitOrderInput(ns("shinyOrder"))
 }
+#' Shiny Module UI for Trait Panel
+#' @return nothing returned
+#' @rdname shinyContrastTable
+#' @export
+shinyContrastTableUI <- function(id) {
+  ns <- shiny::NS(id)
+  shinyTraitOrderUI(ns("shinyOrder"))
+}
 #' Shiny Module Server for Contrast Panel
 #'
 #' @param id identifier for shiny reactive

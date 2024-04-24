@@ -2,10 +2,13 @@
 % Please edit documentation in R/shinyContrastTable.R
 \name{shinyContrastTableInput}
 \alias{shinyContrastTableInput}
+\alias{shinyContrastTableUI}
 \alias{shinyContrastTable}
 \title{Shiny Module Input for Trait Panel}
 \usage{
 shinyContrastTableInput(id)
+
+shinyContrastTableUI(id)
 
 shinyContrastTable(
   id,
@@ -31,10 +34,14 @@ shinyContrastTable(
 \value{
 nothing returned
 
+nothing returned
+
 reactive object
 }
 \description{
 Shiny Module Input for Trait Panel
+
+Shiny Module UI for Trait Panel
 
 Shiny Module Server for Contrast Panel
 }

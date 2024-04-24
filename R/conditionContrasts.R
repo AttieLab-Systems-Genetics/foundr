@@ -184,7 +184,7 @@ plot.conditionContrasts <- function(x, ...) {
 #' @importFrom tidyr pivot_wider
 #' @rdname conditionContrasts
 #'
-summary_conditionContrasts <- function(object, ntrait = 20,
+summary_conditionContrasts <- function(object, ntrait = 0,
                                        sortby = ordername,
                                        ordername = attr(object, "ordername"),
                                        ...) {

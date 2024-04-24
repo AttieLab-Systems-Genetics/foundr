@@ -91,13 +91,15 @@ eigen_traits_dataset <- function(object = NULL,
   
   eigen_traits_dataset_sex(object, sexname, modulename, contr_object, eigen_object)
 }
-keptDatatraits <- function(traitModule, dataset) {
+keptDatatraits <- function(traitModule, dataset, modulename = NULL) {
   # If MixMod, then get all the kept `dataset: trait` values.
   ds <- dataset
   if(ds == "MixMod") {
-    tidyr::unite(
-      dplyr::filter(traitModule[[ds]]$value$module, !dropped),
-      datatraits, dataset, trait, sep = ": ")$datatraits
+    out <- dplyr::filter(traitModule[[ds]]$value$module, !dropped)
+    if(!is.null(modulename)) {
+      out <- dplyr::filter(out, module == modulename)
+    }
+    tidyr::unite(out, datatraits, dataset, trait, sep = ": ")$datatraits
   } else {
     NULL
   }

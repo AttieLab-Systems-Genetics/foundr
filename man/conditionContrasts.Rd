@@ -27,7 +27,7 @@ ggplot_conditionContrasts(
 
 summary_conditionContrasts(
   object,
-  ntrait = 20,
+  ntrait = 0,
   sortby = ordername,
   ordername = attr(object, "ordername"),
   ...
