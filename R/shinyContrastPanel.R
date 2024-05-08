@@ -33,7 +33,7 @@ shinyContrastPanelOutput <- function(id) {
 #'
 #' @return reactive object 
 #' @importFrom shiny column fluidRow h3 isTruthy moduleServer NS radioButtons
-#'             reactive renderText renderUI tagList uiOutput
+#'             reactive reactiveVal renderText renderUI tagList uiOutput
 #' @importFrom stringr str_to_title
 #' @export
 #'
@@ -103,22 +103,59 @@ shinyContrastPanel <- function(id, main_par,
       shiny::radioButtons(ns("contrast"), "Contrast by ...",
                           buttons, inline = TRUE)
     })
+    contr_selection <- shiny::reactiveVal(NULL, label = "contr_selection")
+    shiny::observeEvent(input$contrast, contr_selection(input$contrast))
+    
     timetraits_dataset <- shiny::reactive({
       shiny::req(main_par$dataset)
       
       foundr::timetraitsall(dplyr::filter(traitSignal, dataset %in% main_par$dataset))
     })
+    sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
+    output$sex <- shiny::renderUI({
+      shiny::selectInput(ns("sex"), "", as.vector(sexes))
+    })
+    output$module <- shiny::renderUI({
+      shiny::selectizeInput(ns("module"), "Module:", NULL)
+    })
+    shiny::observeEvent(
+      shiny::req(datatraits(), main_par$dataset, input$sex, contr_selection()),
+      {
+        # First zero out input$module.
+        shiny::updateSelectizeInput(session, "module",
+                                    selected = "", server = TRUE)
+        # Then set choices.
+        shiny::updateSelectizeInput(session, "module", choices = datatraits(),
+                                    selected = "", server = TRUE)
+      })
     
+    datamodule <- shiny::reactive({
+      traitModule[shiny::req(main_par$dataset[1])]
+    })
+    datatraits <- shiny::reactive({
+      shiny::req(input$sex, main_par$dataset, datamodule())
+      
+      if(foundr:::is_sex_module(datamodule())) {
+        out <- unique(datamodule()[[main_par$dataset[1]]][[input$sex]]$modules$module)
+        paste0(main_par$dataset[1], ": ", names(sexes)[match(input$sex, sexes)], "_", out)
+      } else {
+        paste0(main_par$dataset[1], ": ", unique(datamodule()[[main_par$dataset]]$value$modules$module))
+      }
+    }, label = "datatraits")
     
     keepDatatraits <- reactive({
-      foundr:::keptDatatraits(traitModule, shiny::req(main_par$dataset)[1])
+      module <- NULL
+      if(shiny::isTruthy(input$module))
+        module <- input$module
+      
+      foundr:::keptDatatraits(traitModule, shiny::req(main_par$dataset)[1], module)
     })
-    
+
     # Input
     output$shinyInput <- shiny::renderUI({
-      shiny::req(input$contrast)
+      shiny::req(contr_selection())
       switch(
-        input$contrast,
+        contr_selection(),
         Sex =, Module = {
           shiny::column(4, shinyContrastTableInput(ns("shinyContrastTable")))
         },
@@ -129,32 +166,42 @@ shinyContrastPanel <- function(id, main_par,
         })
     })
     output$shinyUI <- shiny::renderUI({
-      shiny::req(input$contrast)
-      if(input$contrast == "Time") {
+      shiny::req(contr_selection())
+      if(contr_selection() == "Time") {
         shinyContrastTimeUI(ns("shinyContrastTime")) # Time Unit
       }
     })
     
     # Output
     output$shinyOutput <- shiny::renderUI({
-      shiny::req(input$contrast)
+      shiny::req(contr_selection())
       shiny::tagList(
         shiny::uiOutput(ns("text")),
         
-        if(input$contrast == "Time") {
+        switch(contr_selection(),
+               Sex = shinyContrastSexInput(ns("shinyContrastSex")),
+               Module = shinyContrastModuleInput(ns("shinyContrastModule"))),
+      
+        if(contr_selection() == "Time") {
           shiny::fluidRow(
             shiny::column(9, shiny::uiOutput(ns("strains"))),
             shiny::column(3, shiny::checkboxInput(ns("facet"), "Facet by strain?", TRUE)))
+        } else { # Sex, Module
+          shiny::fluidRow(
+            shiny::column(4, shiny::uiOutput(ns("sex"))),
+            shiny::column(8, 
+              switch(contr_selection(),
+                Sex = shinyContrastSexUI(ns("shinyContrastSex")),
+                Module = shiny::uiOutput(ns("module")))))
         },
-        
-        switch(input$contrast,
-          Sex = shinyContrastSexOutput(ns("shinyContrastSex")),
+
+        switch(contr_selection(),
           Time = {
             shiny::tagList(
               shinyTimePlotUI(ns("shinyTimePlot")),
-              shinyTimePlotOutput(ns("shinyTimePlot"))
-            )
+              shinyTimePlotOutput(ns("shinyTimePlot")))
           },
+          Sex = shinyContrastSexOutput(ns("shinyContrastSex")),
           Module = shinyContrastModuleOutput(ns("shinyContrastModule"))))
     })
     
@@ -174,9 +221,9 @@ shinyContrastPanel <- function(id, main_par,
             "These may be viewed by sex or averaged over sex",
             " (Both Sexes) or by contrast of Female - Male",
             " (Sex Contrast).")
-          if(shiny::req(input$contrast) == "Time")
+          if(shiny::req(contr_selection()) == "Time")
             out <- paste(out, "Contrasts over time are by trait.")
-          if(shiny::req(input$contrast) == "Module")
+          if(shiny::req(contr_selection()) == "Module")
             out <- paste(out, "WGCNA modules by dataset and sex have",
                          "power=6, minSize=4.",
                          "Select a Module to see module members.")

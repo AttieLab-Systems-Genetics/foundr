@@ -34,7 +34,7 @@ ui <- function() {
         shiny::sliderInput("height", "Plot height (in):", 3, 10, 6, step = 1)),
       
     shiny::mainPanel(
-        foundr::shinyContrastPanelOutput("shinyPanel")
+      foundr::shinyContrastPanelOutput("shinyPanel")
       )))
 }
 
@@ -56,7 +56,6 @@ server <- function(input, output, session) {
     shiny::selectInput("dataset", "Datasets:",
                        datasets, datasets[1], multiple = TRUE)
   })
-  
 }
 
 shiny::shinyApp(ui = ui, server = server)

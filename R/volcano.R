@@ -131,6 +131,9 @@ volcano <- function(object,
                         paste(termname, collapse = ", "))
   if("sex" %in% termname)
     xlab_default <- "Female - deviations + Male"
+  
+  if(facet && "strain" %in% names(object))
+    object <- dplyr::mutate(object, strain = factor(.data$strain, names(foundr::CCcolors)))
     
   # Convert directly in the aes()
   CB_colors <- RColorBrewer::brewer.pal(n = 3, name = "Dark2")
