@@ -1,34 +1,39 @@
-#' Shiny Sex Output for Contrast Plots
-#'
-#' @param id identifier for shiny reactive
+#' Shiny Sex Input for Contrast Plots
 #'
 #' @return nothing returned
 #' @rdname shinyContrastSex
-#' @importFrom shiny column fluidRow NS radioButtons uiOutput
 #' @export
+shinyContrastSexInput <- function(id) {
+  ns <- shiny::NS(id)
+  shinyContrastPlotInput(ns("shinyContrastPlot"))
+}
+#' Shiny Sex UI for Contrast Plots
 #'
+#' @return nothing returned
+#' @rdname shinyContrastSex
+#' @export
+shinyContrastSexUI <- function(id) {
+  ns <- shiny::NS(id)
+  shinyContrastPlotUI(ns("shinyContrastPlot"))
+}
+#' Shiny Sex Output for Contrast Plots
+#'
+#' @return nothing returned
+#' @rdname shinyContrastSex
+#' @export
 shinyContrastSexOutput <- function(id) {
   ns <- shiny::NS(id)
-  
-  shiny::tagList(
-    shinyContrastPlotInput(ns("shinyContrastPlot")),
-    
-    shiny::fluidRow(
-      shiny::column(3, shiny::uiOutput(ns("sex"))),
-      shiny::column(9, shinyContrastPlotUI(ns("shinyContrastPlot")))),
-
-    shinyContrastPlotOutput(ns("shinyContrastPlot")))
+  shinyContrastPlotOutput(ns("shinyContrastPlot"))
 }
-
 #' Shiny Sex Server for Contrast Plots
 #'
-#' @param id identifier
+#' @param id identifier for shiny reactive
 #' @param panel_par,main_par input parameters
 #' @param contrastTable reactive data frame
 #' @param customSettings list of custom settings
 #'
 #' @return reactive object 
-#' @importFrom shiny column moduleServer observeEvent
+#' @importFrom shiny column fluidRow moduleServer NS observeEvent
 #'             reactive renderUI req selectInput tagList uiOutput
 #'             updateSelectInput
 #' @importFrom DT renderDataTable
@@ -44,17 +49,13 @@ shinyContrastSex <- function(id, panel_par, main_par,
     #   main_par$tabpanel
     #   main_par$height
     #   main_par$strains
-    output$sex <- shiny::renderUI({
-      sexes <- c("Both Sexes", "Female", "Male", "Sex Contrast")
-      
-      shiny::selectInput(ns("sex"), "", sexes)
-    })
-    
+    #   panel_par$sex
+
     # RETURNS
     
     # Contrast Trait Plots
     shinyContrastPlot("shinyContrastPlot",
-                      input, main_par,
+                      panel_par, main_par,
                       contrastTable, customSettings, 
                       shiny::reactive("Sex Contrasts"))
   })

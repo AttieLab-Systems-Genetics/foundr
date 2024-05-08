@@ -81,11 +81,7 @@ eigen_traits_dataset <- function(object = NULL,
                                  eigen_object = eigen_contrast(object, contr_object)) {
   if(is.null(object) | is.null(contr_object))
     return(NULL)
-  
-  # Module name `dataset` must match one of the elements of `object`
-  if(!all(stringr::str_remove(modulename, ": .*$") %in% names(object)))
-    return(NULL)
-  
+
   if(!is_sex_module(object))
     return(eigen_traits_dataset_value(object, sexname, modulename, contr_object, eigen_object))
   
@@ -97,7 +93,7 @@ keptDatatraits <- function(traitModule, dataset, modulename = NULL) {
   if(ds == "MixMod") {
     out <- dplyr::filter(traitModule[[ds]]$value$module, !dropped)
     if(!is.null(modulename)) {
-      out <- dplyr::filter(out, module == modulename)
+      out <- dplyr::filter(out, module == stringr::str_remove(modulename, "^.*: "))
     }
     tidyr::unite(out, datatraits, dataset, trait, sep = ": ")$datatraits
   } else {
@@ -153,12 +149,12 @@ eigen_traits_dataset_value <- function(object = NULL,
 
   modulename <- stringr::str_remove(modulename, "^.*: ")
   contr_object <- 
-    dplyr::filter(
-      dplyr::left_join(
-        dplyr::filter(contr_object, sex %in% sexname),
+    dplyr::left_join(
+      dplyr::filter(contr_object, sex %in% sexname),
+      dplyr::filter(
         dplyr::select(object$value$modules, -dropped),
-        by = c("dataset", "trait")),
-      .data$module %in% modulename)
+        .data$module %in% modulename),
+      by = c("dataset", "trait"))
   # Return contr_object after filtering
   # Could add columns from `object$value$modules`
   dplyr::select(
@@ -180,6 +176,10 @@ eigen_traits_dataset_sex <- function(object = NULL,
   datasetname <- stringr::str_remove(modulename, ": .*")
   modulename <- stringr::str_remove(modulename, ".*: ")
   if(!(datasetname %in% names(object)))
+    return(NULL)
+  sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
+  sexes <- names(sexes)[match(sexname, sexes)]
+  if(sexes != stringr::str_remove(modulename, "_.*"))
     return(NULL)
   
   eigen_traits(object[[datasetname]],

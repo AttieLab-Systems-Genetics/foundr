@@ -15,13 +15,16 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("dataset"),
-        foundr::shinyContrastTableInput("shinyContrastTable"),
-        shiny::uiOutput("strains")
-        ),
+        foundr::shinyContrastTableInput("shinyContrastTable")),
       
       shiny::mainPanel(
-#        shiny::uiOutput("intro"),
-        foundr::shinyContrastSexOutput("shinyContrastSex")
+        shiny::tagList(
+          foundr::shinyContrastSexInput("shinyContrastSex"),
+          shiny::fluidRow(
+            shiny::column(4, shiny::uiOutput("sex")),
+            shiny::column(8, foundr::shinyContrastSexUI("shinyContrastSex"))),
+          foundr::shinyContrastSexOutput("shinyContrastSex")
+        )
       )
     ))
 }
@@ -65,6 +68,10 @@ server <- function(input, output, session) {
     shiny::checkboxGroupInput(
       "strains", "Strains",
       choices = choices, selected = choices, inline = TRUE)
+  })
+  sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
+  output$sex <- shiny::renderUI({
+    shiny::selectInput("sex", "", as.vector(sexes))
   })
   
   output$intro <- renderUI({

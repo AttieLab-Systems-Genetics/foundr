@@ -15,13 +15,17 @@ ui <- function() {
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::uiOutput("dataset"),
-        foundr::shinyContrastTableInput("shinyContrastTable"),
-        shiny::uiOutput("strains")
+        foundr::shinyContrastTableInput("shinyContrastTable")
       ),
       
       shiny::mainPanel(
-        #        shiny::uiOutput("intro"),
-        foundr::shinyContrastModuleOutput("shinyContrastModule")
+        shiny::tagList(
+          foundr::shinyContrastModuleInput("shinyContrastModule"),
+          shiny::fluidRow(
+            shiny::column(4, shiny::uiOutput("sex")),
+            shiny::column(8, shiny::uiOutput("module"))),
+          foundr::shinyContrastModuleOutput("shinyContrastModule")
+        )
       )
     ))
 }
@@ -56,6 +60,7 @@ server <- function(input, output, session) {
   traitContrast <- foundr::shinyContrastTable("shinyContrastTable",
     input, input, traitSignal, traitStats, customSettings, keepDatatraits)
   # Contrast Modules.
+  # *** problem for MixMod is that traitContrast and moduleContrast may be wrong.
   moduleOutput <- foundr::shinyContrastModule("shinyContrastModule",
     input, input, traitModule, moduleContrast, traitContrast)
   
@@ -68,28 +73,44 @@ server <- function(input, output, session) {
     shiny::selectInput("dataset", "Datasets:",
                        datasets, datasets[1], multiple = TRUE)
   })
-  output$strains <- shiny::renderUI({
-    choices <- names(foundr::CCcolors)
-    shiny::checkboxGroupInput(
-      "strains", "Strains",
-      choices = choices, selected = choices, inline = TRUE)
+  sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
+  output$sex <- shiny::renderUI({
+    shiny::selectInput("sex", "", as.vector(sexes))
   })
+  output$module <- shiny::renderUI({
+    shiny::selectizeInput("module", "Module:", NULL)
+  })
+  shiny::observeEvent(
+    shiny::req(datatraits(), input$dataset, input$sex),
+    {
+      # First zero out input$module.
+      shiny::updateSelectizeInput(session, "module",
+                                  selected = "", server = TRUE)
+      # Then set choices.
+      shiny::updateSelectizeInput(session, "module", choices = datatraits(),
+                                  selected = "", server = TRUE)
+  })
+
+  datamodule <- shiny::reactive({
+    traitModule[shiny::req(input$dataset[1])]
+  })
+  datatraits <- shiny::reactive({
+    shiny::req(input$sex, input$dataset, datamodule())
+    
+    if(foundr:::is_sex_module(datamodule())) {
+      out <- unique(datamodule()[[input$dataset[1]]][[input$sex]]$modules$module)
+      paste0(input$dataset[1], ": ", names(sexes)[match(input$sex, sexes)], "_", out)
+    } else {
+      paste0(input$dataset[1], ": ", unique(datamodule()[[input$dataset]]$value$modules$module))
+    }
+  }, label = "datatraits")
   
   keepDatatraits <- reactive({
-    foundr:::keptDatatraits(traitModule, shiny::req(input$dataset)[1])
-  })
-  traitContrPval <- reactive({
-    shiny::req(contrastOutput())
-    pvalue <- attr(traitModule, "p.value") # set by construction of `traitModule`
-    if(is.null(pvalue)) pvalue <- 1.0
+    module <- NULL
+    if(shiny::isTruthy(input$module))
+      module <- input$module
     
-    dplyr::filter(shiny::req(contrastOutput()), .data$p.value <= pvalue)
-  })
-  
-  output$intro <- renderUI({
-    shiny::renderText("intro", {
-      paste("Guideline is to have power of 6 and size of 4 for unsigned modules.")
-    })
+    foundr:::keptDatatraits(traitModule, shiny::req(input$dataset)[1], module)
   })
 }
 
