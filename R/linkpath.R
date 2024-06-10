@@ -36,6 +36,7 @@ link_datasets <- function(object, linkfile, deployDir = "deploy") {
   datasets <- datasets[names(datasets) %in% unique(object$dataset)]
   
   # Save `datasets` as RDS in `deployDir`.
+  if(!dir.exists(deployDir)) dir.create(deployDir)
   saveRDS(datasets, file.path(deployDir, "datasets.rds"))
   
   # Render `help.md` in `deployDir`.
