@@ -1,7 +1,9 @@
 # foundr: Multiparent Founder Study Tools
 
-This package can be used on its own for analysis and visualization of founder data.
-It is part of a (planned) collection of packages:
+This package can be used on its own for analysis and visualization of founder data,
+and is part of a (planned) collection of packages. See
+[Foundr App Developer Guide](https://docs.google.com/presentation/d/171HEopFlSTtf_AbrA28YIAJxJHvkzihB4_lcV6Ct-eI)
+for an overview of package(s) use and components.
 
 - [foundr](https://github.com/byandell/foundr): data analysis and visualization
 - [foundrShiny](https://github.com/byandell/foundrShiny): interactive shiny app
@@ -9,10 +11,12 @@ It is part of a (planned) collection of packages:
 - [modulr](https://github.com/byandell/modulr): harmonize WGCNA module objects
 
 There is a default app ([inst/shinyApp/app.R](https://github.com/byandell/foundr/blob/main/inst/shinyApp/app.R))
-in this package, which will be removed soon. See [foundrShiny](https://github.com/byandell/foundrShiny).
+and shiny code in the
+[foundr](https://github.com/byandell/foundr)
+package, which will be removed soon. See [foundrShiny](https://github.com/byandell/foundrShiny)
+for the revised shiny code.
 
-The foundrHarmony is currently in two places.
-The
+The foundrHarmony repo is currently in two places. The
 [foundr](https://github.com/byandell/foundr)
 package has generic functions for harmonizing data. The
 [FounderDietStudy](https://github.com/byandell/FounderDietStudy)
