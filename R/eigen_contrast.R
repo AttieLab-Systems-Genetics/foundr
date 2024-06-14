@@ -69,7 +69,7 @@ eigen_contrast_dataset_value <- function(object, contr_object) {
         kME = signif(max(abs(kME), na.rm = TRUE), 4),
         #       p.value = signif(min(p.value, na.rm = TRUE), 4),
         size = dplyr::n(),
-        drop = sum(dropped) / size,
+        drop = signif(sum(dropped) / size, 4),
         .groups = "drop"))
   
   # Join contrast object of eigenvalues with module information

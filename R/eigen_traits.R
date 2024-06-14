@@ -152,7 +152,9 @@ eigen_traits_dataset_value <- function(object = NULL,
     dplyr::left_join(
       dplyr::filter(contr_object, sex %in% sexname),
       dplyr::filter(
-        dplyr::select(object$value$modules, -dropped),
+        dplyr::mutate(
+          dplyr::select(object$value$modules, -dropped),
+          kME = signif(.data$kME, 4)),
         .data$module %in% modulename),
       by = c("dataset", "trait"))
   # Return contr_object after filtering

@@ -213,7 +213,7 @@ summary_conditionContrasts <- function(object, ntrait = 0,
         .data$strain),
       names_from = "strain", values_from = "value")
   
-  if(ordername %in% c("p.value", "kME"))
+  if(ordername %in% c("p.value", "kME", "drop"))
     out[[ordername]] <- signif(out[[ordername]], 4)
   
   dplyr::select(
