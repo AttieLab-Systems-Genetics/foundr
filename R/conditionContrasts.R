@@ -98,21 +98,6 @@ conditionContrasts <- function(traitSignal, traitStats, termname = "signal",
   attr(out, "ordername") <- "p.value"
   out
 }
-
-# Turn `conditionContrasts` object into a `traitSignal` object.
-contrast2signal <- function(contrasts) {
-  if(is.null(contrasts))
-    return(NULL)
-  
-  dplyr::mutate(
-    dplyr::select(
-      dplyr::rename(
-        contrasts,
-        cellmean = "value"),
-      -p.value),
-    signal = .data$cellmean)
-}
-
 #' GGplot of Contrasts of Conditions
 #'
 #' @param object object of class `conditionContrasts`

@@ -74,19 +74,6 @@ eigen_traits <- function(object,
   attr(object, "ordername") <- "kME"
   object
 }
-eigen_traits_dataset <- function(object = NULL,
-                                 sexname = NULL,
-                                 modulename = NULL,
-                                 contr_object = NULL,
-                                 eigen_object = eigen_contrast(object, contr_object)) {
-  if(is.null(object) | is.null(contr_object))
-    return(NULL)
-
-  if(!is_sex_module(object))
-    return(eigen_traits_dataset_value(object, sexname, modulename, contr_object, eigen_object))
-  
-  eigen_traits_dataset_sex(object, sexname, modulename, contr_object, eigen_object)
-}
 keptDatatraits <- function(traitModule, dataset, modulename = NULL) {
   # If MixMod, then get all the kept `dataset: trait` values.
   ds <- dataset
@@ -101,6 +88,7 @@ keptDatatraits <- function(traitModule, dataset, modulename = NULL) {
   }
 }
 
+# *** not sure following is needed any more
 eigen_traits_contr_object <- function(object, traitStat, traitSignal,
                                        term_id = "strain:diet") {
   # This generates `contr_object` for `eigen_traits_dataset_value`
@@ -128,65 +116,4 @@ eigen_traits_contr_object <- function(object, traitStat, traitSignal,
   
   conditionContrasts(modSignal, modStats, 
                      termname = term_id, rawStats = modStats)
-}
-eigen_traits_dataset_value <- function(object = NULL,
-                                     sexname = NULL,
-                                     modulename = NULL,
-                                     contr_object = NULL,
-                                     eigen_object = eigen_contrast(object, contr_object)) {
-  if(is.null(object) | is.null(contr_object))
-    return(NULL)
-  
-  # Can only handle one trait module right now.
-  if(length(object) > 1)
-    return(NULL)
-  
-  # The `object` is one traitModule with element `value`.
-  object <- object[[1]]
-  datasets <- names(object)
-  if(!all(datasets %in% "value"))
-    return(NULL)
-
-  modulename <- stringr::str_remove(modulename, "^.*: ")
-  contr_object <- 
-    dplyr::left_join(
-      dplyr::filter(contr_object, sex %in% sexname),
-      dplyr::filter(
-        dplyr::mutate(
-          dplyr::select(object$value$modules, -dropped),
-          kME = signif(.data$kME, 4)),
-        .data$module %in% modulename),
-      by = c("dataset", "trait"))
-  # Return contr_object after filtering
-  # Could add columns from `object$value$modules`
-  dplyr::select(
-    dplyr::bind_rows(
-      (dplyr::filter(eigen_object, trait == modulename, sex %in% sexname) |>
-         dplyr::mutate(trait = "Eigen", module = modulename))[names(contr_object)],
-      contr_object),
-    -module)
-}
-eigen_traits_dataset_sex <- function(object = NULL,
-                                 sexname = NULL,
-                                 modulename = NULL,
-                                 contr_object = NULL,
-                                 eigen_object = eigen_contrast(object, contr_object)) {
-  if(is.null(object) || is.null(contr_object) || is.null(eigen_object) ||
-     is.null(modulename))
-    return(NULL)
-  
-  datasetname <- stringr::str_remove(modulename, ": .*")
-  modulename <- stringr::str_remove(modulename, ".*: ")
-  if(!(datasetname %in% names(object)))
-    return(NULL)
-  sexes <- c(B = "Both Sexes", F = "Female", M = "Male", C = "Sex Contrast")
-  sexes <- names(sexes)[match(sexname, sexes)]
-  if(sexes != stringr::str_remove(modulename, "_.*"))
-    return(NULL)
-  
-  eigen_traits(object[[datasetname]],
-               sexname,
-               modulename,
-               dplyr::filter(contr_object, .data$dataset == datasetname),
-               dplyr::filter(eigen_object, .data$dataset == datasetname))
 }

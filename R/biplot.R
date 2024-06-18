@@ -84,7 +84,7 @@ biplot_stat <- function(object,
   # check about transpose and all that.
   
   
-  terms <- termStats(object, signal = FALSE, drop_noise = FALSE)
+  terms <- term_stats(object, signal = FALSE, drop_noise = FALSE)
   
   orders <- match.arg(orders)
   
@@ -301,7 +301,7 @@ condition_biplot <- function(object, ordername, xlab,
 variation_biplot <- function(object, ordername, xlab,
                              threshold, strain = "NONE",
                              axes = 1:2,
-                             terms = termStats(object, signal = FALSE, drop_noise = FALSE),
+                             terms = term_stats(object, signal = FALSE, drop_noise = FALSE),
                              ...) {
   # *** Fix dataset issue and SD vs p.value.
   # *** Decide about size and strain and threshold.
