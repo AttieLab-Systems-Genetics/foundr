@@ -87,33 +87,3 @@ keptDatatraits <- function(traitModule, dataset, modulename = NULL) {
     NULL
   }
 }
-
-# *** not sure following is needed any more
-eigen_traits_contr_object <- function(object, traitStat, traitSignal,
-                                       term_id = "strain:diet") {
-  # This generates `contr_object` for `eigen_traits_dataset_value`
-  objectTraits <- unite(filter(object$value$modules, !dropped),
-                        datatrait, dataset, trait, sep = ": ",
-                        remove = FALSE)
-  
-  # The default contr_object refers only to the datasets.
-  # Need to go back to how shinyContrastTable sets up
-  # Get traits as below filter from traitSignal
-  # Probably need to set up another module.
-  
-  modStats <- 
-    traitStats |>
-    unite(datatrait, dataset, trait, sep = ": ", remove = FALSE) |>
-    filter(datatrait %in% 
-           filter(objectTraits, module %in% modulename)$datatrait) |>
-    select(-datatrait)
-  modSignal <- 
-    traitSignal |>
-    unite(datatrait, dataset, trait, sep = ": ", remove = FALSE) |>
-    filter(datatrait %in% 
-           filter(objectTraits, module %in% modulename)$datatrait) |>
-    select(-datatrait)
-  
-  conditionContrasts(modSignal, modStats, 
-                     termname = term_id, rawStats = modStats)
-}
