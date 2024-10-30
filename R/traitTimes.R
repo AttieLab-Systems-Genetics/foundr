@@ -24,31 +24,6 @@ traitTimes <- function(traitData, traitSignal, traitStats, ...) {
     stats  = stats_time(traitStats, response = "p.value", models = "terms",
                         ...))
 }
-summary_traitTime <- function(object, traitnames = names(object$traits)) {
-  # This is messy as it has to reverse engineer `value` in list.
-  object <- 
-    dplyr::bind_rows(
-      purrr::map(
-        object$traits[traitnames],
-        function(x) {
-          names(x)[match(attr(x, "pair")[2], names(x))] <- 
-            "value"
-          x
-        }))
-  object <- 
-    tidyr::separate_wider_delim(
-      dplyr::mutate(
-        object,
-        strain = factor(.data$strain, names(foundr::CCcolors)),
-        value = signif(.data$value, 4)),
-      datatraits,
-      delim = ": ",
-      names = c("dataset", "trait"))
-      
-  tidyr::pivot_wider(object, names_from = "strain", values_from = "value",
-                     names_sort = TRUE)
-}
-
 #' Strains over Time
 #' 
 #' @param traitData data frame with trait data

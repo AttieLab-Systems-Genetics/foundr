@@ -14,7 +14,10 @@ There is a default app ([inst/shinyApp/app.R](https://github.com/byandell/foundr
 and shiny code in the
 [foundr](https://github.com/byandell/foundr)
 package, which will be removed soon. See [foundrShiny](https://github.com/byandell/foundrShiny)
-for the revised shiny code.
+for the revised shiny code. See the
+[foundrBase tree of foundr](https://github.com/byandell/foundr/tree/foundrBase)
+for the revised `foundr` package (in testing phase).
+
 
 The foundrHarmony repo is currently in two places. The
 [foundr](https://github.com/byandell/foundr)

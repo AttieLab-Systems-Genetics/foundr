@@ -72,7 +72,7 @@ volcano <- function(object,
     object <- strainstats(object)
   }
   # Prefer one of terms, but could be any p-value term
-  terms <- termStats(object, signal = FALSE, ...)
+  terms <- term_stats(object, signal = FALSE, ...)
   uterm <- unique(object$term)
   if(!(all(termname %in% uterm)))
     termname <- uterm[1]
@@ -174,36 +174,6 @@ volcano <- function(object,
     p
   }
 }
-vol_default <- function(ordername) {
-  vol <- list(min = 0, max = 10, step = 1, value = 2)
-  switch(
-    ordername,
-    module = {
-    },
-    kME = {
-      vol$min <- 0.8
-      vol$max <- 1
-      vol$step <- 0.05
-      vol$value <- 0.8
-    },
-    p.value = {
-      vol$min <- 0
-      vol$max <- 10
-      vol$step <- 1
-      vol$value <- 2
-    },
-    size = {
-      vol$min <- 0
-      vol$max <- 30
-      vol$step <- 5
-      vol$value <- 15
-    })
-  vol$label <- ordername
-  if(ordername == "p.value")
-    vol$label <- "-log10(p.value)"
-
-  vol
-}
 volcano_evidence <- function(object, ordername, termname, ...) {
   if(inherits(object, "conditionContrasts")) {
     volcano(
@@ -213,7 +183,7 @@ volcano_evidence <- function(object, ordername, termname, ...) {
       "signal", facet = TRUE, traitnames = FALSE,
       ordername = ordername, ...)
   } else {
-    terms <- termStats(object, signal = FALSE, drop_noise = TRUE)
+    terms <- term_stats(object, signal = FALSE, drop_noise = TRUE)
 
     volcano(
       object,
